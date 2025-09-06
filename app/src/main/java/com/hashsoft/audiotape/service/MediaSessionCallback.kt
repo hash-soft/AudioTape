@@ -1,0 +1,157 @@
+package com.hashsoft.audiotape.service
+
+import android.content.Intent
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
+import com.hashsoft.audiotape.logic.AudioFileChecker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.future.future
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.io.FileInputStream
+
+
+class MediaSessionCallback(private val _metadataScope: CoroutineScope) : MediaSession.Callback {
+    private var metadataJob: Job? = null
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    override fun onConnect(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): MediaSession.ConnectionResult {
+        Timber.d("**onConnect session = $session controller = $controller")
+        if (session.isMediaNotificationController(controller)) {
+            // 通知バーが必要な時だけくるはず
+            Timber.d("**isMediaNotificationController")
+        }
+        return MediaSession.ConnectionResult.AcceptedResultBuilder(session).build()
+        //return super.onConnect(session, controller)
+    }
+
+    override fun onDisconnected(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ) {
+        super.onDisconnected(session, controller)
+        Timber.d("**onDisconnected session = $session controller = $controller")
+    }
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    override fun onMediaButtonEvent(
+        session: MediaSession,
+        controllerInfo: MediaSession.ControllerInfo,
+        intent: Intent
+    ): Boolean {
+        Timber.d("##onMediaButtonEvent controllerInfo: $controllerInfo intent: $intent")
+        return super.onMediaButtonEvent(session, controllerInfo, intent)
+    }
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    override fun onPlaybackResumption(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo
+    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        Timber.d("##onPlaybackResumption")
+        val settable = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+        CoroutineScope(Dispatchers.Unconfined).future {
+            // Your app is responsible for storing the playlist, metadata (like title
+            // and artwork) of the current item and the start position to use here.
+            //val resumptionPlaylist = restorePlaylist()
+            //settable.set(resumptionPlaylist)
+            settable.set(
+                MediaSession.MediaItemsWithStartPosition(
+                    emptyList(),
+                    0,
+                    0L
+                )
+            )
+        }
+        return settable
+    }
+
+    @androidx.annotation.OptIn(UnstableApi::class)
+    override fun onSetMediaItems(
+        mediaSession: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        mediaItems: List<MediaItem>,
+        startIndex: Int,
+        startPositionMs: Long
+    ): ListenableFuture<MediaItemsWithStartPosition> {
+        Timber.d("##onSetMediaItems size = ${mediaItems.size}")
+
+        metadataJob?.cancel()
+        metadataJob = _metadataScope.launch {
+            mediaItems.forEachIndexed { index, item ->
+                processMediaItem(mediaSession, index, item)
+            }
+
+        }
+        val future = SettableFuture.create<MediaItemsWithStartPosition>()
+        future.set(MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs))
+        return future
+//        return super.onSetMediaItems(
+//            mediaSession,
+//            controller,
+//            mediaItems,
+//            startIndex,
+//            startPositionMs
+//        )
+    }
+
+    private suspend fun processMediaItem(
+        mediaSession: MediaSession,
+        index: Int,
+        item: MediaItem
+    ) {
+        // Todo 取得済みの場合はリターンを追加する
+        val uri = item.localConfiguration?.uri
+        // Todo 早期リターンに変更する
+        if (uri != null && uri.scheme == null) {    // Todo scheme == "file"を追加する
+            val metadata = fetchMetadata(uri) ?: return
+            val updatedItem = item.buildUpon()
+                .setMediaMetadata(
+                    metadata
+                )
+                .build()
+            withContext(Dispatchers.Main) {
+                mediaSession.player.replaceMediaItem(index, updatedItem)
+                Timber.d("##onSetMediaItems replace = $index")
+            }
+
+        }
+    }
+
+    private fun fetchMetadata(uri: Uri): MediaMetadata? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            FileInputStream(uri.path).use { inputStream ->
+                retriever.setDataSource(inputStream.fd)
+                val result = AudioFileChecker().getMetadata(retriever)
+                result.onSuccess { metadata ->
+                    return MediaMetadata.Builder()
+                        .setTitle(metadata.title)
+                        .setArtist(metadata.artist)
+                        .setDurationMs(metadata.duration)
+                        .setAlbumTitle(metadata.album)
+                        .build()
+                }
+            }
+            null
+        } catch (e: Exception) {
+            Timber.e(e)
+            null
+        } finally {
+            retriever.release()
+        }
+    }
+}
