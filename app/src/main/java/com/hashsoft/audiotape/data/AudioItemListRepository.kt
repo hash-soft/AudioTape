@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.data
 
+import android.os.Build
 import com.hashsoft.audiotape.logic.StorageHelper
 
 // ソートをどうするか
@@ -8,33 +9,44 @@ import com.hashsoft.audiotape.logic.StorageHelper
 // どう再生serviceと関連するか
 // まずは見栄えのための機能を作る]]
 
-// ここはオーディオ再生専用画面の時に使うやつ
+// １時振り分けしたオーディオファイルリストを取得
 class AudioItemListRepository(private val _path: String) {
 
-    fun getAudioItemList(): List<AudioItemDto> {
-        //val retriever = MediaMetadataRetriever()
-        //val checker = AudioFileChecker()
-        val result = StorageHelper.getFileList(_path).mapNotNull {
-            if (it.isDirectory) {
-                return@mapNotNull null
-            } else {
-                AudioItemDto(
-                    it.name,
-                    it.path,
-                    it.size,
-                    it.lastModified,
-                    AudioItemMetadata("", "", "", 0L)
-                )
-                //val result = checker.getMetadata(retriever, it.path)
-//                result.fold(onSuccess = { metadata ->
-//                    AudioItemDto(it.name, it.path, it.size, it.lastModified, metadata)
-//                }, onFailure = {
-//                    return@mapNotNull null
-//                })
-//            }
+    fun getAudioItemList(): List<StorageItemDto> {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            StorageHelper.getFileList(_path).mapNotNull {
+                if (it.isDirectory) {
+                    return@mapNotNull null
+                } else {
+                    val isAudio = StorageHelper.isAudioExtension(it.path)
+                    if (isAudio) {
+                        StorageItemDto(
+                            it.name,
+                            it.path,
+                            it.size,
+                            it.lastModified,
+                            StorageItemMetadata.UnanalyzedFile
+                        )
+                    } else {
+                        return@mapNotNull null
+                    }
+
+                }
+            }
+        } else {
+            StorageHelper.getFileList(_path).mapNotNull {
+                if (it.isDirectory) {
+                    return@mapNotNull null
+                } else {
+                    StorageItemDto(
+                        it.name,
+                        it.path,
+                        it.size,
+                        it.lastModified,
+                        StorageItemMetadata.UnanalyzedFile
+                    )
+                }
             }
         }
-        //retriever.release()
-        return result
     }
 }

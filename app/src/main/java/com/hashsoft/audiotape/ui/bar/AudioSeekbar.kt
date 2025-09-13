@@ -37,7 +37,6 @@ fun AudioSeekbar(
 
     if (isPlaying) {
         LaunchedEffect( position) {
-            //if (sliderDown) return@LaunchedEffect
             repeat(Int.MAX_VALUE) {
                 if(!sliderDown) {
                     val result = audioCallback(AudioCallbackArgument.Position)

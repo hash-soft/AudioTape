@@ -10,6 +10,7 @@ import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.ResumeAudioRepository
 import timber.log.Timber
 
 private val Context.libraryStateStore: DataStore<Preferences> by preferencesDataStore(
@@ -30,6 +31,7 @@ class AudioTape : Application() {
     lateinit var libraryFolderRepository: FolderStateRepository
     lateinit var playingStateRepository: PlayingStateRepository
     lateinit var playbackRepository: PlaybackRepository
+    lateinit var resumeAudioRepository: ResumeAudioRepository
 
     override fun onCreate() {
         super.onCreate()
@@ -39,5 +41,6 @@ class AudioTape : Application() {
         libraryFolderRepository = FolderStateRepository(libraryFolderStore)
         playingStateRepository = PlayingStateRepository(playingStateStore)
         playbackRepository = PlaybackRepository()
+        resumeAudioRepository = ResumeAudioRepository()
     }
 }

@@ -50,4 +50,9 @@ class AudioFileChecker() {
 
     }
 
+    fun getDuration(retriever: MediaMetadataRetriever): Long {
+        return retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()
+            ?: 0L
+    }
+
 }

@@ -43,34 +43,7 @@ fun AudioItem(
                 null
             )
         },
-        overlineContent = {
-            val text = buildString {
-                if (!isPlaying && isCurrent) {
-                    append(">")
-                    append(TimeFormat.formatMillis(contentPosition))
-                    append("  ")
-                }
-                var sep = false
-                if (metadata.artist.isNotEmpty()) {
-                    append(metadata.artist)
-                    sep = true
-                }
-                if (metadata.title.isNotEmpty()) {
-                    if (sep) {
-                        append(" - ")
-                    }
-                    append(metadata.title)
-                    sep = true
-                }
-                if (metadata.album.isNotEmpty()) {
-                    if (sep) {
-                        append(" - ")
-                    }
-                    append(metadata.album)
-                }
-            }
-            Text(text)
-        },
+        overlineContent = { OverlineContext(metadata) },
         headlineContent = { Text(name) },
         supportingContent = {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -126,4 +99,31 @@ fun AudioItem(
             ListItemDefaults.colors()
         }
     )
+}
+
+@Composable
+private fun OverlineContext(metadata: AudioItemMetadata) {
+    val text = buildString {
+        var sep = false
+        if (metadata.artist.isNotEmpty()) {
+            append(metadata.artist)
+            sep = true
+        }
+        if (metadata.title.isNotEmpty()) {
+            if (sep) {
+                append(" - ")
+            }
+            append(metadata.title)
+            sep = true
+        }
+        if (metadata.album.isNotEmpty()) {
+            if (sep) {
+                append(" - ")
+            }
+            append(metadata.album)
+        }
+    }
+    if (text.isNotEmpty()) {
+        Text(text)
+    }
 }

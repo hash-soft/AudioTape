@@ -5,37 +5,46 @@ import kotlinx.coroutines.flow.MutableStateFlow
 // サービスからの操作を反映するためのRepository
 class PlaybackRepository {
 
-    var data: MutableStateFlow<PlaybackDto> = MutableStateFlow(PlaybackDto(false, false, "", 0))
+    var data: MutableStateFlow<PlaybackDto> =
+        MutableStateFlow(PlaybackDto(false, false, "", -1, -1))
         private set(value) {
             field = value
         }
 
-    fun updateAll(isPlaying: Boolean, currentMediaId: String, contentPosition: Long){
-        data.value = PlaybackDto(isPlaying, false, currentMediaId, contentPosition)
+    fun updateAll(
+        isReady: Boolean,
+        isPlaying: Boolean,
+        currentName: String,
+        durationMs: Long,
+        contentPosition: Long
+    ) {
+        data.value = PlaybackDto(isReady, isPlaying, currentName, durationMs, contentPosition)
+    }
+
+    fun updateWithoutCurrentName(
+        isReadyOk: Boolean,
+        isPlaying: Boolean,
+        durationMs: Long,
+        contentPosition: Long
+    ) {
+        data.value = data.value.copy(
+            isReadyOk = isReadyOk,
+            isPlaying = isPlaying,
+            durationMs = durationMs,
+            contentPosition = contentPosition
+        )
     }
 
     fun updatePlaying(isPlaying: Boolean) {
         data.value = data.value.copy(isPlaying = isPlaying)
     }
 
-    fun updatePlayingPosition(isPlaying: Boolean, position: Long) {
-        data.value = data.value.copy(isPlaying = isPlaying, contentPosition = position)
-    }
-
-    fun updatePlayingCurrentMediaId(isPlaying: Boolean, mediaId: String) {
-        data.value = data.value.copy(isPlaying = isPlaying, currentMediaId = mediaId)
-    }
-
     fun updateReadyOk(isReadyOk: Boolean) {
         data.value = data.value.copy(isReadyOk = isReadyOk)
     }
 
-    fun updateCurrentMediaId(mediaId: String) {
-        data.value = data.value.copy(currentMediaId = mediaId)
-    }
-
-    fun updateCurrentMediaIdPosition(mediaId: String, position: Long) {
-        data.value = data.value.copy(currentMediaId = mediaId, contentPosition = position)
+    fun updatePlayingPosition(isPlaying: Boolean, position: Long) {
+        data.value = data.value.copy(isPlaying = isPlaying, contentPosition = position)
     }
 
     fun updateContentPosition(position: Long) {

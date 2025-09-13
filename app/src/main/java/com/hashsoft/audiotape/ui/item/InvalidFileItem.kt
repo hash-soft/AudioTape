@@ -34,9 +34,6 @@ fun InvalidFileItem(
                 null
             )
         },
-        overlineContent = {
-            Text("")
-        },
         headlineContent = { Text(name) },
         supportingContent = {
             Box(modifier = Modifier.fillMaxWidth()) {

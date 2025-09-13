@@ -6,6 +6,7 @@ import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.StorageItemDto
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -59,7 +60,7 @@ class AudioPlayViewModel(
 sealed interface AudioPlayUiState {
     data object Loading : AudioPlayUiState
     data class Success(
-        val audioItemList: List<AudioItemDto>,
+        val audioItemList: List<StorageItemDto>,
         val currentPlay: String,
         val audioTape: AudioTapeDto
 

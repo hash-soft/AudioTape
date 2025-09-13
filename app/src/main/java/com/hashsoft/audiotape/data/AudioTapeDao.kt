@@ -14,7 +14,7 @@ data class AudioTapePosition(
     @ColumnInfo(name = "position") val position: Long
 )
 
-data class AudioTapeCurrentNamePosition(
+data class AudioTapeNotNull(
     @ColumnInfo(name = "folder_path") val folderPath: String,
     @ColumnInfo(name = "current_name") val currentName: String,
     @ColumnInfo(name = "position") val position: Long
@@ -34,10 +34,13 @@ interface AudioTapeDao {
     @Upsert
     suspend fun upsertAll(vararg entity: AudioTapeEntity)
 
+    @Upsert(entity = AudioTapeEntity::class)
+    suspend fun upsertNotNull(vararg entity: AudioTapeNotNull)
+
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePosition(vararg entity: AudioTapePosition)
 
     @Update(entity = AudioTapeEntity::class)
-    suspend fun updateCurrentNamePosition(vararg entity: AudioTapeCurrentNamePosition)
+    suspend fun updateNotNull(vararg entity: AudioTapeNotNull)
 
 }

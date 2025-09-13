@@ -10,6 +10,10 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.hashsoft.audiotape.data.AudioItemListRepository
+import com.hashsoft.audiotape.data.ResumeAudioDto
+import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.logic.AudioFileChecker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,10 +22,14 @@ import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import java.io.FileInputStream
 
 
-class MediaSessionCallback(private val _metadataScope: CoroutineScope) : MediaSession.Callback {
+class MediaSessionCallback(
+    private val _ioScope: CoroutineScope,
+    private val _resumeAudioRepository: ResumeAudioRepository
+) : MediaSession.Callback {
     private var metadataJob: Job? = null
 
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -60,23 +68,41 @@ class MediaSessionCallback(private val _metadataScope: CoroutineScope) : MediaSe
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo
-    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-        Timber.d("##onPlaybackResumption")
-        val settable = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+    ): ListenableFuture<MediaItemsWithStartPosition> {
+        Timber.d("##onPlaybackResumption data: ${_resumeAudioRepository.data.value}")
+        val data = _resumeAudioRepository.data.value
+        if (data.path.isEmpty()) {
+            // 設定する情報がない場合デフォルト
+            return super.onPlaybackResumption(mediaSession, controller)
+        }
+        val settable = SettableFuture.create<MediaItemsWithStartPosition>()
         CoroutineScope(Dispatchers.Unconfined).future {
             // Your app is responsible for storing the playlist, metadata (like title
             // and artwork) of the current item and the start position to use here.
-            //val resumptionPlaylist = restorePlaylist()
-            //settable.set(resumptionPlaylist)
+            val playlist = restorePlaylist(data)
             settable.set(
-                MediaSession.MediaItemsWithStartPosition(
-                    emptyList(),
-                    0,
-                    0L
+                MediaItemsWithStartPosition(
+                    playlist.first,
+                    playlist.second,
+                    data.contentPosition
                 )
             )
+            retrieveMetadata(mediaSession, playlist.first)
         }
         return settable
+    }
+
+    private fun restorePlaylist(data: ResumeAudioDto): Pair<List<MediaItem>, Int> {
+        val file = File(data.path)
+        val folderPath = file.parent ?: ""
+        val itemListRepository = AudioItemListRepository(folderPath)
+        val sortList =
+            StorageItemListRepository.sort(itemListRepository.getAudioItemList(), data.sortOrder)
+        val startIndex = sortList.indexOfFirst { it.name == file.name }
+        // metadataは取得していないのでここでは設定しない
+        return sortList.map { audio ->
+            MediaItem.Builder().setUri(audio.path).setMediaId(audio.name).build()
+        } to if (startIndex < 0) 0 else startIndex
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -89,23 +115,10 @@ class MediaSessionCallback(private val _metadataScope: CoroutineScope) : MediaSe
     ): ListenableFuture<MediaItemsWithStartPosition> {
         Timber.d("##onSetMediaItems size = ${mediaItems.size}")
 
-        metadataJob?.cancel()
-        metadataJob = _metadataScope.launch {
-            mediaItems.forEachIndexed { index, item ->
-                processMediaItem(mediaSession, index, item)
-            }
-
-        }
+        retrieveMetadata(mediaSession, mediaItems)
         val future = SettableFuture.create<MediaItemsWithStartPosition>()
         future.set(MediaItemsWithStartPosition(mediaItems, startIndex, startPositionMs))
         return future
-//        return super.onSetMediaItems(
-//            mediaSession,
-//            controller,
-//            mediaItems,
-//            startIndex,
-//            startPositionMs
-//        )
     }
 
     private suspend fun processMediaItem(
@@ -113,21 +126,22 @@ class MediaSessionCallback(private val _metadataScope: CoroutineScope) : MediaSe
         index: Int,
         item: MediaItem
     ) {
-        // Todo 取得済みの場合はリターンを追加する
+        // metadataにタイトルがなくてもファイル名を入れるので設定済みならなにか入っている
+        if (item.mediaMetadata.title != null) {
+            return
+        }
         val uri = item.localConfiguration?.uri
-        // Todo 早期リターンに変更する
-        if (uri != null && uri.scheme == null) {    // Todo scheme == "file"を追加する
-            val metadata = fetchMetadata(uri) ?: return
-            val updatedItem = item.buildUpon()
-                .setMediaMetadata(
-                    metadata
-                )
-                .build()
-            withContext(Dispatchers.Main) {
-                mediaSession.player.replaceMediaItem(index, updatedItem)
-                Timber.d("##onSetMediaItems replace = $index")
-            }
-
+        if (uri == null || (uri.scheme != null && uri.scheme != "file")) {
+            return
+        }
+        val metadata = fetchMetadata(uri) ?: return
+        val updatedItem = item.buildUpon()
+            .setMediaMetadata(
+                metadata
+            )
+            .build()
+        withContext(Dispatchers.Main) {
+            mediaSession.player.replaceMediaItem(index, updatedItem)
         }
     }
 
@@ -139,19 +153,30 @@ class MediaSessionCallback(private val _metadataScope: CoroutineScope) : MediaSe
                 val result = AudioFileChecker().getMetadata(retriever)
                 result.onSuccess { metadata ->
                     return MediaMetadata.Builder()
-                        .setTitle(metadata.title)
+                        .setTitle(metadata.title.ifEmpty { uri.lastPathSegment })
                         .setArtist(metadata.artist)
                         .setDurationMs(metadata.duration)
                         .setAlbumTitle(metadata.album)
                         .build()
                 }
             }
+            // 取得できない場合はMediaSession任せ
             null
         } catch (e: Exception) {
             Timber.e(e)
             null
         } finally {
             retriever.release()
+        }
+    }
+
+    private fun retrieveMetadata(mediaSession: MediaSession, mediaItems: List<MediaItem>) {
+        metadataJob?.cancel()
+        metadataJob = _ioScope.launch {
+            mediaItems.forEachIndexed { index, item ->
+                processMediaItem(mediaSession, index, item)
+            }
+            // Todo 全取得できたら総時間を更新 playback経由で行う
         }
     }
 }

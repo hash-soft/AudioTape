@@ -1,9 +1,13 @@
 package com.hashsoft.audiotape.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
+import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.data.StorageAddressRepository
 import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.data.StorageItemMetadata
@@ -16,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 
 enum class FolderViewState {
     Start,
@@ -24,14 +29,18 @@ enum class FolderViewState {
 }
 
 class FolderViewModel(
+    private val _controller: AudioController = AudioController(),
     private val _folderStateRepository: FolderStateRepository,
     storageAddressRepository: StorageAddressRepository,
     storageItemListRepository: StorageItemListRepository,
     private val _audioTapeRepository: AudioTapeRepository,
-    private val _controller: AudioController
+    private val _playingStateRepository: PlayingStateRepository,
+    private val _playbackRepository: PlaybackRepository,
+    private val _resumeAudioRepository: ResumeAudioRepository
 ) :
     ViewModel() {
 
+    val isReady = _controller.isReady
     private val _state = MutableStateFlow(FolderViewState.Start)
     val state: StateFlow<FolderViewState> = _state.asStateFlow()
     private val _selectedPath = MutableStateFlow("")
@@ -39,6 +48,13 @@ class FolderViewModel(
 
     val addressBarState = AddressBarState(storageAddressRepository)
     val folderListState = FolderListState(storageItemListRepository)
+    val playItemState = PlayItemState(
+        viewModelScope,
+        _playbackRepository,
+        _audioTapeRepository,
+        _playingStateRepository,
+        _resumeAudioRepository
+    )
 
     init {
         viewModelScope.launch {
@@ -50,6 +66,8 @@ class FolderViewModel(
                 _audioTapeRepository.findByPath(folderState.selectedPath)
                     .map { audioTape -> folderState to audioTape }
             }.collect() { (folderState, audioTape) ->
+                // 読み込み済みでもaudioTapeが変わったら来てしまうのでその時は更新しない
+                if (_state.value == FolderViewState.Success) return@collect
                 folderListState.loadList(folderState.selectedPath, audioTape)
                 _state.update { FolderViewState.Success }
             }
@@ -60,11 +78,14 @@ class FolderViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             folderListState.loadMetadataByIndex(index)
         }
-
     }
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
+    }
+
+    fun updatePlayingFolderPath(path: String) = viewModelScope.launch {
+        _playingStateRepository.saveFolderPath(path)
     }
 
     fun setMediaItemsInFolderList(
@@ -84,7 +105,35 @@ class FolderViewModel(
         // ファイルインデックスに変換
         val mediaItemIndex = folderListState.typeIndexList.value[index]
         _controller.setMediaItems(audioList, mediaItemIndex, positionMs)
-        _controller.play()
+    }
+
+    fun buildController(context: Context) = _controller.buildController(context)
+
+    fun releaseController() = _controller.releaseController()
+
+    fun play() = _controller.play()
+
+    fun pause() = _controller.pause()
+
+    fun getContentPosition() = _controller.getContentPosition()
+
+    fun seekTo(position: Long) {
+        if (_controller.isCurrentMediaItem()) {
+            _controller.seekTo(position)
+        } else {
+            val value = playItemState.item.value
+            if (value == null) {
+                return
+            }
+            val file = File(value.path)
+            _playbackRepository.updateAll(
+                value.isReadyOk,
+                value.isPlaying,
+                file.name,
+                value.durationMs,
+                position
+            )
+        }
     }
 
 }

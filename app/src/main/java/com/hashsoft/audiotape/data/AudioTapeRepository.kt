@@ -30,8 +30,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
                     it.folderPath,
                     it.currentName,
                     it.position,
-                    AudioTapeSortOrder.fromInt(it.sortOrder),
-                    it.speed
+                    AudioTapeSortOrder.fromInt(it.sortOrder ?: 0),
+                    it.speed ?: 1.0f
                 )
             }
         }
@@ -56,13 +56,18 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             )
         )
 
+    suspend fun upsertNotNull(path: String, currentName: String, position: Long) =
+        audioTapeDao.upsertNotNull(
+            AudioTapeNotNull(path, currentName, position)
+        )
+
     suspend fun updatePosition(path: String, position: Long) = audioTapeDao.updatePosition(
         AudioTapePosition(path, position)
     )
 
-    suspend fun updateCurrentNamePosition(path: String, currentName: String, position: Long) =
-        audioTapeDao.updateCurrentNamePosition(
-            AudioTapeCurrentNamePosition(path, currentName, position)
+    suspend fun updateNotNull(path: String, currentName: String, position: Long) =
+        audioTapeDao.updateNotNull(
+            AudioTapeNotNull(path, currentName, position)
         )
 
     fun validAudioTapeDto(dto: AudioTapeDto): Boolean {

@@ -65,25 +65,6 @@ class StorageItemListRepository(private val _context: Context) {
                 )
             }
         }
-//        val checker = AudioFileChecker()
-//        val retriever = MediaMetadataRetriever()
-//        val result = StorageHelper.getFileList(path).mapNotNull {
-//            if (it.isDirectory) {
-//                StorageItemDto(it.name, it.path, it.size, it.lastModified)
-//            } else {
-//                val result = checker.getMetadata(retriever, it.path)
-//                result.fold(onSuccess = { metadata ->
-//                    StorageItemDto(
-//                        it.name, it.path, it.size, it.lastModified, ,
-//                        StorageItemMetadata.File
-//                    )
-//                }, onFailure = {
-//                    return@mapNotNull null
-//                })
-//            }
-//        }
-//        retriever.release()
-//        return result
     }
 
     fun loadMetadata(path: String): AudioItemMetadata? {

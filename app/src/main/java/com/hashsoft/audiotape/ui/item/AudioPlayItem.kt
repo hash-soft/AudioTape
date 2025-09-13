@@ -24,11 +24,11 @@ import com.hashsoft.audiotape.ui.bar.AudioSeekbar
 @Composable
 fun AudioPlayItem(
     path: String,
-    isPlaying: Boolean = false,
     isCurrent: Boolean = false,
-    isReady: Boolean = false,
+    isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
+    enabled: Boolean = true,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
     ListItem(
@@ -62,7 +62,7 @@ fun AudioPlayItem(
                 position = contentPosition,
                 durationMs = durationMs,
                 isPlaying = isPlaying,
-                enabled = isReady,
+                enabled = enabled,
                 audioCallback = audioCallback
             )
         },

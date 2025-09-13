@@ -61,8 +61,8 @@ class AudioControllerViewModel(
             PlaybackDto(
                 isReadyOk = false,
                 isPlaying = false,
-                currentMediaId = "",
-                0
+                "",
+                0,0
             )
         )
     )
@@ -104,7 +104,7 @@ class AudioControllerViewModel(
             setMediaItems(audioItemList)
         } else {
             setMediaItems(audioItemList, mediaItemIndex, audioTape.position)
-            _playbackRepository.updateCurrentMediaId(path)
+            //_playbackRepository.updateCurrentMediaId(path)
         }
     }
 
@@ -219,7 +219,7 @@ class AudioControllerViewModel(
     }
 
     fun updateCurrentMediaId(mediaId: String) {
-        _playbackRepository.updateCurrentMediaId(mediaId)
+        //_playbackRepository.updateCurrentMediaId(mediaId)
     }
 
     fun updateAudioTapeAll(audioTape: AudioTapeDto) {

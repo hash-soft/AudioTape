@@ -1,7 +1,5 @@
 package com.hashsoft.audiotape.service
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.app.PendingIntent.getActivity
@@ -12,29 +10,28 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import androidx.media3.ui.PlayerNotificationManager
 import com.hashsoft.audiotape.AudioTape
 import com.hashsoft.audiotape.MainActivity
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.ResumeAudioRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
 
-
-
 class PlaybackService : MediaSessionService() {
-    private val metadataScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var mediaSession: MediaSession? = null
 
     private val serviceScope = CoroutineScope(Dispatchers.Unconfined)
@@ -42,20 +39,22 @@ class PlaybackService : MediaSessionService() {
     private lateinit var _playbackRepository: PlaybackRepository
 
     private lateinit var _audioTapeRepository: AudioTapeRepository
+    private lateinit var _playingStateRepository: PlayingStateRepository
+    private lateinit var _resumeAudioRepository: ResumeAudioRepository
 
     // Create your player and media session in the onCreate lifecycle event
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         Timber.d("**onCreate")
-        _playbackRepository = (application as AudioTape).playbackRepository
-        _audioTapeRepository = (application as AudioTape).databaseContainer.audioTapeRepository
+        initializeRepository()
         val player = ExoPlayer.Builder(this)
             .setHandleAudioBecomingNoisy(true).build()
         setPlayerListener(player)
         player.repeatMode = Player.REPEAT_MODE_ALL
         mediaSession =
-            MediaSession.Builder(this, player).setCallback(MediaSessionCallback(metadataScope)).build()
+            MediaSession.Builder(this, player)
+                .setCallback(MediaSessionCallback(ioScope, _resumeAudioRepository)).build()
                 .also { builder ->
                     val intent = getActivity(
                         this,
@@ -65,6 +64,40 @@ class PlaybackService : MediaSessionService() {
                     )
                     builder.setSessionActivity(intent)
                 }
+        observeState()
+    }
+
+    private fun initializeRepository() {
+        val audioTap = application as AudioTape
+        _playbackRepository = audioTap.playbackRepository
+        _playingStateRepository = audioTap.playingStateRepository
+        _audioTapeRepository = audioTap.databaseContainer.audioTapeRepository
+        _resumeAudioRepository = audioTap.resumeAudioRepository
+    }
+
+    private fun observeState() {
+        serviceScope.launch {
+            // UIとサービスからの変更をここで監視してaudioTapeを更新する
+            combine(
+                _playingStateRepository.playingStateFlow(),
+                _playbackRepository.data
+            ) { state, playback ->
+                state to playback
+            }.collect {
+                val path = it.first.folderPath
+                val playback = it.second
+                Timber.d("##observeState path = $path playback = $playback")
+                // 不正値ならなにもしない
+                if (path.isEmpty() || playback.durationMs <= 0) {
+                    return@collect
+                }
+                _audioTapeRepository.upsertNotNull(
+                    path,
+                    playback.currentName,
+                    playback.contentPosition
+                )
+            }
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -81,15 +114,14 @@ class PlaybackService : MediaSessionService() {
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
         Timber.d("**onDestroy: mediaSession = $mediaSession")
-        metadataScope.cancel()
+        ioScope.cancel()
         mediaSession?.run {
             // 再生情報の保存をする UI状態はUIから行う
             //val audioTape = getCurrentAudioTape(player)
             val audioTape = playerToAudioTape(player)
-            Timber.d("**destroy audiotape = $audioTape")
             //if (audioTape != null) {
             runBlocking {
-                _audioTapeRepository.updateCurrentNamePosition(
+                _audioTapeRepository.updateNotNull(
                     audioTape.folderPath,
                     audioTape.currentName,
                     audioTape.position
@@ -105,10 +137,9 @@ class PlaybackService : MediaSessionService() {
 
     private fun playerToAudioTape(player: Player): AudioTapeDto {
         val position = player.contentPosition
-        val mediaId = player.currentMediaItem?.mediaId ?: ""
-        val file = File(mediaId)
-        val parent = file.parent
-        return AudioTapeDto(parent ?: "", file.name, position)
+        val path = player.currentMediaItem?.localConfiguration?.uri?.path ?: ""
+        val file = File(path)
+        return AudioTapeDto(file.parent ?: "", file.name, position)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -206,11 +237,9 @@ class PlaybackService : MediaSessionService() {
                 when (reason) {
                     // 曲が自動で変わったとき
                     Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
-                        //updateCurrentMediaIdPosition(mediaItem)
                     }
                     // Seekで曲が変わったとき
                     Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
-                        //updateCurrentMediaIdPosition(mediaItem)
                     }
                     // changedは0番目がcurrentになってしまうので設定場所でCurrentMediaIdの更新を行う
                     else -> {}
@@ -218,10 +247,6 @@ class PlaybackService : MediaSessionService() {
                 }
             }
 
-            private fun updateCurrentMediaIdPosition(mediaItem: MediaItem?) {
-                val mediaId = mediaItem?.mediaId ?: ""
-                _playbackRepository.updateCurrentMediaIdPosition(mediaId, player.contentPosition)
-            }
 
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
@@ -229,86 +254,57 @@ class PlaybackService : MediaSessionService() {
 //                for(i in 0 until events.size()){
 //                    Timber.d("##listener events = ${events.get(i)}")
 //                }
-                var tapeFlag = 0    // 1:position 2:current
-                var uiFlag = 0  // 1:再生状態 2:position 4:current
+                if (player.currentMediaItem == null) {
+                    // currentがない場合はなにもしない
+                    return
+                }
+                var uiFlag = 0  // 1:再生状態 2:position 4:current 8:ready
                 if (events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
-                    // 停止の場合位置を更新する - 再生状態と位置を更新する
+                    // 再生状態と位置を更新する
                     Timber.d("##EVENT_IS_PLAYING_CHANGED play:${player.isPlaying} ready:${player.playbackState}")
-                    if (!player.isPlaying) {
-                        tapeFlag = 1
-                    }
                     uiFlag = 3
                 }
                 if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-                    // current + 位置を更新する - current + 位置を更新する
-                    Timber.d("##EVENT_MEDIA_ITEM_TRANSITION play:${player.isPlaying} current:${player.currentMediaItem?.mediaId}, position:${player.contentPosition}")
-                    tapeFlag = tapeFlag or 3
+                    // current + 位置を更新する
+                    Timber.d("##EVENT_MEDIA_ITEM_TRANSITION")
                     uiFlag = uiFlag or 6
                 }
                 if (events.contains(Player.EVENT_POSITION_DISCONTINUITY)) {
-                    // 停止の場合位置を変更する - 位置を変更する
-                    Timber.d("##EVENT_POSITION_DISCONTINUITY play:${player.isPlaying} current:${player.currentMediaItem?.mediaId}, position:${player.contentPosition}")
-                    if (!player.isPlaying) {
-                        tapeFlag = tapeFlag or 1
-                    }
+                    // 位置を変更する
+                    Timber.d("##EVENT_POSITION_DISCONTINUITY")
                     uiFlag = uiFlag or 2
                 }
-                if (events.contains(Player.EVENT_MEDIA_METADATA_CHANGED)) {
-                    Timber.d("##EVENT_MEDIA_METADATA_CHANGED")
+                if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
+                    // readyOkを変更する
+                    Timber.d("##EVENT_PLAYBACK_STATE_CHANGED")
+                    uiFlag = uiFlag or 8
                 }
 
-                if (tapeFlag > 0) {
-                    val audioTape = playerToAudioTape(player)
-                    when {
-                        (tapeFlag and 3) == 3 -> {
-                            serviceScope.launch {
-                                _audioTapeRepository.updateCurrentNamePosition(
-                                    audioTape.folderPath,
-                                    audioTape.currentName,
-                                    audioTape.position
-                                )
-                            }
-                        }
-
-                        else -> {
-                            serviceScope.launch {
-                                _audioTapeRepository.updatePosition(
-                                    audioTape.folderPath,
-                                    audioTape.position
-                                )
-                            }
-                        }
-                    }
-                }
-                when {
-                    (uiFlag and 7) == 7 -> {
+                if (uiFlag > 0) {
+                    Timber.d("##parameter play:${player.isPlaying}, duration:${player.duration}, position:${player.contentPosition}")
+                    val isReadyOk = player.playbackState == Player.STATE_READY
+                    val isPlaying = player.isPlaying
+                    val duration = player.duration
+                    val position = player.contentPosition
+                    // current変更のときだけcurrentNameも変更する
+                    val currentName = if ((uiFlag and 4) > 0) {
+                        player.currentMediaItem?.localConfiguration?.uri?.lastPathSegment
+                    } else null
+                    if (currentName.isNullOrEmpty()) {
+                        _playbackRepository.updateWithoutCurrentName(
+                            isReadyOk,
+                            isPlaying,
+                            duration,
+                            position
+                        )
+                    } else {
                         _playbackRepository.updateAll(
-                            player.isPlaying,
-                            player.currentMediaItem?.mediaId ?: "",
-                            player.contentPosition
+                            isReadyOk,
+                            isPlaying,
+                            currentName,
+                            duration,
+                            position
                         )
-                    }
-
-                    (uiFlag and 6) == 6 -> {
-                        _playbackRepository.updateCurrentMediaIdPosition(
-                            player.currentMediaItem?.mediaId ?: "",
-                            player.contentPosition
-                        )
-                    }
-
-                    (uiFlag and 3) == 3 -> {
-                        _playbackRepository.updatePlayingPosition(
-                            player.isPlaying,
-                            player.contentPosition
-                        )
-                    }
-
-                    (uiFlag and 2) == 2 -> {
-                        _playbackRepository.updateContentPosition(player.contentPosition)
-                    }
-
-                    (uiFlag and 1) == 1 -> {
-                        _playbackRepository.updatePlaying(player.isPlaying)
                     }
                 }
             }
