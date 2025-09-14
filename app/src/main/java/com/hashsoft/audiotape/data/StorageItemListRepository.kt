@@ -11,11 +11,22 @@ import java.io.FileInputStream
 // ソートをどうするか
 class StorageItemListRepository(private val _context: Context) {
     companion object {
-        fun sort(list: List<StorageItemDto>, sortOrder: AudioTapeSortOrder): List<StorageItemDto> {
+        fun sorted(
+            list: List<StorageItemDto>,
+            sortOrder: AudioTapeSortOrder
+        ): List<StorageItemDto> {
             return when (sortOrder) {
                 AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
                 AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { it.name }
                 else -> list
+            }
+        }
+
+        fun sort(list: MutableList<StorageItemDto>, sortOrder: AudioTapeSortOrder) {
+            when (sortOrder) {
+                AudioTapeSortOrder.NAME_ASC -> list.sortBy { it.name }
+                AudioTapeSortOrder.NAME_DESC -> list.sortByDescending { it.name }
+                else -> {}
             }
         }
     }

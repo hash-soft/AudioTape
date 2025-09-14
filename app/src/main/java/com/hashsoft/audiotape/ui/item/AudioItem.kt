@@ -1,10 +1,7 @@
 package com.hashsoft.audiotape.ui.item
 
 import android.graphics.BitmapFactory
-import android.text.format.Formatter
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.PlayArrow
@@ -18,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import com.hashsoft.audiotape.data.AudioItemMetadata
-import com.hashsoft.audiotape.logic.TimeFormat
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
 
@@ -29,8 +25,9 @@ fun AudioItem(
     size: Long,
     lastModified: Long,
     metadata: AudioItemMetadata,
-    isPlaying: Boolean = false,
-    isCurrent: Boolean = false,
+    color: Int = 0,
+    icon: Int = 0,
+    isResume: Boolean = false,
     contentPosition: Long = 0,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
@@ -39,31 +36,14 @@ fun AudioItem(
         leadingContent = {
             // プレイ中は特殊なものにしたい
             Icon(
-                imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.AudioFile,
+                imageVector = if (icon > 0) Icons.Default.PlayArrow else Icons.Default.AudioFile,
                 null
             )
         },
         overlineContent = { OverlineContext(metadata) },
         headlineContent = { Text(name) },
         supportingContent = {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    TimeFormat.formatMillis(metadata.duration),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "${
-                        Formatter.formatFileSize(
-                            context,
-                            size
-                        )
-                    } ${
-                        TimeFormat.formatDateTime(
-                            lastModified
-                        )
-                    }"
-                )
-            }
+            AudioFileSubInfoItem(size, lastModified, metadata.duration, isResume, contentPosition)
         },
         trailingContent =
             if (metadata.artwork.isNotEmpty()) {
@@ -83,16 +63,11 @@ fun AudioItem(
         modifier = Modifier.clickable {
             audioCallback(
                 AudioCallbackArgument.AudioSelected(
-                    index = index,
-                    name,
-                    metadata,
-                    isPlaying,
-                    isCurrent,
-                    contentPosition
+                    index = index
                 )
             )
         },
-        colors = if (isCurrent) ListItemDefaults.colors(
+        colors = if (color > 0) ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant, // 背景色
             headlineColor = MaterialTheme.colorScheme.onSurfaceVariant         // 見出し文字色
         ) else {

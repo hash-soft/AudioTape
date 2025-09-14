@@ -15,9 +15,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.directorytest.ui.view.AddressBar
 import com.hashsoft.audiotape.AudioTape
+import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.data.StorageAddressRepository
-import com.hashsoft.audiotape.data.StorageItemDto
 import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.data.StorageLocationDto
 import com.hashsoft.audiotape.ui.item.AudioPlayItem
@@ -37,7 +37,8 @@ fun FolderViewRoute(
             _playbackRepository = application.playbackRepository,
             _resumeAudioRepository = application.resumeAudioRepository
         )
-    }
+    },
+    //navController: NavHostController = LocalNavController.current,
 ) {
     val context = LocalContext.current
     LifecycleStartEffect(Unit) {
@@ -54,7 +55,6 @@ fun FolderViewRoute(
     val selectedPath by viewModel.selectedPath.collectAsStateWithLifecycle()
     val storageLocationList by viewModel.addressBarState.list.collectAsStateWithLifecycle()
     val storageItemList by viewModel.folderListState.list.collectAsStateWithLifecycle()
-    val typeIndexList by viewModel.folderListState.typeIndexList.collectAsStateWithLifecycle()
     val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
 
     Timber.d("state changed: $state")
@@ -65,7 +65,7 @@ fun FolderViewRoute(
         FolderViewState.Start -> {}
         else -> {
             FolderView(
-                selectedPath, storageLocationList, storageItemList,
+                storageLocationList, storageItemList,
                 playItem = playItem,
                 onFolderClick = viewModel::saveSelectedPath
             ) { argument ->
@@ -76,7 +76,7 @@ fun FolderViewRoute(
 
                     is AudioCallbackArgument.AudioSelected -> {
                         viewModel.updatePlayingFolderPath(selectedPath)
-                        viewModel.setMediaItemsInFolderList(argument.index, 0)
+                        viewModel.setMediaItemsInFolderList(argument.index)
                         viewModel.play()
                     }
 
@@ -112,11 +112,9 @@ fun FolderViewRoute(
 
 @Composable
 private fun FolderView(
-    selectedPath: String,
     addressList: List<StorageLocationDto>,
-    itemList: List<StorageItemDto> = listOf(),
+    itemList: List<DisplayStorageItem> = listOf(),
     playItem: PlayAudioDto? = null,
-    //navController: NavHostController = LocalNavController.current,
     onFolderClick: (String) -> Unit = {},
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
@@ -139,40 +137,11 @@ private fun FolderView(
     ) { innerPadding ->
         Column() {
             AddressBar(addressList, onFolderClick)
-            // 再生状態だけが可変なのでリスト以外の細かい情報は不要
-            // controllerModelViewから変換したリストを取得したほうがいい気がする
-            // いや、プレイ中とカレントのインデックスを渡せばすむか
-            // カレントはリジューム情報がいるからやっぱりほかにもいるな
-            // sealedInterfaceをつけるか
             FolderList(
                 modifier = Modifier.padding(innerPadding),
                 storageItemList = itemList,
                 audioCallback = audioCallback
             )
-            /*   { argument ->
-                   // bottomBarのほうとで役割が違う
-                   when (argument) {
-                       is AudioCallbackArgument.Display -> {
-                           onDisplayFile(argument.index)
-                       }
-
-                       is AudioCallbackArgument.AudioSelected -> {
-                           audioController.setMediaItems(itemList, 0, 0)
-   //                        controllerViewModel.onAudioSelected(
-   //                            uiState.folderState.selectedPath,
-   //                            uiState.storageItemList,
-   //                            argument
-   //                        )
-                           // mediaListになければつめなおしとかいろいろやらないといけないが遷移先でやったほうがよさそう
-   //                        navController.navigate(
-   //                            Route.AudioPlay(
-   //                                selectedPath,
-   //                                argument.name
-   //                            )
-   //                        )
-
-                       }
-               }*/
         }
     }
 }

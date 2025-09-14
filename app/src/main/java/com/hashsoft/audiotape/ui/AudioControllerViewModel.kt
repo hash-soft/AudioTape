@@ -16,7 +16,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.DisplayStorageItemExtra
 import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -96,7 +95,7 @@ class AudioControllerViewModel(
     }
 
     private fun initMediaItems(audioTape: AudioTapeDto, storageItemList: List<StorageItemDto>) {
-        val sortList = StorageItemListRepository.sort(storageItemList, audioTape.sortOrder)
+        val sortList = StorageItemListRepository.sorted(storageItemList, audioTape.sortOrder)
         val audioItemList = mapAudioMetadata(sortList)
         val path = audioTape.folderPath + File.separator + audioTape.currentName
         val mediaItemIndex = audioItemList.indexOfFirst { it.path == path }
@@ -227,7 +226,7 @@ class AudioControllerViewModel(
             _audioTapeRepository.upsertAll(audioTape)
         }
     }
-
+/*
     fun getDisplayItemExtra(
         mediaId: String,
         path: String,
@@ -254,8 +253,8 @@ class AudioControllerViewModel(
         }
         // 追加データはないのでインデックスが一致しないようにする
         return DisplayStorageItemExtra(-1, false, 0)
-    }
-
+    }*/
+/*
     fun onAudioSelected(
         selectedPath: String,
         storageItemList: List<StorageItemDto>,
@@ -310,7 +309,7 @@ class AudioControllerViewModel(
         Timber.d("play")
         play()
     }
-
+*/
     data class AudioControllerUiState(
         val data: PlaybackDto
     )

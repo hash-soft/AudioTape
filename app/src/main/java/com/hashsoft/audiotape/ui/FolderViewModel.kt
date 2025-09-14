@@ -16,8 +16,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -63,12 +63,17 @@ class FolderViewModel(
                 addressBarState.load(folderState.selectedPath)
                 _selectedPath.update { folderState.selectedPath }
                 _state.update { FolderViewState.ItemLoading }
-                _audioTapeRepository.findByPath(folderState.selectedPath)
-                    .map { audioTape -> folderState to audioTape }
-            }.collect() { (folderState, audioTape) ->
-                // 読み込み済みでもaudioTapeが変わったら来てしまうのでその時は更新しない
-                if (_state.value == FolderViewState.Success) return@collect
-                folderListState.loadList(folderState.selectedPath, audioTape)
+                // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
+                folderListState.loadStorageCache(folderState.selectedPath)
+                combine(
+                    _audioTapeRepository.findByPath(folderState.selectedPath),
+                    _playbackRepository.data,
+                    _playingStateRepository.playingStateFlow()
+                ) { audioTape, playback, playingState ->
+                    Triple(audioTape, playback, playingState)
+                }
+            }.collect() { (audioTape, playback, playingState) ->
+                folderListState.updateList(audioTape, playback, playingState.folderPath)
                 _state.update { FolderViewState.Success }
             }
         }
@@ -90,21 +95,20 @@ class FolderViewModel(
 
     fun setMediaItemsInFolderList(
         index: Int = 0,
-        positionMs: Long = 0
     ) {
         // ファイルを抽出する
         val audioList = folderListState.list.value.mapNotNull {
-            when (it.metadata) {
+            when (it.base.metadata) {
                 is StorageItemMetadata.Folder -> {
                     return@mapNotNull null
                 }
 
-                else -> it
+                else -> it.base
             }
         }
         // ファイルインデックスに変換
-        val mediaItemIndex = folderListState.typeIndexList.value[index]
-        _controller.setMediaItems(audioList, mediaItemIndex, positionMs)
+        val item = folderListState.list.value[index]
+        _controller.setMediaItems(audioList, item.index, item.contentPosition)
     }
 
     fun buildController(context: Context) = _controller.buildController(context)

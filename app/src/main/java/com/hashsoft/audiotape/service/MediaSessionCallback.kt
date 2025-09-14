@@ -97,7 +97,7 @@ class MediaSessionCallback(
         val folderPath = file.parent ?: ""
         val itemListRepository = AudioItemListRepository(folderPath)
         val sortList =
-            StorageItemListRepository.sort(itemListRepository.getAudioItemList(), data.sortOrder)
+            StorageItemListRepository.sorted(itemListRepository.getAudioItemList(), data.sortOrder)
         val startIndex = sortList.indexOfFirst { it.name == file.name }
         // metadataは取得していないのでここでは設定しない
         return sortList.map { audio ->

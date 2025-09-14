@@ -10,12 +10,7 @@ sealed interface AudioCallbackArgument {
 
     data class FolderSelected(val path: String) : AudioCallbackArgument
     data class AudioSelected(
-        val index : Int,
-        val name: String,
-        val metadata: AudioItemMetadata,
-        val isPlaying: Boolean,
-        val isCurrent: Boolean,
-        val position: Long
+        val index : Int
     ) : AudioCallbackArgument
 
     data object Position : AudioCallbackArgument
