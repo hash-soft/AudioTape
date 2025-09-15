@@ -105,4 +105,37 @@ class AudioController(
             it.prepare()
         }
     }
+
+    fun isCurrentByPath(path: String): Boolean {
+        val controller = _controller ?: return false
+        val currentPath = controller.currentMediaItem?.localConfiguration?.uri?.path ?: ""
+        return currentPath == path
+    }
+
+    fun includeMediaItemByPath(path: String): Boolean {
+        val controller = _controller ?: return false
+        val count = controller.mediaItemCount
+        for (i in 0 until count) {
+            val item = controller.getMediaItemAt(i)
+            val itemPath = item.localConfiguration?.uri?.path ?: ""
+            if (itemPath == path) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun seekToByPath(path: String, position: Long): Boolean {
+        val controller = _controller ?: return false
+        val count = controller.mediaItemCount
+        for (i in 0 until count) {
+            val item = controller.getMediaItemAt(i)
+            val itemPath = item.localConfiguration?.uri?.path ?: ""
+            if (itemPath == path) {
+                controller.seekTo(i, position)
+                return true
+            }
+        }
+        return false
+    }
 }

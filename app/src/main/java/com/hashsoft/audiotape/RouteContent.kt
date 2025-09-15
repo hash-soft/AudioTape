@@ -6,20 +6,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.hashsoft.audiotape.data.AudioTapeDto
-import com.hashsoft.audiotape.data.StorageItemListRepository
-import com.hashsoft.audiotape.ui.AudioControllerViewModel
 import com.hashsoft.audiotape.ui.AudioPlayHomeRoute
 import com.hashsoft.audiotape.ui.LibraryHomeRoute
-import com.hashsoft.audiotape.ui.LocalAudioControllerViewModel
 import com.hashsoft.audiotape.ui.UserSettingsRoute
 
 @Composable
@@ -37,8 +31,8 @@ fun RouteContent() {
 
     //val isUsable by audioController.isUsable
     //if (isUsable) {
-        val navController = rememberNavController()
-        RouteScreen(navController/*, audioController*/)
+    val navController = rememberNavController()
+    RouteScreen(navController/*, audioController*/)
     //}
 }
 

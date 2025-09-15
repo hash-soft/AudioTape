@@ -40,7 +40,7 @@ class PlayItemState(
                     playbackRepository.data
                 ) { audioTape, playback ->
                     val path = audioTape.folderPath + File.separator + audioTape.currentName
-                    if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
+                    if (_audioTapeRepository.validAudioTapeDto(audioTape) && File(path).isFile) {
                         val durationMs = if (playback.durationMs < 0) {
                             // Todo 呼び出される回数が多かったら見直す
                             getDuration(path)
@@ -74,10 +74,15 @@ class PlayItemState(
 
     private fun getDuration(path: String): Long {
         val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(path)
-        val duration = AudioFileChecker().getDuration(retriever)
-        retriever.release()
-        return duration
+        try {
+            retriever.setDataSource(path)
+            return AudioFileChecker().getDuration(retriever)
+        } catch (e: Exception) {
+            Timber.e(e)
+        } finally {
+            retriever.release()
+        }
+        return 0
     }
 
 }

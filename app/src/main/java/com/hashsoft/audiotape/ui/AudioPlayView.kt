@@ -42,12 +42,12 @@ fun AudioPlayViewRoute(
 @Composable
 private fun AudioPlayView(uiState: AudioPlayUiState.Success) {
     val context = LocalContext.current
-    val controllerViewModel: AudioControllerViewModel = LocalAudioControllerViewModel.current
+    //val controllerViewModel: AudioControllerViewModel = LocalAudioControllerViewModel.current
     Column {
         AndroidView(
             factory = {
                 PlayerView(context).apply {
-                    player = controllerViewModel.getController()
+                    //player = controllerViewModel.getController()
                     layoutParams =
                         FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,

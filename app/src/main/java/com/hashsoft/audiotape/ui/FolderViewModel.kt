@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 
 enum class FolderViewState {
@@ -36,7 +37,7 @@ class FolderViewModel(
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
-    private val _resumeAudioRepository: ResumeAudioRepository
+    resumeAudioRepository: ResumeAudioRepository
 ) :
     ViewModel() {
 
@@ -53,7 +54,7 @@ class FolderViewModel(
         _playbackRepository,
         _audioTapeRepository,
         _playingStateRepository,
-        _resumeAudioRepository
+        resumeAudioRepository
     )
 
     init {
@@ -93,9 +94,7 @@ class FolderViewModel(
         _playingStateRepository.saveFolderPath(path)
     }
 
-    fun setMediaItemsInFolderList(
-        index: Int = 0,
-    ) {
+    fun setMediaItemsInFolderList(index: Int = 0) {
         // ファイルを抽出する
         val audioList = folderListState.list.value.mapNotNull {
             when (it.base.metadata) {
@@ -106,9 +105,16 @@ class FolderViewModel(
                 else -> it.base
             }
         }
-        // ファイルインデックスに変換
         val item = folderListState.list.value[index]
+        if (_controller.isCurrentByPath(item.base.path)) {
+            return
+        }
+        if (_controller.seekToByPath(item.base.path, item.contentPosition)) {
+            return
+        }
+        Timber.d("##includeMediaItemByPath")
         _controller.setMediaItems(audioList, item.index, item.contentPosition)
+        Timber.d("##includeMediaItemByPath end")
     }
 
     fun buildController(context: Context) = _controller.buildController(context)
@@ -134,6 +140,7 @@ class FolderViewModel(
                 value.isReadyOk,
                 value.isPlaying,
                 file.name,
+                file.parent ?: "",
                 value.durationMs,
                 position
             )

@@ -6,22 +6,31 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class PlaybackRepository {
 
     var data: MutableStateFlow<PlaybackDto> =
-        MutableStateFlow(PlaybackDto(false, false, "", -1, -1))
-        private set(value) {
-            field = value
-        }
+        MutableStateFlow(
+            PlaybackDto(
+                isReadyOk = false,
+                isPlaying = false,
+                currentName = "",
+                folderPath = ",",
+                durationMs = -1,
+                contentPosition = -1
+            )
+        )
+        private set
 
     fun updateAll(
         isReady: Boolean,
         isPlaying: Boolean,
         currentName: String,
+        folderPath: String,
         durationMs: Long,
         contentPosition: Long
     ) {
-        data.value = PlaybackDto(isReady, isPlaying, currentName, durationMs, contentPosition)
+        data.value =
+            PlaybackDto(isReady, isPlaying, currentName, folderPath, durationMs, contentPosition)
     }
 
-    fun updateWithoutCurrentName(
+    fun updateWithoutStringItem(
         isReadyOk: Boolean,
         isPlaying: Boolean,
         durationMs: Long,
@@ -35,17 +44,6 @@ class PlaybackRepository {
         )
     }
 
-    fun updatePlaying(isPlaying: Boolean) {
-        data.value = data.value.copy(isPlaying = isPlaying)
-    }
-
-    fun updateReadyOk(isReadyOk: Boolean) {
-        data.value = data.value.copy(isReadyOk = isReadyOk)
-    }
-
-    fun updatePlayingPosition(isPlaying: Boolean, position: Long) {
-        data.value = data.value.copy(isPlaying = isPlaying, contentPosition = position)
-    }
 
     fun updateContentPosition(position: Long) {
         data.value = data.value.copy(contentPosition = position)

@@ -35,7 +35,7 @@ fun FolderViewRoute(
             _audioTapeRepository = application.databaseContainer.audioTapeRepository,
             _playingStateRepository = application.playingStateRepository,
             _playbackRepository = application.playbackRepository,
-            _resumeAudioRepository = application.resumeAudioRepository
+            resumeAudioRepository = application.resumeAudioRepository
         )
     },
     //navController: NavHostController = LocalNavController.current,

@@ -17,14 +17,12 @@ import com.hashsoft.audiotape.MainActivity
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
-import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -39,7 +37,6 @@ class PlaybackService : MediaSessionService() {
     private lateinit var _playbackRepository: PlaybackRepository
 
     private lateinit var _audioTapeRepository: AudioTapeRepository
-    private lateinit var _playingStateRepository: PlayingStateRepository
     private lateinit var _resumeAudioRepository: ResumeAudioRepository
 
     // Create your player and media session in the onCreate lifecycle event
@@ -70,7 +67,6 @@ class PlaybackService : MediaSessionService() {
     private fun initializeRepository() {
         val audioTap = application as AudioTape
         _playbackRepository = audioTap.playbackRepository
-        _playingStateRepository = audioTap.playingStateRepository
         _audioTapeRepository = audioTap.databaseContainer.audioTapeRepository
         _resumeAudioRepository = audioTap.resumeAudioRepository
     }
@@ -78,21 +74,14 @@ class PlaybackService : MediaSessionService() {
     private fun observeState() {
         serviceScope.launch {
             // UIとサービスからの変更をここで監視してaudioTapeを更新する
-            combine(
-                _playingStateRepository.playingStateFlow(),
-                _playbackRepository.data
-            ) { state, playback ->
-                state to playback
-            }.collect {
-                val path = it.first.folderPath
-                val playback = it.second
-                Timber.d("##observeState path = $path playback = $playback")
+            _playbackRepository.data.collect { playback ->
+                Timber.d("##observeState playback = $playback")
                 // 不正値ならなにもしない
-                if (path.isEmpty() || playback.durationMs <= 0) {
+                if (playback.folderPath.isEmpty() || playback.durationMs <= 0) {
                     return@collect
                 }
                 _audioTapeRepository.upsertNotNull(
-                    path,
+                    playback.folderPath,
                     playback.currentName,
                     playback.contentPosition
                 )
@@ -117,9 +106,7 @@ class PlaybackService : MediaSessionService() {
         ioScope.cancel()
         mediaSession?.run {
             // 再生情報の保存をする UI状態はUIから行う
-            //val audioTape = getCurrentAudioTape(player)
             val audioTape = playerToAudioTape(player)
-            //if (audioTape != null) {
             runBlocking {
                 _audioTapeRepository.updateNotNull(
                     audioTape.folderPath,
@@ -127,7 +114,6 @@ class PlaybackService : MediaSessionService() {
                     audioTape.position
                 )
             }
-            //}
             release()
         }
         mediaSession?.player?.release()
@@ -152,17 +138,7 @@ class PlaybackService : MediaSessionService() {
                 // false > true >
                 // MEDIA_ITEM_TRANSITION_REASON_AUTOの順に発行され
                 // trueの段階ではcurrentMediaItemは変わってない
-                //_playbackRepository.updatePlayingPosition(isPlaying, player.contentPosition)
-                Timber.d("@@listener isPlaying = $isPlaying, ${player.playWhenReady}")
-//                if (!isPlaying) {
-//                    val audioTape = getCurrentAudioTape(player)
-//                    if (audioTape != null) {
-//                        Timber.d("**listener audiotape = $audioTape")
-//                        serviceScope.launch {
-//                            _audioTapeRepository.upsertAll(audioTape)
-//                        }
-//                    }
-//                }
+                Timber.d("##listener isPlaying = $isPlaying, ${player.playWhenReady}, position = ${player.contentPosition}, duration = ${player.duration}")
             }
 
             // seek時にもくる
@@ -175,14 +151,11 @@ class PlaybackService : MediaSessionService() {
                         // stopなどで停止後に来る
                         // ここに来たらprepareが必要
                         Timber.d("state idle")
-                        //repository.updateReadyOk(false)
-                        player.prepare()
                     }
 
                     Player.STATE_BUFFERING -> {
                         Timber.d("@@state buffering position = ${player.contentPosition}")
                         // 再生可能にする準備中
-                        //repository.updateReadyOk(false)
                     }
 
                     Player.STATE_READY -> {
@@ -190,20 +163,7 @@ class PlaybackService : MediaSessionService() {
                         // controllerを操作できるようになる
                         // playWhenReady:trueなら再生中 falseなら停止中
                         // seek操作を反映するために必要
-                        //_playbackRepository.updateContentPosition(player.contentPosition)
                         Timber.d("@@state ready position = ${player.contentPosition}")
-                        //repository.updateReadyOk(true)
-//                        if (!player.playWhenReady) {
-//                            val audioTape = getCurrentAudioTape(player)
-//                            if (audioTape != null) {
-//                                serviceScope.launch {
-//                                    _audioTapeRepository.updatePosition(
-//                                        audioTape.folderPath,
-//                                        audioTape.position
-//                                    )
-//                                }
-//                            }
-//                        }
                     }
 
 
@@ -256,6 +216,8 @@ class PlaybackService : MediaSessionService() {
 //                }
                 if (player.currentMediaItem == null) {
                     // currentがない場合はなにもしない
+                    // Todo mediaItemが再セットされるときcurrentがなくなってて停止位置を取得できないかもしれない
+                    // 再セット前にstopが必要かも
                     return
                 }
                 var uiFlag = 0  // 1:再生状態 2:position 4:current 8:ready
@@ -287,21 +249,21 @@ class PlaybackService : MediaSessionService() {
                     val duration = player.duration
                     val position = player.contentPosition
                     // current変更のときだけcurrentNameも変更する
-                    val currentName = if ((uiFlag and 4) > 0) {
-                        player.currentMediaItem?.localConfiguration?.uri?.lastPathSegment
-                    } else null
-                    if (currentName.isNullOrEmpty()) {
-                        _playbackRepository.updateWithoutCurrentName(
+                    if ((uiFlag and 4) > 0) {
+                        val file =
+                            File(player.currentMediaItem?.localConfiguration?.uri?.path ?: "")
+                        _playbackRepository.updateAll(
                             isReadyOk,
                             isPlaying,
+                            file.name,
+                            file.parent ?: "",
                             duration,
                             position
                         )
                     } else {
-                        _playbackRepository.updateAll(
+                        _playbackRepository.updateWithoutStringItem(
                             isReadyOk,
                             isPlaying,
-                            currentName,
                             duration,
                             position
                         )
@@ -310,59 +272,4 @@ class PlaybackService : MediaSessionService() {
             }
         })
     }
-    /*
-        @UnstableApi
-        private inner class MediaSessionCallback : MediaSession.Callback {
-            override fun onConnect(
-                session: MediaSession,
-                controller: MediaSession.ControllerInfo
-            ): MediaSession.ConnectionResult {
-                Timber.d("**onConnect session = $session controller = $controller")
-                if (session.isMediaNotificationController(controller)) {
-                    // 通知バーが必要な時だけくるはず
-                    Timber.d("**isMediaNotificationController")
-                }
-                return super.onConnect(session, controller)
-            }
-
-            override fun onDisconnected(
-                session: MediaSession,
-                controller: MediaSession.ControllerInfo
-            ) {
-                super.onDisconnected(session, controller)
-                Timber.d("**onDisconnected session = $session controller = $controller")
-            }
-
-            override fun onMediaButtonEvent(
-                session: MediaSession,
-                controllerInfo: MediaSession.ControllerInfo,
-                intent: Intent
-            ): Boolean {
-                Timber.d("**onMediaButtonEvent controllerInfo: $controllerInfo intent: $intent")
-                return super.onMediaButtonEvent(session, controllerInfo, intent)
-            }
-
-            @OptIn(DelicateCoroutinesApi::class)
-            override fun onPlaybackResumption(
-                mediaSession: MediaSession,
-                controller: MediaSession.ControllerInfo
-            ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-                Timber.d("**onPlaybackResumption")
-                val settable = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
-                serviceScope.launch {
-                    // Your app is responsible for storing the playlist, metadata (like title
-                    // and artwork) of the current item and the start position to use here.
-                    //val resumptionPlaylist = restorePlaylist()
-                    //settable.set(resumptionPlaylist)
-                    settable.set(
-                        MediaSession.MediaItemsWithStartPosition(
-                            emptyList(),
-                            0,
-                            0L
-                        )
-                    )
-                }
-                return settable
-            }
-        }*/
 }

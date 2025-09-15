@@ -35,18 +35,28 @@ class FolderListState(
                 is StorageItemMetadata.Folder -> folderCount++
                 else -> fileCount++
             }
-            val isTarget = it.name == audioTape.currentName
-            val contentPosition = if (isTarget) audioTape.position else 0
-            val isResume = !isCurrent && isTarget
-            val color = when {
-                isResume -> 2
-                isTarget -> 1
-                else -> 0
-            }
-            val icon = if (isCurrent && isTarget && playback.isPlaying) 1 else 0
-            DisplayStorageItem(it, index, color, icon, isResume, contentPosition)
+            makeDisplayStorageItem(isCurrent, it, audioTape, playback, index)
         }
         _list.update { list }
+    }
+
+    private fun makeDisplayStorageItem(
+        isCurrent: Boolean,
+        item: StorageItemDto,
+        audioTape: AudioTapeDto,
+        playback: PlaybackDto,
+        index: Int
+    ): DisplayStorageItem {
+        val isTarget = item.name == audioTape.currentName
+        val contentPosition = if (isTarget) audioTape.position else 0
+        val isResume = !isCurrent && isTarget
+        val color = when {
+            isResume -> 2
+            isTarget -> 1
+            else -> 0
+        }
+        val icon = if (isCurrent && isTarget && playback.isPlaying) 1 else 0
+        return DisplayStorageItem(item, index, color, icon, isResume, contentPosition)
     }
 
     fun loadMetadataByIndex(index: Int) {
