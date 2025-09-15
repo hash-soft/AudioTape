@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
@@ -31,7 +30,6 @@ fun AudioItem(
     contentPosition: Long = 0,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
-    val context = LocalContext.current
     ListItem(
         leadingContent = {
             // プレイ中は特殊なものにしたい

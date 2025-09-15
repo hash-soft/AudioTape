@@ -151,7 +151,7 @@ private fun LibrarySheetPager(
             ) {
                 when (it) {
                     0 -> FolderViewRoute(controller)
-                    1 -> TapeView()
+                    1 -> TapeView(controller)
                 }
             }
         }

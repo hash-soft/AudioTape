@@ -7,7 +7,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
 
@@ -19,7 +18,7 @@ fun InvalidFileItem(
     index: Int,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
-    val context = LocalContext.current
+    // Todo 押したら無効ファイルを示すトーストを出すかも
     ListItem(
         leadingContent = {
             // プレイ中は特殊なものにしたい

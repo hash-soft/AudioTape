@@ -7,14 +7,19 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hashsoft.audiotape.AudioTape
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.ui.list.TapeList
 
 @Composable
 fun TapeView(
+    controller: AudioController,
     tapeViewModel: TapeViewModel = viewModel {
         val application = get(APPLICATION_KEY) as AudioTape
         TapeViewModel(
-            audioTapeRepository = application.databaseContainer.audioTapeRepository
+            controller,
+            audioTapeRepository = application.databaseContainer.audioTapeRepository,
+            _playingStateRepository = application.playingStateRepository,
+            _playbackRepository = application.playbackRepository
         )
     }
 ) {
@@ -22,8 +27,33 @@ fun TapeView(
     when (val state = uiState) {
         is TapeUiState.Loading -> {}
         is TapeUiState.Success -> TapeList(
-            state.audioTapeList
+            state.audioTapeList,
+            audioCallback = { argument ->
+                tapeItemSelected(
+                    tapeViewModel,
+                    state.audioTapeList,
+                    argument
+                )
+            }
         )
+    }
+}
+
+private fun tapeItemSelected(
+    viewModel: TapeViewModel,
+    audioTapeList: List<AudioTapeDto>,
+    argument: AudioCallbackArgument
+): AudioCallbackResult {
+    return when (argument) {
+        is AudioCallbackArgument.TapeSelected -> {
+            val tape = audioTapeList[argument.index]
+            viewModel.updatePlayingFolderPath(tape.folderPath)
+            viewModel.setMediaItemsByTape(tape)
+            viewModel.play()
+            AudioCallbackResult.None
+        }
+
+        else -> AudioCallbackResult.None
     }
 }
 
@@ -31,5 +61,5 @@ fun TapeView(
 @Preview(showBackground = true)
 @Composable
 fun TapeViewPreview() {
-    TapeView()
+    TapeView(AudioController())
 }

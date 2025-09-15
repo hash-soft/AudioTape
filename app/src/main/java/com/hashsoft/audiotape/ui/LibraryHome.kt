@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.ui.bar.TopBar
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

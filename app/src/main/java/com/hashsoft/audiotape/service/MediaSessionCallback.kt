@@ -10,11 +10,10 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.ResumeAudioDto
 import com.hashsoft.audiotape.data.ResumeAudioRepository
-import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.logic.AudioFileChecker
+import com.hashsoft.audiotape.ui.AudioController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -95,14 +94,12 @@ class MediaSessionCallback(
     private fun restorePlaylist(data: ResumeAudioDto): Pair<List<MediaItem>, Int> {
         val file = File(data.path)
         val folderPath = file.parent ?: ""
-        val itemListRepository = AudioItemListRepository(folderPath)
-        val sortList =
-            StorageItemListRepository.sorted(itemListRepository.getAudioItemList(), data.sortOrder)
-        val startIndex = sortList.indexOfFirst { it.name == file.name }
+        val audioPair =
+            AudioController.getAudioList(folderPath, file.name, data.sortOrder)
         // metadataは取得していないのでここでは設定しない
-        return sortList.map { audio ->
+        return audioPair.first.map { audio ->
             MediaItem.Builder().setUri(audio.path).setMediaId(audio.name).build()
-        } to if (startIndex < 0) 0 else startIndex
+        } to audioPair.second
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)

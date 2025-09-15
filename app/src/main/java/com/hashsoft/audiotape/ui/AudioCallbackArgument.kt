@@ -1,21 +1,31 @@
 package com.hashsoft.audiotape.ui
 
-import com.hashsoft.audiotape.data.AudioItemMetadata
-
 sealed interface AudioCallbackArgument {
-    data class Display(val index: Int) : AudioCallbackArgument
+    // 再生項目用
+
     data class PlayPause(
         val isPlaying: Boolean
     ) : AudioCallbackArgument
 
-    data class FolderSelected(val path: String) : AudioCallbackArgument
-    data class AudioSelected(
-        val index : Int
-    ) : AudioCallbackArgument
-
     data object Position : AudioCallbackArgument
+
     data class SeekTo(
         val position: Long
     ) : AudioCallbackArgument
+
+
+    // フォルダ選択用
+    data class Display(val index: Int) : AudioCallbackArgument
+
+    data class AudioSelected(
+        val index: Int
+    ) : AudioCallbackArgument
+
+    data class FolderSelected(val path: String) : AudioCallbackArgument
+
+
+    // テープ一覧用
+    data class TapeSelected(val index: Int) : AudioCallbackArgument
+
 
 }
