@@ -1,6 +1,7 @@
 package com.hashsoft.audiotape.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -18,33 +19,88 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hashsoft.audiotape.AudioTape
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
+import com.hashsoft.audiotape.data.PlayAudioDto
+import com.hashsoft.audiotape.ui.item.AudioPlayItem
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
 fun LibrarySheetRoute(
-    libraryStateViewModel: LibraryStateViewModel = viewModel(factory = LibraryStateViewModel.Factory),
+    controller: AudioController = AudioController(),
+    viewModel: LibraryStateViewModel = viewModel {
+        val application = get(APPLICATION_KEY) as AudioTape
+        LibraryStateViewModel(
+            _controller = controller,
+            _libraryStateRepository = application.libraryStateRepository,
+            _playbackRepository = application.playbackRepository,
+            audioTapeRepository = application.databaseContainer.audioTapeRepository,
+            playingStateRepository = application.playingStateRepository,
+            resumeAudioRepository = application.resumeAudioRepository
+        )
+    }
 ) {
-    val uiState by libraryStateViewModel.uiState
+    val uiState by viewModel.uiState
+    val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
+
+    val isReady by controller.isReady.collectAsStateWithLifecycle()
+    Timber.d("##isReady $isReady")
 
     when (val state = uiState) {
         is LibraryStateUiState.Loading -> {}
         is LibraryStateUiState.Success -> LibrarySheetPager(
+            controller,
             state.libraryState,
-            tabs = libraryStateViewModel.tabs()
+            playItem = playItem,
+            audioCallback = { argument -> playItemSelected(viewModel, argument) },
+            tabs = viewModel.tabs()
         ) {
-            libraryStateViewModel.saveSelectedTabName(it)
+            viewModel.saveSelectedTabName(it)
         }
+    }
+}
+
+private fun playItemSelected(
+    viewModel: LibraryStateViewModel,
+    argument: AudioCallbackArgument
+): AudioCallbackResult {
+    return when (argument) {
+        is AudioCallbackArgument.Position -> {
+            return AudioCallbackResult.Position(viewModel.getContentPosition())
+        }
+
+        is AudioCallbackArgument.SeekTo -> {
+            viewModel.seekTo(argument.position)
+            AudioCallbackResult.None
+        }
+
+        is AudioCallbackArgument.PlayPause -> {
+            if (argument.isPlaying) {
+                viewModel.pause()
+            } else {
+                viewModel.play()
+            }
+            AudioCallbackResult.None
+        }
+
+        // Todo 専用画面への遷移を追加
+
+        else -> AudioCallbackResult.None
     }
 }
 
 @Composable
 private fun LibrarySheetPager(
+    controller: AudioController,
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
+    playItem: PlayAudioDto? = null,
+    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None },
     onTabChange: (index: Int) -> Unit,
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
@@ -58,9 +114,23 @@ private fun LibrarySheetPager(
         }
     }
 
-    @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        bottomBar = if (playItem == null) {
+            {}
+        } else {
+            {
+                AudioPlayItem(
+                    path = playItem.path,
+                    isPlaying = playItem.isPlaying,
+                    durationMs = playItem.durationMs,
+                    contentPosition = playItem.contentPosition,
+                    audioCallback = audioCallback
+                )
+            }
+        }) { innerPadding ->
+        Column(modifier = Modifier.padding(innerPadding)) {
             TabRow(selectedTabIndex = state.currentPage) {
                 tabs.forEachIndexed { index, tab ->
                     Tab(
@@ -80,7 +150,7 @@ private fun LibrarySheetPager(
                 flingBehavior = PagerDefaults.flingBehavior(state, snapPositionalThreshold = 0.3f)
             ) {
                 when (it) {
-                    0 -> FolderViewRoute()
+                    0 -> FolderViewRoute(controller)
                     1 -> TapeView()
                 }
             }

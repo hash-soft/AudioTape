@@ -1,13 +1,11 @@
 package com.hashsoft.audiotape.ui
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
-import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.data.StorageAddressRepository
 import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.data.StorageItemMetadata
@@ -20,8 +18,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
-import java.io.File
 
 enum class FolderViewState {
     Start,
@@ -37,11 +33,9 @@ class FolderViewModel(
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
-    resumeAudioRepository: ResumeAudioRepository
 ) :
     ViewModel() {
 
-    val isReady = _controller.isReady
     private val _state = MutableStateFlow(FolderViewState.Start)
     val state: StateFlow<FolderViewState> = _state.asStateFlow()
     private val _selectedPath = MutableStateFlow("")
@@ -49,13 +43,6 @@ class FolderViewModel(
 
     val addressBarState = AddressBarState(storageAddressRepository)
     val folderListState = FolderListState(storageItemListRepository)
-    val playItemState = PlayItemState(
-        viewModelScope,
-        _playbackRepository,
-        _audioTapeRepository,
-        _playingStateRepository,
-        resumeAudioRepository
-    )
 
     init {
         viewModelScope.launch {
@@ -112,40 +99,14 @@ class FolderViewModel(
         if (_controller.seekToByPath(item.base.path, item.contentPosition)) {
             return
         }
-        Timber.d("##includeMediaItemByPath")
+        if (_controller.isCurrentMediaItem()) {
+            // 位置を更新する
+            _playbackRepository.updateContentPosition(_controller.getContentPosition())
+        }
         _controller.setMediaItems(audioList, item.index, item.contentPosition)
-        Timber.d("##includeMediaItemByPath end")
     }
-
-    fun buildController(context: Context) = _controller.buildController(context)
-
-    fun releaseController() = _controller.releaseController()
 
     fun play() = _controller.play()
-
-    fun pause() = _controller.pause()
-
-    fun getContentPosition() = _controller.getContentPosition()
-
-    fun seekTo(position: Long) {
-        if (_controller.isCurrentMediaItem()) {
-            _controller.seekTo(position)
-        } else {
-            val value = playItemState.item.value
-            if (value == null) {
-                return
-            }
-            val file = File(value.path)
-            _playbackRepository.updateAll(
-                value.isReadyOk,
-                value.isPlaying,
-                file.name,
-                file.parent ?: "",
-                value.durationMs,
-                position
-            )
-        }
-    }
 
 }
 

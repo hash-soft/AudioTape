@@ -9,13 +9,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.ui.bar.TopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryHomeRoute() {
+fun LibraryHomeRoute(controller: AudioController = AudioController()) {
+    val context = LocalContext.current
+    LifecycleStartEffect(controller) {
+        controller.buildController(context)
+        onStopOrDispose {
+            controller.releaseController()
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -27,7 +37,7 @@ fun LibraryHomeRoute() {
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            LibrarySheetRoute()
+            LibrarySheetRoute(controller)
         }
     }
 }

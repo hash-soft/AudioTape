@@ -3,8 +3,6 @@ package com.hashsoft.audiotape.ui.item
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
@@ -14,7 +12,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
@@ -24,7 +21,6 @@ import com.hashsoft.audiotape.ui.bar.AudioSeekbar
 @Composable
 fun AudioPlayItem(
     path: String,
-    isCurrent: Boolean = false,
     isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
@@ -46,12 +42,6 @@ fun AudioPlayItem(
                         null
                     )
                 }
-
-                Icon(
-                    imageVector = if (isCurrent) Icons.Default.FolderOpen else Icons.Default.Folder,
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.BottomEnd),
-                )
             }
         },
         overlineContent = {
@@ -69,6 +59,7 @@ fun AudioPlayItem(
         supportingContent = null,
         trailingContent = null,
         modifier = Modifier.clickable {
+            // Todo 再生専用画面へ
             //audioCallback(AudioCallbackArgument.Selected)
         },
         colors = ListItemDefaults.colors(
