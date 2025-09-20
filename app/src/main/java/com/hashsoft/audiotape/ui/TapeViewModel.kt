@@ -6,13 +6,18 @@ import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 
+
+enum class TapeViewState {
+    Start,
+    Success,
+}
 
 class TapeViewModel(
     private val _controller: AudioController = AudioController(),
@@ -22,14 +27,26 @@ class TapeViewModel(
 ) :
     ViewModel() {
 
-    val uiState: StateFlow<TapeUiState> =
-        audioTapeRepository.getAll().map {
-            TapeUiState.Success(it)
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = TapeUiState.Loading
-        )
+    private val _state = MutableStateFlow(TapeViewState.Start)
+    val state: StateFlow<TapeViewState> = _state
+
+    val tapeListState = TapeListState()
+
+    init {
+        viewModelScope.launch {
+            // Todo DBのほうにソートを入れるようにする DBにソートに必要な情報が入っているから可能
+            combine(
+                audioTapeRepository.getAll(),
+                _playbackRepository.data,
+                _playingStateRepository.playingStateFlow()
+            ) { list, playback, playingState ->
+                Triple(list, playback, playingState)
+            }.collect { (list, playback, playingState) ->
+                tapeListState.updateList(list, playback, playingState.folderPath)
+                _state.update { TapeViewState.Success }
+            }
+        }
+    }
 
     fun updatePlayingFolderPath(path: String) = viewModelScope.launch {
         _playingStateRepository.saveFolderPath(path)
@@ -56,9 +73,9 @@ class TapeViewModel(
     fun play() = _controller.play()
 }
 
-sealed interface TapeUiState {
-    data object Loading : TapeUiState
-    data class Success(
-        val audioTapeList: List<AudioTapeDto>
-    ) : TapeUiState
-}
+//sealed interface TapeUiState {
+//    data object Loading : TapeUiState
+//    data class Success(
+//        val audioTapeList: List<AudioTapeDto>
+//    ) : TapeUiState
+//}

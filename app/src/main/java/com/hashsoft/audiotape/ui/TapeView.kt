@@ -7,13 +7,13 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hashsoft.audiotape.AudioTape
-import com.hashsoft.audiotape.data.AudioTapeDto
+import com.hashsoft.audiotape.data.DisplayAudioTape
 import com.hashsoft.audiotape.ui.list.TapeList
 
 @Composable
 fun TapeView(
     controller: AudioController,
-    tapeViewModel: TapeViewModel = viewModel {
+    viewModel: TapeViewModel = viewModel {
         val application = get(APPLICATION_KEY) as AudioTape
         TapeViewModel(
             controller,
@@ -23,30 +23,34 @@ fun TapeView(
         )
     }
 ) {
-    val uiState by tapeViewModel.uiState.collectAsStateWithLifecycle()
-    when (val state = uiState) {
-        is TapeUiState.Loading -> {}
-        is TapeUiState.Success -> TapeList(
-            state.audioTapeList,
-            audioCallback = { argument ->
-                tapeItemSelected(
-                    tapeViewModel,
-                    state.audioTapeList,
-                    argument
-                )
-            }
-        )
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val tapeListState by viewModel.tapeListState.list.collectAsStateWithLifecycle()
+
+    when (state) {
+        TapeViewState.Start -> {}
+        else -> {
+            TapeList(
+                tapeListState,
+                audioCallback = { argument ->
+                    tapeItemSelected(
+                        viewModel,
+                        tapeListState,
+                        argument
+                    )
+                }
+            )
+        }
     }
 }
 
 private fun tapeItemSelected(
     viewModel: TapeViewModel,
-    audioTapeList: List<AudioTapeDto>,
+    audioTapeList: List<DisplayAudioTape>,
     argument: AudioCallbackArgument
 ): AudioCallbackResult {
     return when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
-            val tape = audioTapeList[argument.index]
+            val tape = audioTapeList[argument.index].base
             viewModel.updatePlayingFolderPath(tape.folderPath)
             viewModel.setMediaItemsByTape(tape)
             viewModel.play()

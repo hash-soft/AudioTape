@@ -4,14 +4,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.hashsoft.audiotape.data.AudioTapeDto
+import com.hashsoft.audiotape.data.DisplayAudioTape
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
 import com.hashsoft.audiotape.ui.item.TapeItem
 
 @Composable
 fun TapeList(
-    audioTapeList: List<AudioTapeDto>,
+    audioTapeList: List<DisplayAudioTape>,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None },
 ) {
     LazyColumn(
@@ -20,7 +20,17 @@ fun TapeList(
     ) {
         items(audioTapeList.size) {
             val item = audioTapeList[it]
-            TapeItem(it, item, audioCallback)
+            val tape = item.base
+            TapeItem(
+                it,
+                tape.folderPath,
+                tape.currentName,
+                tape.position,
+                tape.sortOrder,
+                tape.speed,
+                color = item.color,
+                audioCallback
+            )
         }
     }
 }
