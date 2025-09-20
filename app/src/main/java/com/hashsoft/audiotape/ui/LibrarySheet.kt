@@ -162,7 +162,11 @@ private fun LibrarySheetPager(
             ) {
                 when (it) {
                     0 -> FolderViewRoute(controller)
-                    1 -> TapeView(controller)
+                    1 -> TapeView(controller) {
+                        scope.launch {
+                            state.animateScrollToPage(0)
+                        }
+                    }
                 }
             }
         }

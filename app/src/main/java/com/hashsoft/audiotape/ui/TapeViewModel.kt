@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,7 @@ class TapeViewModel(
     audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
+    private val _folderStateRepository: FolderStateRepository,
 ) :
     ViewModel() {
 
@@ -71,11 +73,8 @@ class TapeViewModel(
     }
 
     fun play() = _controller.play()
-}
 
-//sealed interface TapeUiState {
-//    data object Loading : TapeUiState
-//    data class Success(
-//        val audioTapeList: List<AudioTapeDto>
-//    ) : TapeUiState
-//}
+    fun saveSelectedPath(path: String) = viewModelScope.launch {
+        _folderStateRepository.saveSelectedPath(path)
+    }
+}

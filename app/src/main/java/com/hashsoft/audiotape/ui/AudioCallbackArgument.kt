@@ -29,6 +29,7 @@ sealed interface AudioCallbackArgument {
 
     // テープ一覧用
     data class TapeSelected(val index: Int) : AudioCallbackArgument
+    data class TapeFolderOpen(val path: String) : AudioCallbackArgument
 
 
 }

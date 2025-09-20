@@ -2,8 +2,9 @@ package com.hashsoft.audiotape.ui.item
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -28,18 +29,21 @@ fun TapeItem(
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
     ListItem(
-        leadingContent = {
-            Icon(
-                imageVector = Icons.Default.LibraryMusic,
-                null
-            )
-        },
         headlineContent = { Text(folderPath) },
         supportingContent = {
             Text(text = "current:${currentName}\nposition:${formatMillis(position)}\norder:${sortOrder} speed:${speed}")
         },
+        trailingContent = {
+            IconButton(
+                onClick = { audioCallback(AudioCallbackArgument.TapeFolderOpen(folderPath)) }
+            ) {
+                Icon(
+                    Icons.Default.FolderOpen,
+                    null
+                )
+            }
+        },
         modifier = Modifier.clickable {
-            // Todo フォルダ遷移とかあるがひとまず押したら再生
             audioCallback(AudioCallbackArgument.TapeSelected(index))
         },
         colors = if (color > 0) ListItemDefaults.colors(

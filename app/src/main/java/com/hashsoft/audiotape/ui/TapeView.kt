@@ -19,9 +19,11 @@ fun TapeView(
             controller,
             audioTapeRepository = application.databaseContainer.audioTapeRepository,
             _playingStateRepository = application.playingStateRepository,
-            _playbackRepository = application.playbackRepository
+            _playbackRepository = application.playbackRepository,
+            _folderStateRepository = application.libraryFolderRepository
         )
-    }
+    },
+    onFolderOpen: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val tapeListState by viewModel.tapeListState.list.collectAsStateWithLifecycle()
@@ -35,7 +37,8 @@ fun TapeView(
                     tapeItemSelected(
                         viewModel,
                         tapeListState,
-                        argument
+                        argument,
+                        onFolderOpen
                     )
                 }
             )
@@ -46,7 +49,8 @@ fun TapeView(
 private fun tapeItemSelected(
     viewModel: TapeViewModel,
     audioTapeList: List<DisplayAudioTape>,
-    argument: AudioCallbackArgument
+    argument: AudioCallbackArgument,
+    onFolderOpen: () -> Unit = {}
 ): AudioCallbackResult {
     return when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
@@ -54,6 +58,13 @@ private fun tapeItemSelected(
             viewModel.updatePlayingFolderPath(tape.folderPath)
             viewModel.setMediaItemsByTape(tape)
             viewModel.play()
+            AudioCallbackResult.None
+        }
+
+        is AudioCallbackArgument.TapeFolderOpen -> {
+            // 選択フォルダパスを変更してから上位のページャー切り替えをコールバックする
+            viewModel.saveSelectedPath(argument.path)
+            onFolderOpen()
             AudioCallbackResult.None
         }
 
