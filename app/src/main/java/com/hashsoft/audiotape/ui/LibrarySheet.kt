@@ -88,6 +88,16 @@ private fun playItemSelected(
             AudioCallbackResult.None
         }
 
+        is AudioCallbackArgument.SkipNext -> {
+            viewModel.seekToNext()
+            AudioCallbackResult.None
+        }
+
+        is AudioCallbackArgument.SkipPrevious -> {
+            viewModel.seekToPrevious()
+            AudioCallbackResult.None
+        }
+
         // Todo 専用画面への遷移を追加
 
         else -> AudioCallbackResult.None
@@ -123,6 +133,7 @@ private fun LibrarySheetPager(
             {
                 AudioPlayItem(
                     path = playItem.path,
+                    isReadyOk = playItem.isReadyOk,
                     isPlaying = playItem.isPlaying,
                     durationMs = playItem.durationMs,
                     contentPosition = playItem.contentPosition,

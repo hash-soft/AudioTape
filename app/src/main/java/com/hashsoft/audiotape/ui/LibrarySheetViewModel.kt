@@ -56,21 +56,14 @@ class LibraryStateViewModel(
         if (_controller.isCurrentMediaItem()) {
             _controller.seekTo(position)
         } else {
-            val value = playItemState.item.value
-            if (value == null) {
-                return
-            }
-            val file = File(value.path)
-            _playbackRepository.updateAll(
-                value.isReadyOk,
-                value.isPlaying,
-                file.name,
-                file.parent ?: "",
-                value.durationMs,
-                position
-            )
+            playItemState.updatePlaybackPosition(position)
         }
     }
+
+    fun seekToNext() = _controller.seekToNext()
+
+    fun seekToPrevious() = _controller.seekToPrevious()
+
 }
 
 sealed interface LibraryStateUiState {

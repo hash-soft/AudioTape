@@ -13,6 +13,9 @@ sealed interface AudioCallbackArgument {
         val position: Long
     ) : AudioCallbackArgument
 
+    data object SkipNext : AudioCallbackArgument
+    data object SkipPrevious : AudioCallbackArgument
+
 
     // フォルダ選択用
     data class Display(val index: Int) : AudioCallbackArgument

@@ -68,6 +68,7 @@ class MediaSessionCallback(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo
     ): ListenableFuture<MediaItemsWithStartPosition> {
+        // Todo playStateとtapeの組み合わせで見たほうがいいかもしれない>永続的なデータからとったほうがいい
         Timber.d("##onPlaybackResumption data: ${_resumeAudioRepository.data.value}")
         val data = _resumeAudioRepository.data.value
         if (data.path.isEmpty()) {

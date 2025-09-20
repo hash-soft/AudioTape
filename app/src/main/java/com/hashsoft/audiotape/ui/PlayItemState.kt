@@ -22,7 +22,7 @@ import java.io.File
 
 class PlayItemState(
     externalScope: CoroutineScope,
-    playbackRepository: PlaybackRepository,
+    private val _playbackRepository: PlaybackRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     resumeAudioRepository: ResumeAudioRepository,
@@ -37,7 +37,7 @@ class PlayItemState(
             playingStateRepository.playingStateFlow().flatMapLatest { state ->
                 combine(
                     _audioTapeRepository.findByPath(state.folderPath),
-                    playbackRepository.data
+                    _playbackRepository.data
                 ) { audioTape, playback ->
                     val path = audioTape.folderPath + File.separator + audioTape.currentName
                     if (_audioTapeRepository.validAudioTapeDto(audioTape) && File(path).isFile) {
@@ -83,6 +83,22 @@ class PlayItemState(
             retriever.release()
         }
         return 0
+    }
+
+    fun updatePlaybackPosition(position: Long) {
+        val value = item.value
+        if (value == null) {
+            return
+        }
+        val file = File(value.path)
+        _playbackRepository.updateAll(
+            value.isReadyOk,
+            value.isPlaying,
+            file.name,
+            file.parent ?: "",
+            value.durationMs,
+            position
+        )
     }
 
 }

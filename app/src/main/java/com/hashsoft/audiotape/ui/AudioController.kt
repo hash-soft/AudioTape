@@ -71,6 +71,34 @@ class AudioController(
         _controller?.seekTo(position)
     }
 
+    fun seekToNext() {
+        // リピートじゃない場合最後だと先頭に戻らないので無理やり先頭に戻している
+        _controller?.let { player ->
+            if (player.nextMediaItemIndex < 0) {
+                player.seekTo(0, 0)
+            } else {
+                player.seekToNext()
+            }
+        }
+
+    }
+
+    fun seekToPrevious() {
+        // リピートじゃない場合最初だと最後に戻らないので無理やり最後に戻している
+        // previousMediaItemIndexだけで判断すると途中の位置でも最後に戻ってしまうので2秒以内の再生位置なら最後に戻す
+        _controller?.let { player ->
+            if (player.previousMediaItemIndex < 0) {
+                if (player.currentPosition < 2000) {
+                    player.seekTo(player.mediaItemCount - 1, 0)
+                } else {
+                    player.seekToPrevious()
+                }
+            } else {
+                player.seekToPrevious()
+            }
+        }
+    }
+
     fun setMediaItems(
         audioList: List<StorageItemDto>,
         mediaItemIndex: Int = 0,
