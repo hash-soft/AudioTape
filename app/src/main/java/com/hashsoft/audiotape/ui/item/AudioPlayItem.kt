@@ -2,9 +2,12 @@ package com.hashsoft.audiotape.ui.item
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -45,9 +48,27 @@ fun AudioPlayItem(
             }
         },
         overlineContent = {
-            Text(path, maxLines = 1, overflow = TextOverflow.StartEllipsis)
+            Row {
+                Text(
+                    path,
+                    maxLines = 1,
+                    overflow = TextOverflow.StartEllipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = { audioCallback(AudioCallbackArgument.SkipPrevious) },
+                    enabled = isReadyOk
+                ) { Icon(Icons.Default.SkipPrevious, null) }
+                IconButton(
+                    onClick = { audioCallback(AudioCallbackArgument.SkipNext) },
+                    enabled = isReadyOk
+                ) {
+                    Icon(Icons.Default.SkipNext, null)
+                }
+            }
         },
-        headlineContent = {
+        headlineContent = {},
+        supportingContent = {
             AudioSeekbar(
                 position = contentPosition,
                 durationMs = durationMs,
@@ -56,7 +77,6 @@ fun AudioPlayItem(
                 audioCallback = audioCallback
             )
         },
-        supportingContent = null,
         trailingContent = null,
         modifier = Modifier.clickable {
             // Todo 再生専用画面へ

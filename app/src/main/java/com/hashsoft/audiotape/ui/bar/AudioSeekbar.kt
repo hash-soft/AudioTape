@@ -2,12 +2,6 @@ package com.hashsoft.audiotape.ui.bar
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,52 +48,34 @@ fun AudioSeekbar(
 
     // valueの範囲が0～1なので 現在位置 / 総時間 にする必要がある
     Column(modifier = modifier) {
-        Row {
-            IconButton(
-                onClick = { audioCallback(AudioCallbackArgument.SkipPrevious) },
-                enabled = enabled
-            ) { Icon(Icons.Default.SkipPrevious, null) }
-            WaveSlider(
-                value = if (durationMs == 0L) 0f else contentPosition.toFloat() / durationMs,
-                onValueChange = {
-                    sliderDown = true
-                    contentPosition = (it * durationMs).toLong()
-                },
-                onValueChangeFinished = {
-                    sliderDown = false
-                    audioCallback(AudioCallbackArgument.SeekTo(contentPosition))
-                },
-                animationOptions = WaveSliderDefaults.animationOptions(
-                    reverseDirection = false,
-                    flatlineOnDrag = true,
-                    animateWave = false,
-                    reverseFlatline = false
-                ),
-                colors = WaveSliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.secondary,
-                    activeTrackColor = MaterialTheme.colorScheme.secondary
-                ),
-                waveOptions = if (isPlaying) WaveSliderDefaults.waveOptions() else WaveSliderDefaults.waveOptions(
-                    amplitude = 0F,
-                    frequency = 0F,
-                ),
-                modifier = Modifier
-                    .padding(
-                        //horizontal = 20.dp,
-                        //vertical = 50.dp
-                    )
-                    .weight(1f), enabled = enabled
-            )
-            IconButton(
-                onClick = { audioCallback(AudioCallbackArgument.SkipNext) },
-                enabled = enabled
-            ) {
-                Icon(
-                    Icons.Default.SkipNext,
-                    null
-                )
-            }
-        }
+        // Todo 不格好かつ幅とりすぎるのでいずれ変える
+        WaveSlider(
+            value = if (durationMs == 0L) 0f else contentPosition.toFloat() / durationMs,
+            onValueChange = {
+                sliderDown = true
+                contentPosition = (it * durationMs).toLong()
+            },
+            onValueChangeFinished = {
+                sliderDown = false
+                audioCallback(AudioCallbackArgument.SeekTo(contentPosition))
+            },
+            animationOptions = WaveSliderDefaults.animationOptions(
+                reverseDirection = false,
+                flatlineOnDrag = true,
+                animateWave = false,
+                reverseFlatline = false,
+            ),
+            colors = WaveSliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.secondary,
+                activeTrackColor = MaterialTheme.colorScheme.secondary
+            ),
+            waveOptions = if (isPlaying) WaveSliderDefaults.waveOptions() else WaveSliderDefaults.waveOptions(
+                amplitude = 0F,
+                frequency = 0F,
+            ),
+            enabled = enabled
+        )
+
         Row {
             Text(
                 text = formatMillis(contentPosition),
