@@ -16,6 +16,10 @@ sealed interface AudioCallbackArgument {
     data object SkipNext : AudioCallbackArgument
     data object SkipPrevious : AudioCallbackArgument
 
+    data object OpenAudioPlay : AudioCallbackArgument
+
+    data object CloseAudioPlay : AudioCallbackArgument
+
 
     // フォルダ選択用
     data class Display(val index: Int) : AudioCallbackArgument

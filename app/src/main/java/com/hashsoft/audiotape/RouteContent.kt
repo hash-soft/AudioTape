@@ -61,7 +61,7 @@ private fun RouteScreen(
                 popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
             ) { navBackStackEntry ->
                 val audioPlay: Route.AudioPlay = navBackStackEntry.toRoute()
-                AudioPlayHomeRoute(AudioTapeDto(audioPlay.folderPath, audioPlay.currentName, 0))
+                //AudioPlayHomeRoute(AudioTapeDto(audioPlay.folderPath, audioPlay.currentName, 0))
             }
             composable<Route.UserSettings> {
                 UserSettingsRoute()
