@@ -3,25 +3,14 @@ package com.hashsoft.audiotape.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hashsoft.audiotape.AudioTape
 import com.hashsoft.audiotape.data.DisplayAudioTape
 import com.hashsoft.audiotape.ui.list.TapeList
 
 @Composable
 fun TapeView(
-    viewModel: TapeViewModel = viewModel {
-        val application = get(APPLICATION_KEY) as AudioTape
-        TapeViewModel(
-            _controller = application.controller,
-            audioTapeRepository = application.databaseContainer.audioTapeRepository,
-            _playingStateRepository = application.playingStateRepository,
-            _playbackRepository = application.playbackRepository,
-            _folderStateRepository = application.libraryFolderRepository
-        )
-    },
+    viewModel: TapeViewModel = hiltViewModel(),
     onFolderOpen: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()

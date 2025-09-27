@@ -8,14 +8,17 @@ import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class LibraryStateViewModel(
-    private val _controller: AudioController = AudioController(),
+@HiltViewModel
+class LibraryStateViewModel @Inject constructor(
+    private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
     private val _playbackRepository: PlaybackRepository,
     audioTapeRepository: AudioTapeRepository,

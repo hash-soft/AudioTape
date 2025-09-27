@@ -8,32 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.directorytest.ui.view.AddressBar
-import com.hashsoft.audiotape.AudioTape
 import com.hashsoft.audiotape.data.DisplayStorageItem
-import com.hashsoft.audiotape.data.StorageAddressRepository
-import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.data.StorageLocationDto
 import com.hashsoft.audiotape.ui.list.FolderList
 import timber.log.Timber
 
 @Composable
 fun FolderViewRoute(
-    viewModel: FolderViewModel = viewModel {
-        val application = get(APPLICATION_KEY) as AudioTape
-        FolderViewModel(
-            _controller = application.controller,
-            _folderStateRepository = application.libraryFolderRepository,
-            storageAddressRepository = StorageAddressRepository(application),
-            storageItemListRepository = StorageItemListRepository(application),
-            _audioTapeRepository = application.databaseContainer.audioTapeRepository,
-            _playingStateRepository = application.playingStateRepository,
-            _playbackRepository = application.playbackRepository
-        )
-    },
+    viewModel: FolderViewModel = hiltViewModel()
     //navController: NavHostController = LocalNavController.current,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()

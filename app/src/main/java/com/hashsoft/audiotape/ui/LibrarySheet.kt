@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,17 +42,7 @@ import timber.log.Timber
 
 @Composable
 fun LibrarySheetRoute(
-    viewModel: LibraryStateViewModel = viewModel {
-        val application = get(APPLICATION_KEY) as AudioTape
-        LibraryStateViewModel(
-            _controller = application.controller,
-            _libraryStateRepository = application.libraryStateRepository,
-            _playbackRepository = application.playbackRepository,
-            audioTapeRepository = application.databaseContainer.audioTapeRepository,
-            playingStateRepository = application.playingStateRepository,
-            resumeAudioRepository = application.resumeAudioRepository
-        )
-    }
+    viewModel: LibraryStateViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()

@@ -22,20 +22,13 @@ import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 
 @Composable
 fun AudioPlayViewRoute(
-    audioTape: AudioTapeDto,
-    viewModel: AudioPlayViewModel = viewModel {
-        val application = get(APPLICATION_KEY) as AudioTape
-        AudioPlayViewModel(
-            audioTape, _audioTapeRepository = application.databaseContainer.audioTapeRepository
-        )
-    },
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    when (val state = uiState) {
-        is AudioPlayUiState.Loading -> {}
-        is AudioPlayUiState.Success -> AudioPlayView(state)
-    }
+//    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+//
+//    when (val state = uiState) {
+//        is AudioPlayUiState.Loading -> {}
+//        is AudioPlayUiState.Success -> AudioPlayView(state)
+//    }
 }
 
 

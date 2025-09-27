@@ -12,12 +12,13 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import com.hashsoft.audiotape.AudioTape
 import com.hashsoft.audiotape.MainActivity
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.ui.di.entry.PlaybackServiceEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -65,10 +66,13 @@ class PlaybackService : MediaSessionService() {
     }
 
     private fun initializeRepository() {
-        val audioTap = application as AudioTape
-        _playbackRepository = audioTap.playbackRepository
-        _audioTapeRepository = audioTap.databaseContainer.audioTapeRepository
-        _resumeAudioRepository = audioTap.resumeAudioRepository
+        val entryPoint = EntryPointAccessors.fromApplication(
+            applicationContext,
+            PlaybackServiceEntryPoint::class.java
+        )
+        _playbackRepository = entryPoint.playbackRepository()
+        _audioTapeRepository = entryPoint.audioTapeRepository()
+        _resumeAudioRepository = entryPoint.resumeAudioRepository()
     }
 
     private fun observeState() {

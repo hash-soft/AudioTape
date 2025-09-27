@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,10 +15,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.hashsoft.audiotape.ui.LibraryHomeRoute
+import com.hashsoft.audiotape.ui.RouteContentViewModel
 import com.hashsoft.audiotape.ui.UserSettingsRoute
 
 @Composable
-fun RouteContent() {
+fun RouteContent(viewModel: RouteContentViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    LifecycleStartEffect(Unit) {
+        viewModel.buildController(context)
+        onStopOrDispose {
+            viewModel.releaseController()
+        }
+    }
+
     val navController = rememberNavController()
     RouteScreen(navController)
 }
@@ -27,15 +37,6 @@ val LocalNavController =
 
 @Composable
 private fun RouteScreen(navController: NavHostController) {
-    val context = LocalContext.current
-    val controller = (context.applicationContext as AudioTape).controller
-    LifecycleStartEffect(Unit) {
-        controller.buildController(context)
-        onStopOrDispose {
-            controller.releaseController()
-        }
-    }
-
     CompositionLocalProvider(
         LocalNavController provides navController,
     ) {

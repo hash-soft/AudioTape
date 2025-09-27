@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hashsoft.audiotape.data.UserSettingsDto
 import com.hashsoft.audiotape.ui.UserSettingsItem.ScreenRestore
 
@@ -15,7 +15,7 @@ private sealed interface UserSettingsItem {
 
 
 @Composable
-fun UserSettingsRoute(userSettingsViewModel: UserSettingsViewModel = viewModel(factory = UserSettingsViewModel.Factory)) {
+fun UserSettingsRoute(userSettingsViewModel: UserSettingsViewModel = hiltViewModel()) {
     val uiState by userSettingsViewModel.uiState.collectAsStateWithLifecycle()
     UserSettingsView(uiState) { item ->
         when (item) {

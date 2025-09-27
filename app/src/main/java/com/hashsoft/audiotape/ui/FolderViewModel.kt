@@ -9,6 +9,7 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageAddressRepository
 import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.data.StorageItemMetadata
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 enum class FolderViewState {
     Start,
@@ -25,8 +27,9 @@ enum class FolderViewState {
     Success,
 }
 
-class FolderViewModel(
-    private val _controller: AudioController = AudioController(),
+@HiltViewModel
+class FolderViewModel @Inject constructor(
+    private val _controller: AudioController,
     private val _folderStateRepository: FolderStateRepository,
     storageAddressRepository: StorageAddressRepository,
     storageItemListRepository: StorageItemListRepository,
