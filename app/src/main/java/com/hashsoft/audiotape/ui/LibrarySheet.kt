@@ -13,8 +13,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -29,10 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hashsoft.audiotape.AudioTape
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.data.PlayAudioDto
@@ -150,7 +147,7 @@ private fun LibrarySheetPager(
             }
         }) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            TabRow(selectedTabIndex = state.currentPage) {
+            SecondaryTabRow(selectedTabIndex = state.currentPage) {
                 tabs.forEachIndexed { index, tab ->
                     Tab(
                         selected = state.currentPage == index,
@@ -170,7 +167,7 @@ private fun LibrarySheetPager(
             ) {
                 when (it) {
                     0 -> FolderViewRoute()
-                    1 -> TapeView() {
+                    1 -> TapeView {
                         scope.launch {
                             state.animateScrollToPage(0)
                         }
