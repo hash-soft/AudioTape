@@ -12,11 +12,10 @@ import com.hashsoft.audiotape.ui.list.TapeList
 
 @Composable
 fun TapeView(
-    controller: AudioController,
     viewModel: TapeViewModel = viewModel {
         val application = get(APPLICATION_KEY) as AudioTape
         TapeViewModel(
-            controller,
+            _controller = application.controller,
             audioTapeRepository = application.databaseContainer.audioTapeRepository,
             _playingStateRepository = application.playingStateRepository,
             _playbackRepository = application.playbackRepository,
@@ -76,5 +75,5 @@ private fun tapeItemSelected(
 @Preview(showBackground = true)
 @Composable
 fun TapeViewPreview() {
-    TapeView(AudioController())
+    TapeView()
 }

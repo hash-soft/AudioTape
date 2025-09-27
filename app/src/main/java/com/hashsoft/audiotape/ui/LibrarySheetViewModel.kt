@@ -24,6 +24,7 @@ class LibraryStateViewModel(
 ) :
     ViewModel() {
 
+    val controllerOk = _controller.isReady
     val uiState: StateFlow<LibraryStateUiState> =
         _libraryStateRepository.libraryStateFlow().map { state ->
             val value = uiState.value

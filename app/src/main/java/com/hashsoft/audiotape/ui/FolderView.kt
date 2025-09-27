@@ -22,11 +22,10 @@ import timber.log.Timber
 
 @Composable
 fun FolderViewRoute(
-    controller: AudioController = AudioController(),
     viewModel: FolderViewModel = viewModel {
         val application = get(APPLICATION_KEY) as AudioTape
         FolderViewModel(
-            _controller = controller,
+            _controller = application.controller,
             _folderStateRepository = application.libraryFolderRepository,
             storageAddressRepository = StorageAddressRepository(application),
             storageItemListRepository = StorageItemListRepository(application),

@@ -11,6 +11,7 @@ import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.ui.AudioController
 import timber.log.Timber
 
 private val Context.libraryStateStore: DataStore<Preferences> by preferencesDataStore(
@@ -32,6 +33,7 @@ class AudioTape : Application() {
     lateinit var playingStateRepository: PlayingStateRepository
     lateinit var playbackRepository: PlaybackRepository
     lateinit var resumeAudioRepository: ResumeAudioRepository
+    lateinit var controller: AudioController
 
     override fun onCreate() {
         super.onCreate()
@@ -42,5 +44,6 @@ class AudioTape : Application() {
         playingStateRepository = PlayingStateRepository(playingStateStore)
         playbackRepository = PlaybackRepository()
         resumeAudioRepository = ResumeAudioRepository()
+        controller = AudioController()
     }
 }

@@ -41,11 +41,10 @@ import timber.log.Timber
 
 @Composable
 fun LibrarySheetRoute(
-    controller: AudioController = AudioController(),
     viewModel: LibraryStateViewModel = viewModel {
         val application = get(APPLICATION_KEY) as AudioTape
         LibraryStateViewModel(
-            _controller = controller,
+            _controller = application.controller,
             _libraryStateRepository = application.libraryStateRepository,
             _playbackRepository = application.playbackRepository,
             audioTapeRepository = application.databaseContainer.audioTapeRepository,
@@ -57,13 +56,12 @@ fun LibrarySheetRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
 
-    val isReady by controller.isReady.collectAsStateWithLifecycle()
-    Timber.d("##isReady $isReady")
+    val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
+    Timber.d("#LisReady $isReady")
 
     when (val state = uiState) {
         is LibraryStateUiState.Loading -> {}
         is LibraryStateUiState.Success -> LibrarySheetPager(
-            controller,
             state.libraryState,
             playItem = playItem,
             audioCallback = { argument -> playItemSelected(viewModel, argument) },
@@ -124,7 +122,6 @@ private fun playItemSelected(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LibrarySheetPager(
-    controller: AudioController,
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
     playItem: PlayAudioDto? = null,
@@ -181,8 +178,8 @@ private fun LibrarySheetPager(
                 flingBehavior = PagerDefaults.flingBehavior(state, snapPositionalThreshold = 0.3f)
             ) {
                 when (it) {
-                    0 -> FolderViewRoute(controller)
-                    1 -> TapeView(controller) {
+                    0 -> FolderViewRoute()
+                    1 -> TapeView() {
                         scope.launch {
                             state.animateScrollToPage(0)
                         }
