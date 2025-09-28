@@ -22,7 +22,7 @@ import com.hashsoft.audiotape.ui.AudioCallbackResult
 import com.hashsoft.audiotape.ui.bar.AudioSeekbar
 
 @Composable
-fun SimpleAudioPlayContent(
+fun SimpleAudioPlayItemPortrait(
     path: String,
     isReadyOk: Boolean = true,
     isPlaying: Boolean = false,
@@ -78,10 +78,9 @@ fun SimpleAudioPlayContent(
             )
         },
         trailingContent = null,
-//        modifier = Modifier.clickable {
-//            // Todo 再生専用画面へ
-//            //audioCallback(AudioCallbackArgument.Selected)
-//        },
+        modifier = Modifier.clickable {
+            audioCallback(AudioCallbackArgument.OpenAudioPlay)
+        },
         colors = ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant, // 背景色
         )

@@ -63,6 +63,10 @@ class AudioController(
         _controller?.pause()
     }
 
+    fun setVolume(volume: Float) {
+        _controller?.volume = volume
+    }
+
     fun getContentPosition(): Long {
         return _controller?.contentPosition ?: 0L
     }
