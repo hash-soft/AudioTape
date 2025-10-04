@@ -6,18 +6,13 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
-data class AudioTapePosition(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
-    @ColumnInfo(name = "position") val position: Long
-)
-
-data class AudioTapeNotNull(
+data class AudioTapePlayingPosition(
     @ColumnInfo(name = "folder_path") val folderPath: String,
     @ColumnInfo(name = "current_name") val currentName: String,
-    @ColumnInfo(name = "position") val position: Long
+    @ColumnInfo(name = "position") val position: Long,
+    @ColumnInfo(name = "update_time") val updateTime: Long
 )
 
 @Dao
@@ -29,18 +24,9 @@ interface AudioTapeDao {
     fun findByPath(path: String): Flow<AudioTapeEntity?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(vararg entity: AudioTapeEntity)
-
-    @Upsert
-    suspend fun upsertAll(vararg entity: AudioTapeEntity)
-
-    @Upsert(entity = AudioTapeEntity::class)
-    suspend fun upsertNotNull(vararg entity: AudioTapeNotNull)
+    suspend fun insertAll(entity: AudioTapeEntity): Long
 
     @Update(entity = AudioTapeEntity::class)
-    suspend fun updatePosition(vararg entity: AudioTapePosition)
-
-    @Update(entity = AudioTapeEntity::class)
-    suspend fun updateNotNull(vararg entity: AudioTapeNotNull)
+    suspend fun updatePlayingPosition(entity: AudioTapePlayingPosition)
 
 }

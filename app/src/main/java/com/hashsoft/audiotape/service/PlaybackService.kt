@@ -84,7 +84,8 @@ class PlaybackService : MediaSessionService() {
                 if (playback.folderPath.isEmpty() || playback.durationMs <= 0) {
                     return@collect
                 }
-                _audioTapeRepository.upsertNotNull(
+                // 何らかの異常がなければキーは存在しているはず
+                _audioTapeRepository.updatePlayingPosition(
                     playback.folderPath,
                     playback.currentName,
                     playback.contentPosition
@@ -112,7 +113,7 @@ class PlaybackService : MediaSessionService() {
             // 再生情報の保存をする UI状態はUIから行う
             val audioTape = playerToAudioTape(player)
             runBlocking {
-                _audioTapeRepository.updateNotNull(
+                _audioTapeRepository.updatePlayingPosition(
                     audioTape.folderPath,
                     audioTape.currentName,
                     audioTape.position

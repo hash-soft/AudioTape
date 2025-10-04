@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -63,8 +64,17 @@ class AudioController(
         _controller?.pause()
     }
 
+    fun setPlaybackParameters(speed: Float, pitch: Float) {
+        _controller?.playbackParameters = PlaybackParameters(speed, pitch)
+    }
+
     fun setVolume(volume: Float) {
         _controller?.volume = volume
+    }
+
+    fun setRepeat(repeat: Boolean) {
+        _controller?.repeatMode =
+            if (repeat) MediaController.REPEAT_MODE_ALL else MediaController.REPEAT_MODE_OFF
     }
 
     fun getContentPosition(): Long {

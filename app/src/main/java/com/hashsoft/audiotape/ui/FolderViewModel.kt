@@ -3,6 +3,7 @@ package com.hashsoft.audiotape.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 enum class FolderViewState {
@@ -111,6 +113,16 @@ class FolderViewModel @Inject constructor(
 
     fun play() = _controller.play()
 
+    fun createTapeNotExist(folderPath: String, index: Int) {
+        val item = folderListState.list.value[index]
+        viewModelScope.launch {
+            val result = _audioTapeRepository.insertNew(
+                folderPath, item.base.name, position = item.contentPosition,
+                sortOrder = AudioTapeSortOrder.NAME_ASC
+            )
+            Timber.d("insertNew result: $result folderPath: $folderPath")
+        }
+    }
 }
 
 

@@ -38,7 +38,7 @@ class AudioPlayViewModel(
 
     init {
         viewModelScope.launch {
-            _audioTapeRepository.insertAll(_audioTape)
+            //_audioTapeRepository.insertAll(_audioTape)
             //val audioItemList = _audioItemListRepository.getAudioItemList()
             //uiState.value = AudioPlayUiState.Success(audioItemList, _audioTape.currentName)
         }

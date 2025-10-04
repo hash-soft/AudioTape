@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "299fdc8fc822cfae43cc43b4c67782aa",
+    "identityHash": "cc8eebb9e65dee5fe02a4ad9895ffd66",
     "entities": [
       {
         "tableName": "user_settings",
@@ -44,7 +44,7 @@
       },
       {
         "tableName": "audio_tape",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`folder_path` TEXT NOT NULL, `current_name` TEXT NOT NULL, `position` INTEGER NOT NULL, `sort_order` INTEGER, `speed` REAL, PRIMARY KEY(`folder_path`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`folder_path` TEXT NOT NULL, `current_name` TEXT NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `tape_name` TEXT NOT NULL DEFAULT '', `sort_order` INTEGER NOT NULL DEFAULT 0, `repeat` INTEGER NOT NULL DEFAULT true, `speed` REAL NOT NULL DEFAULT 1.0, `volume` REAL NOT NULL DEFAULT 1.0, `pitch` REAL NOT NULL DEFAULT 1.0, `item_count` INTEGER NOT NULL DEFAULT 0, `total_time` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER NOT NULL, `update_time` INTEGER NOT NULL, PRIMARY KEY(`folder_path`))",
         "fields": [
           {
             "fieldPath": "folderPath",
@@ -62,17 +62,76 @@
             "fieldPath": "position",
             "columnName": "position",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "tapeName",
+            "columnName": "tape_name",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "sortOrder",
             "columnName": "sort_order",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "repeat",
+            "columnName": "repeat",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "true"
           },
           {
             "fieldPath": "speed",
             "columnName": "speed",
-            "affinity": "REAL"
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
+          },
+          {
+            "fieldPath": "volume",
+            "columnName": "volume",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
+          },
+          {
+            "fieldPath": "pitch",
+            "columnName": "pitch",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
+          },
+          {
+            "fieldPath": "itemCount",
+            "columnName": "item_count",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "totalTime",
+            "columnName": "total_time",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "createTime",
+            "columnName": "create_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updateTime",
+            "columnName": "update_time",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -85,7 +144,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '299fdc8fc822cfae43cc43b4c67782aa')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cc8eebb9e65dee5fe02a4ad9895ffd66')"
     ]
   }
 }

@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.data
 
+import com.hashsoft.audiotape.logic.SystemTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -21,53 +22,49 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
     fun findByPath(path: String): Flow<AudioTapeDto> {
         return audioTapeDao.findByPath(path).map {
             if (it == null) {
-                // このフォルダはdbにまだ演奏していない
+                // このフォルダはdbにまだ存在していない
                 Timber.i("findByPath is null: $path")
                 AudioTapeDto("", "", -1)
             } else {
                 Timber.d("audio tape: $it")
                 AudioTapeDto(
-                    it.folderPath,
-                    it.currentName,
-                    it.position,
-                    AudioTapeSortOrder.fromInt(it.sortOrder ?: 0),
-                    it.speed ?: 1.0f
+                    folderPath = it.folderPath,
+                    currentName = it.currentName,
+                    position = it.position,
+                    sortOrder = AudioTapeSortOrder.fromInt(it.sortOrder),
+                    speed = it.speed
                 )
             }
         }
     }
 
-    suspend fun insertAll(dto: AudioTapeDto) =
-        audioTapeDao.insertAll(
+    suspend fun insertNew(
+        folderPath: String,
+        currentName: String,
+        position: Long,
+        sortOrder: AudioTapeSortOrder
+    ): Long {
+        val time = SystemTime.currentMillis()
+        return audioTapeDao.insertAll(
             AudioTapeEntity(
-                dto.folderPath, dto.currentName, dto.position, dto.sortOrder.ordinal,
-                dto.speed
+                folderPath = folderPath,
+                currentName = currentName,
+                position = position,
+                sortOrder = sortOrder.ordinal,
+                createTime = time,
+                updateTime = time
             )
         )
+    }
 
-    suspend fun upsertAll(dto: AudioTapeDto) =
-        audioTapeDao.upsertAll(
-            AudioTapeEntity(
-                dto.folderPath,
-                dto.currentName,
-                dto.position,
-                dto.sortOrder.ordinal,
-                dto.speed
+    suspend fun updatePlayingPosition(folderPath: String, currentName: String, position: Long) =
+        audioTapeDao.updatePlayingPosition(
+            AudioTapePlayingPosition(
+                folderPath = folderPath,
+                currentName = currentName,
+                position = position,
+                updateTime = SystemTime.currentMillis()
             )
-        )
-
-    suspend fun upsertNotNull(path: String, currentName: String, position: Long) =
-        audioTapeDao.upsertNotNull(
-            AudioTapeNotNull(path, currentName, position)
-        )
-
-    suspend fun updatePosition(path: String, position: Long) = audioTapeDao.updatePosition(
-        AudioTapePosition(path, position)
-    )
-
-    suspend fun updateNotNull(path: String, currentName: String, position: Long) =
-        audioTapeDao.updateNotNull(
-            AudioTapeNotNull(path, currentName, position)
         )
 
     fun validAudioTapeDto(dto: AudioTapeDto): Boolean {
