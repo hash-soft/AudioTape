@@ -27,6 +27,7 @@ import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
+import com.hashsoft.audiotape.ui.remember.rememberOneFrameLaterTrue
 import com.hashsoft.audiotape.ui.sheet.SimpleBottomSheet
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -113,8 +114,6 @@ private fun LibrarySheetPager(
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
     val scope = rememberCoroutineScope()
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     LaunchedEffect(state) {
         // 完全にページが切り替わったら変化
         snapshotFlow { state.settledPage }.collect { page ->
@@ -171,9 +170,11 @@ private fun LibrarySheetPager(
         }
     }
 
+    // composeが作り直されたときだけアニメーションしない
+    val isAnimated = rememberOneFrameLaterTrue()
     if (libraryState.playViewVisible) {
         SimpleBottomSheet(
-            true,
+            isAnimated.value,
             onDismissRequest = {
                 audioCallback(AudioCallbackArgument.CloseAudioPlay)
             },
