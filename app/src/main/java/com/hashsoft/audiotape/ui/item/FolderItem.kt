@@ -35,7 +35,7 @@ fun FolderItem(
             Box(modifier = Modifier.fillMaxWidth()) {
                 // Todo ---をリソースからとるようにする
                 Text(
-                    text = if (lastModified > 0) TimeFormat.formatDateTime(
+                    text = if (lastModified > 0) TimeFormat.formatDateTimeHm(
                         lastModified
                     ) else "---",
                     modifier = Modifier.align(Alignment.CenterEnd)

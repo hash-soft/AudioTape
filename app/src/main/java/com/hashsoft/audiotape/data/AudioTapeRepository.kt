@@ -10,11 +10,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
     fun getAll(): Flow<List<AudioTapeDto>> {
         return audioTapeDao.getAll().map { list ->
             list.map {
-                AudioTapeDto(
-                    it.folderPath,
-                    it.currentName,
-                    it.position
-                )
+                convertEntityToDto(it)
             }
         }
     }
@@ -24,18 +20,30 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             if (it == null) {
                 // このフォルダはdbにまだ存在していない
                 Timber.i("findByPath is null: $path")
-                AudioTapeDto("", "", -1)
+                AudioTapeDto("", "")
             } else {
                 Timber.d("audio tape: $it")
-                AudioTapeDto(
-                    folderPath = it.folderPath,
-                    currentName = it.currentName,
-                    position = it.position,
-                    sortOrder = AudioTapeSortOrder.fromInt(it.sortOrder),
-                    speed = it.speed
-                )
+                convertEntityToDto(it)
             }
         }
+    }
+
+    private fun convertEntityToDto(entity: AudioTapeEntity): AudioTapeDto {
+        return AudioTapeDto(
+            folderPath = entity.folderPath,
+            currentName = entity.currentName,
+            position = entity.position,
+            tapeName = entity.tapeName,
+            sortOrder = AudioTapeSortOrder.fromInt(entity.sortOrder),
+            repeat = entity.repeat,
+            speed = entity.speed,
+            volume = entity.volume,
+            pitch = entity.pitch,
+            itemCount = entity.itemCount,
+            totalTime = entity.totalTime,
+            createTime = entity.createTime,
+            updateTime = entity.updateTime
+        )
     }
 
     suspend fun insertNew(
@@ -68,7 +76,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
 
     fun validAudioTapeDto(dto: AudioTapeDto): Boolean {
-        return dto.folderPath.isNotEmpty() && dto.currentName.isNotEmpty() && dto.position >= 0
+        return dto.folderPath.isNotEmpty() && dto.currentName.isNotEmpty()
     }
 
 }

@@ -45,6 +45,7 @@ private fun tapeItemSelected(
             val tape = audioTapeList[argument.index].base
             viewModel.updatePlayingFolderPath(tape.folderPath)
             viewModel.setMediaItemsByTape(tape)
+            viewModel.setPlayingParameters(tape)
             viewModel.play()
             AudioCallbackResult.None
         }

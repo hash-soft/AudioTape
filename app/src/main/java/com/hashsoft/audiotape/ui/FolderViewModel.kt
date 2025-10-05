@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.FolderStateRepository
@@ -48,6 +49,8 @@ class FolderViewModel @Inject constructor(
 
     val addressBarState = AddressBarState(storageAddressRepository)
     val folderListState = FolderListState(storageItemListRepository)
+    private var _audioTape: AudioTapeDto = AudioTapeDto("", "")
+
 
     init {
         viewModelScope.launch {
@@ -68,6 +71,7 @@ class FolderViewModel @Inject constructor(
             }.collect() { (audioTape, playback, playingState) ->
                 folderListState.updateList(audioTape, playback, playingState.folderPath)
                 _state.update { FolderViewState.Success }
+                _audioTape = audioTape
             }
         }
     }
@@ -109,6 +113,12 @@ class FolderViewModel @Inject constructor(
             _playbackRepository.updateContentPosition(_controller.getContentPosition())
         }
         _controller.setMediaItems(audioList, item.index, item.contentPosition)
+    }
+
+    fun setPlayingParameters() {
+        _controller.setRepeat(_audioTape.repeat)
+        _controller.setPlaybackParameters(_audioTape.speed, _audioTape.pitch)
+        _controller.setVolume(_audioTape.volume)
     }
 
     fun play() = _controller.play()

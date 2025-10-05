@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.logic.TimeFormat.Companion.formatDateTimeHm
 import com.hashsoft.audiotape.logic.TimeFormat.Companion.formatMillis
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
@@ -24,14 +25,25 @@ fun TapeItem(
     currentName: String,
     position: Long,
     sortOrder: AudioTapeSortOrder,
+    repeat: Boolean,
     speed: Float,
+    volume: Float,
+    pitch: Float,
+    createTime: Long,
+    updateTime: Long,
     color: Int,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
     ListItem(
         headlineContent = { Text(folderPath) },
         supportingContent = {
-            Text(text = "current:${currentName}\nposition:${formatMillis(position)}\norder:${sortOrder} speed:${speed}")
+            Text(
+                text = "${currentName}, position:${formatMillis(position)}, $sortOrder r:${repeat} v:${volume} p:${pitch} s:${speed}, create:${
+                    formatDateTimeHm(
+                        createTime
+                    )
+                }, update:${formatDateTimeHm(updateTime)}"
+            )
         },
         trailingContent = {
             IconButton(

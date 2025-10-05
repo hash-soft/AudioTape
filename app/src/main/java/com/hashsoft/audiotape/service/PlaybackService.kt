@@ -49,7 +49,6 @@ class PlaybackService : MediaSessionService() {
         val player = ExoPlayer.Builder(this)
             .setHandleAudioBecomingNoisy(true).build()
         setPlayerListener(player)
-        player.repeatMode = Player.REPEAT_MODE_ALL
         mediaSession =
             MediaSession.Builder(this, player)
                 .setCallback(MediaSessionCallback(ioScope, _resumeAudioRepository)).build()
@@ -80,7 +79,8 @@ class PlaybackService : MediaSessionService() {
             // UIとサービスからの変更をここで監視してaudioTapeを更新する
             _playbackRepository.data.collect { playback ->
                 Timber.d("##observeState playback = $playback")
-                // 不正値ならなにもしない
+                // 再生可能状態になっていないと判断した場合は更新しない
+                // durationMsではなくreadyOkで見たほうがいいかも
                 if (playback.folderPath.isEmpty() || playback.durationMs <= 0) {
                     return@collect
                 }

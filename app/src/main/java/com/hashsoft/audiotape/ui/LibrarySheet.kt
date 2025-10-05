@@ -72,6 +72,7 @@ private fun playItemSelected(
             if (argument.isPlaying) {
                 viewModel.pause()
             } else {
+                viewModel.setPlayingParameters()
                 viewModel.play()
             }
             AudioCallbackResult.None

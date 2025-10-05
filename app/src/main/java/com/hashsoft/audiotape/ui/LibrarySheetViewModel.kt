@@ -61,6 +61,13 @@ class LibraryStateViewModel @Inject constructor(
         _libraryStateRepository.saveSelectedTabName(index)
     }
 
+    fun setPlayingParameters() {
+        val audioTape = playItemState.audioTapeDto
+        _controller.setRepeat(audioTape.repeat)
+        _controller.setVolume(audioTape.volume)
+        _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
+    }
+
     fun play() = _controller.play()
 
     fun pause() = _controller.pause()

@@ -16,7 +16,15 @@ enum class AudioTapeSortOrder {
 data class AudioTapeDto(
     val folderPath: String,
     val currentName: String,
-    val position: Long,
+    val position: Long = 0,
+    val tapeName: String = "",
     val sortOrder: AudioTapeSortOrder = AudioTapeSortOrder.NAME_ASC,
-    val speed: Float = 1.0f
+    val repeat: Boolean = true,
+    val speed: Float = 1.0f,
+    val volume: Float = 1.0f,
+    val pitch: Float = 1.0f,
+    val itemCount: Int = 0,
+    val totalTime: Long = 0,
+    val createTime: Long = 0,
+    val updateTime: Long = 0
 )

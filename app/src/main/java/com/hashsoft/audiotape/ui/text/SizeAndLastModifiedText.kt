@@ -17,7 +17,7 @@ fun SizeAndLastModifiedText(size: Long, lastModified: Long, modifier: Modifier =
                 size
             )
         } ${
-            TimeFormat.formatDateTime(
+            TimeFormat.formatDateTimeHm(
                 lastModified
             )
         }",

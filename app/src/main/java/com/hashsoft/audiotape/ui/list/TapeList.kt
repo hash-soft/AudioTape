@@ -22,14 +22,19 @@ fun TapeList(
             val item = audioTapeList[it]
             val tape = item.base
             TapeItem(
-                it,
+                index = it,
                 tape.folderPath,
                 tape.currentName,
                 tape.position,
                 tape.sortOrder,
-                tape.speed,
+                repeat = tape.repeat,
+                speed = tape.speed,
+                volume = tape.volume,
+                pitch = tape.pitch,
+                tape.createTime,
+                tape.updateTime,
                 color = item.color,
-                audioCallback
+                audioCallback = audioCallback
             )
         }
     }

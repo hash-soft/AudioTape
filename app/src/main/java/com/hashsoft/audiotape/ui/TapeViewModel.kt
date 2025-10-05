@@ -75,6 +75,12 @@ class TapeViewModel @Inject constructor(
         _controller.setMediaItems(audioPair.first, audioPair.second, tape.position)
     }
 
+    fun setPlayingParameters(audioTape: AudioTapeDto) {
+        _controller.setRepeat(audioTape.repeat)
+        _controller.setVolume(audioTape.volume)
+        _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
+    }
+
     fun play() = _controller.play()
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {

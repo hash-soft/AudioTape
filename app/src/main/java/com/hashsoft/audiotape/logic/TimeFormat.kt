@@ -22,7 +22,7 @@ class TimeFormat {
             }
         }
 
-        fun formatDateTime(milliseconds: Long): String {
+        fun formatDateTimeHm(milliseconds: Long): String {
             val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                 .withLocale(Locale.getDefault())
             val dateTime = Instant.ofEpochMilli(milliseconds)
