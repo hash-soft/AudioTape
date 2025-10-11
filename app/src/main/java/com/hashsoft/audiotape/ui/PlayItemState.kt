@@ -1,7 +1,6 @@
 package com.hashsoft.audiotape.ui
 
 import android.media.MediaMetadataRetriever
-import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.data.PlaybackRepository
@@ -32,12 +31,6 @@ class PlayItemState(
 
     val item: StateFlow<PlayAudioDto?> = _item.asStateFlow()
 
-    private var _audioTapeDto = AudioTapeDto("", "")
-    val audioTapeDto: AudioTapeDto
-        get() = _audioTapeDto
-
-
-
     init {
         externalScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,7 +39,6 @@ class PlayItemState(
                     _audioTapeRepository.findByPath(state.folderPath),
                     _playbackRepository.data
                 ) { audioTape, playback ->
-                    _audioTapeDto = audioTape
                     val path = audioTape.folderPath + File.separator + audioTape.currentName
                     if (_audioTapeRepository.validAudioTapeDto(audioTape) && File(path).isFile) {
                         val durationMs = if (playback.durationMs < 0) {
@@ -66,7 +58,8 @@ class PlayItemState(
                             playback.isPlaying,
                             path,
                             durationMs,
-                            audioTape.position
+                            audioTape.position,
+                            audioTape = audioTape
                         )
                     } else {
                         null

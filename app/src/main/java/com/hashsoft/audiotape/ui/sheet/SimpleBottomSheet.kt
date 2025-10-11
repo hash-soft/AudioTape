@@ -10,7 +10,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -23,7 +22,9 @@ import androidx.compose.ui.unit.IntOffset
 
 @Composable
 fun SimpleBottomSheet(
-    isAnimated: Boolean,
+    isEnterAnimated: Boolean,
+    isExitAnimated: Boolean,
+    modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
     sheetContent: @Composable () -> Unit,
     color: Color = MaterialTheme.colorScheme.surface
@@ -41,20 +42,22 @@ fun SimpleBottomSheet(
         }
     }
 
-
-    val animationDuration = if (isAnimated) 300 else 0
-    val slideInSpec = tween<IntOffset>(durationMillis = animationDuration)
-    val fadeSpec = tween<Float>(durationMillis = animationDuration)
+    val enterAnimationDuration = if (isEnterAnimated) 300 else 0
+    val enterSlideInSpec = tween<IntOffset>(durationMillis = enterAnimationDuration)
+    val enterFadeSpec = tween<Float>(durationMillis = enterAnimationDuration)
+    val exitAnimationDuration = if (isExitAnimated) 300 else 0
+    val exitSlideInSpec = tween<IntOffset>(durationMillis = exitAnimationDuration)
+    val exitFadeSpec = tween<Float>(durationMillis = exitAnimationDuration)
 
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
             visibleState = state,
             // アニメーションを無効化
-            enter = slideInVertically(animationSpec = slideInSpec) { it } + fadeIn(
-                fadeSpec
+            enter = slideInVertically(animationSpec = enterSlideInSpec) { it } + fadeIn(
+                enterFadeSpec
             ),
-            exit = slideOutVertically(animationSpec = slideInSpec) { it } + fadeOut(
-                fadeSpec
+            exit = slideOutVertically(animationSpec = exitSlideInSpec) { it } + fadeOut(
+                exitFadeSpec
             ),
 
             modifier = Modifier
@@ -63,7 +66,7 @@ fun SimpleBottomSheet(
         ) {
 
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = modifier,
                 color = color
             ) {
                 sheetContent()

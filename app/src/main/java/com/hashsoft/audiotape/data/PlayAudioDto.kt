@@ -5,5 +5,6 @@ data class PlayAudioDto(
     val isPlaying: Boolean,
     val path: String,
     val durationMs: Long,
-    val contentPosition: Long
+    val contentPosition: Long,
+    val audioTape: AudioTapeDto
 )

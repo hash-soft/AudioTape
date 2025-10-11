@@ -11,4 +11,9 @@
     <string name="library_unknown">不明</string>
     <string name="no_album_information">アルバム情報なし</string>
     <string name="no_title_information">タイトル情報なし</string>
+    <string name="repeat_description">リピート</string>
+    <string name="list_description">オーディオリスト</string>
+    <string name="volume_title">音量</string>
+    <string name="speed_title">速度</string>
+    <string name="pitch_title">音程</string>
 </resources>

@@ -171,17 +171,21 @@ private fun LibrarySheetPager(
     }
 
     // composeが作り直されたときだけアニメーションしない
-    val isAnimated = rememberOneFrameLaterTrue()
-    if (libraryState.playViewVisible) {
-        SimpleBottomSheet(
-            isAnimated.value,
-            onDismissRequest = {
-                audioCallback(AudioCallbackArgument.CloseAudioPlay)
-            },
-            sheetContent = {
-                AudioPlayHomeRoute()
-            }
-        )
+    if(playItem != null) {
+        val isAnimated = rememberOneFrameLaterTrue()
+        if (libraryState.playViewVisible) {
+            SimpleBottomSheet(
+                isAnimated.value,
+                true,
+                modifier = Modifier.fillMaxSize(),
+                onDismissRequest = {
+                    audioCallback(AudioCallbackArgument.CloseAudioPlay)
+                },
+                sheetContent = {
+                    AudioPlayView(playItem)
+                }
+            )
+        }
     }
 }
 

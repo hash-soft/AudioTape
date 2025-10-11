@@ -62,10 +62,11 @@ class LibraryStateViewModel @Inject constructor(
     }
 
     fun setPlayingParameters() {
-        val audioTape = playItemState.audioTapeDto
-        _controller.setRepeat(audioTape.repeat)
-        _controller.setVolume(audioTape.volume)
-        _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
+        playItemState.item.value?.audioTape?.let {
+            _controller.setRepeat(it.repeat)
+            _controller.setVolume(it.volume)
+            _controller.setPlaybackParameters(it.speed, it.pitch)
+        }
     }
 
     fun play() = _controller.play()
