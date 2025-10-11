@@ -215,14 +215,17 @@ class PlaybackService : MediaSessionService() {
 
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
-//                Timber.d("##listner size = ${events.size()}")
+//                Timber.d("1#listner size = ${events.size()}")
 //                for(i in 0 until events.size()){
-//                    Timber.d("##listener events = ${events.get(i)}")
+//                    Timber.d("1#listener events = ${events.get(i)}")
+//                    if(events.get(i) == Player.EVENT_PLAYBACK_STATE_CHANGED){
+//                        Timber.d("1#EVENT_TIMELINE_CHANGED playbackState = ${player.playbackState}, ready = ${player.playWhenReady}")
+//                        Timber.d("1#currentMediaItem = ${player.currentMediaItem}")
+//                    }
 //                }
                 if (player.currentMediaItem == null) {
-                    // currentがない場合はなにもしない
-                    // Todo mediaItemが再セットされるときcurrentがなくなってて停止位置を取得できないかもしれない
-                    // 再セット前にstopが必要かも
+                    // 準備完了していないのでReadyOkを落とす
+                    _playbackRepository.updateReadyStateToOff()
                     return
                 }
                 var uiFlag = 0  // 1:再生状態 2:position 4:current 8:ready

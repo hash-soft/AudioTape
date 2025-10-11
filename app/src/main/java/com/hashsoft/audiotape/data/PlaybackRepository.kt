@@ -30,6 +30,12 @@ class PlaybackRepository {
             PlaybackDto(isReady, isPlaying, currentName, folderPath, durationMs, contentPosition)
     }
 
+    fun updateReadyStateToOff() {
+        if (data.value.isReadyOk) {
+            data.value = data.value.copy(isReadyOk = false)
+        }
+    }
+
     fun updateWithoutStringItem(
         isReadyOk: Boolean,
         isPlaying: Boolean,
@@ -48,4 +54,5 @@ class PlaybackRepository {
     fun updateContentPosition(position: Long) {
         data.value = data.value.copy(contentPosition = position)
     }
+
 }

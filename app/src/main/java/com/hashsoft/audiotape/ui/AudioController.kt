@@ -18,6 +18,7 @@ import com.hashsoft.audiotape.service.PlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import timber.log.Timber
 
 
 class AudioController(
@@ -82,33 +83,42 @@ class AudioController(
     }
 
     fun seekTo(position: Long) {
+        if (position < 0) {
+            Timber.e("seekTo position is negative $position")
+            return
+        }
         _controller?.seekTo(position)
     }
 
     fun seekToNext() {
         // リピートじゃない場合最後だと先頭に戻らないので無理やり先頭に戻している
-        _controller?.let { player ->
-            if (player.nextMediaItemIndex < 0) {
-                player.seekTo(0, 0)
+        _controller?.run {
+            if (mediaItemCount == 0) {
+                return@run
+            }
+            if (nextMediaItemIndex < 0) {
+                seekTo(0, 0)
             } else {
-                player.seekToNext()
+                seekToNext()
             }
         }
-
     }
 
     fun seekToPrevious() {
         // リピートじゃない場合最初だと最後に戻らないので無理やり最後に戻している
         // previousMediaItemIndexだけで判断すると途中の位置でも最後に戻ってしまうので2秒以内の再生位置なら最後に戻す
-        _controller?.let { player ->
-            if (player.previousMediaItemIndex < 0) {
-                if (player.currentPosition < 2000) {
-                    player.seekTo(player.mediaItemCount - 1, 0)
+        _controller?.run {
+            if (mediaItemCount == 0) {
+                return@run
+            }
+            if (previousMediaItemIndex < 0) {
+                if (currentPosition < 2000) {
+                    seekTo(mediaItemCount - 1, 0)
                 } else {
-                    player.seekToPrevious()
+                    seekToPrevious()
                 }
             } else {
-                player.seekToPrevious()
+                seekToPrevious()
             }
         }
     }
