@@ -26,8 +26,6 @@ import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
-import com.hashsoft.audiotape.ui.remember.rememberOneFrameLaterTrue
-import com.hashsoft.audiotape.ui.sheet.SimpleBottomSheet
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -36,7 +34,7 @@ fun LibrarySheetRoute(
     onAudioPlayClick: () -> Unit = {},
     viewModel: LibraryStateViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState
     val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
 
     val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
@@ -92,16 +90,6 @@ private fun playItemSelected(
 
         is AudioCallbackArgument.SkipPrevious -> {
             viewModel.seekToPrevious()
-            AudioCallbackResult.None
-        }
-
-        is AudioCallbackArgument.OpenAudioPlay -> {
-            viewModel.saveSelectedPlayViewVisible(true)
-            AudioCallbackResult.None
-        }
-
-        is AudioCallbackArgument.CloseAudioPlay -> {
-            viewModel.saveSelectedPlayViewVisible(false)
             AudioCallbackResult.None
         }
 
@@ -174,24 +162,6 @@ private fun LibrarySheetPager(
                     }
                 }
             }
-        }
-    }
-
-    // composeが作り直されたときだけアニメーションしない
-    if (playItem != null) {
-        val isAnimated = rememberOneFrameLaterTrue()
-        if (libraryState.playViewVisible) {
-            SimpleBottomSheet(
-                isAnimated.value,
-                true,
-                modifier = Modifier.fillMaxSize(),
-                onDismissRequest = {
-                    audioCallback(AudioCallbackArgument.CloseAudioPlay)
-                },
-                sheetContent = {
-                    AudioPlayView(playItem)
-                }
-            )
         }
     }
 }

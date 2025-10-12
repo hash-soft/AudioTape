@@ -1,5 +1,7 @@
 package com.hashsoft.audiotape.ui
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioTapeRepository
@@ -10,17 +12,13 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LibraryStateViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
-    private val _playbackRepository: PlaybackRepository,
+    playbackRepository: PlaybackRepository,
     audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     resumeAudioRepository: ResumeAudioRepository
@@ -28,31 +26,21 @@ class LibraryStateViewModel @Inject constructor(
     ViewModel() {
 
     val controllerOk = _controller.isReady
-    val uiState: StateFlow<LibraryStateUiState> =
-        _libraryStateRepository.libraryStateFlow().map { state ->
-            val value = uiState.value
-            if (value is LibraryStateUiState.Success) {
-                // タブ位置はpagerが保持しているので2回目以降更新しない
-                LibraryStateUiState.Success(value.libraryState.copy(playViewVisible = state.playViewVisible))
-            } else {
-                LibraryStateUiState.Success(state)
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = LibraryStateUiState.Loading
-        )
+    val uiState: MutableState<LibraryStateUiState> = mutableStateOf(LibraryStateUiState.Loading)
 
     val playItemState = PlayItemState(
         viewModelScope,
-        _playbackRepository,
+        playbackRepository,
         audioTapeRepository,
         playingStateRepository,
         resumeAudioRepository
     )
 
-    fun saveSelectedPlayViewVisible(visible: Boolean) = viewModelScope.launch {
-        _libraryStateRepository.saveSelectedPlayViewVisible(visible)
+    init {
+        viewModelScope.launch {
+            val state = _libraryStateRepository.getLibraryState()
+            uiState.value = LibraryStateUiState.Success(state)
+        }
     }
 
     fun tabs() = _libraryStateRepository.tabs()
