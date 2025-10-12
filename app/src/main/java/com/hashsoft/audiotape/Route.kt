@@ -7,10 +7,7 @@ object Route {
     data object Library
 
     @Serializable
-    data class AudioPlay(
-        val folderPath: String,
-        val currentName: String
-    )
+    data object AudioPlay
 
     @Serializable
     data object UserSettings

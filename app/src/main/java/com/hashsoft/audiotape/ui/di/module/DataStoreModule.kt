@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.RouteStateRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +15,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 
+
+private val Context.routeStateStore: DataStore<Preferences> by preferencesDataStore(
+    name = RouteStateRepository.DATA_STORE_NAME
+)
 
 private val Context.libraryStateStore: DataStore<Preferences> by preferencesDataStore(
     name = LibraryStateRepository.DATA_STORE_NAME
@@ -30,6 +35,12 @@ private val Context.playingStateStore: DataStore<Preferences> by preferencesData
 @Module
 @InstallIn(SingletonComponent::class)
 object DataStoreModule {
+
+    @Provides
+    @Singleton
+    fun provideRouteStateRepository(@ApplicationContext context: Context): RouteStateRepository {
+        return RouteStateRepository(context.routeStateStore)
+    }
 
     @Provides
     @Singleton

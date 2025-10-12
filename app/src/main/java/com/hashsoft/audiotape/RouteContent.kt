@@ -13,9 +13,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
+import com.hashsoft.audiotape.ui.AudioPlayHomeRoute
 import com.hashsoft.audiotape.ui.LibraryHomeRoute
 import com.hashsoft.audiotape.ui.RouteContentViewModel
+import com.hashsoft.audiotape.ui.RouteStateUiState
 import com.hashsoft.audiotape.ui.UserSettingsRoute
 
 @Composable
@@ -28,19 +29,33 @@ fun RouteContent(viewModel: RouteContentViewModel = hiltViewModel()) {
         }
     }
 
-    val navController = rememberNavController()
-    RouteScreen(navController)
+    val uiState = viewModel.uiState.value
+    when (uiState) {
+        is RouteStateUiState.Loading -> {}
+        is RouteStateUiState.Success -> {
+            val navController = rememberNavController()
+            RouteScreen(navController, uiState.routeState.startScreen) {
+                viewModel.saveStartScreen(it)
+            }
+        }
+    }
+
+
 }
 
 val LocalNavController =
     compositionLocalOf<NavHostController> { error("NavHostController not found !") }
 
 @Composable
-private fun RouteScreen(navController: NavHostController) {
+private fun RouteScreen(
+    navController: NavHostController,
+    startScreen: String,
+    onChangeStartScreen: (String) -> Unit = {}
+) {
     CompositionLocalProvider(
         LocalNavController provides navController,
     ) {
-        val start = Route.Library
+        val start = stringToRoute(startScreen)
         NavHost(
             navController = navController,
             startDestination = start,
@@ -52,11 +67,20 @@ private fun RouteScreen(navController: NavHostController) {
                 enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
                 popExitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
             ) { navBackStackEntry ->
-                val audioPlay: Route.AudioPlay = navBackStackEntry.toRoute()
+                AudioPlayHomeRoute()
             }
             composable<Route.UserSettings> {
                 UserSettingsRoute()
             }
         }
+    }
+}
+
+private fun stringToRoute(routeName: String): Any {
+    return when (routeName) {
+        Route.Library::class.simpleName -> Route.Library
+        Route.AudioPlay::class.simpleName -> Route.AudioPlay
+        else -> Route.Library
+
     }
 }
