@@ -5,8 +5,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
+/**
+ * オーディオテープのデータ操作を行うリポジトリ
+ *
+ * @param audioTapeDao オーディオテープのDAO
+ */
 class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
 
+    /**
+     * すべてのオーディオテープを取得する
+     *
+     * @return オーディオテープのリストをFlowで返す
+     */
     fun getAll(): Flow<List<AudioTapeDto>> {
         return audioTapeDao.getAll().map { list ->
             list.map {
@@ -15,6 +25,12 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         }
     }
 
+    /**
+     * パスを指定してオーディオテープを検索する
+     *
+     * @param path フォルダのパス
+     * @return 見つかったオーディオテープ、見つからない場合は空のDTOをFlowで返す
+     */
     fun findByPath(path: String): Flow<AudioTapeDto> {
         return audioTapeDao.findByPath(path).map {
             if (it == null) {
@@ -28,6 +44,12 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         }
     }
 
+    /**
+     * [AudioTapeEntity]を[AudioTapeDto]に変換する
+     *
+     * @param entity 変換元のエンティティ
+     * @return 変換後のDTO
+     */
     private fun convertEntityToDto(entity: AudioTapeEntity): AudioTapeDto {
         return AudioTapeDto(
             folderPath = entity.folderPath,
@@ -36,8 +58,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             tapeName = entity.tapeName,
             sortOrder = AudioTapeSortOrder.fromInt(entity.sortOrder),
             repeat = entity.repeat,
-            speed = entity.speed,
             volume = entity.volume,
+            speed = entity.speed,
             pitch = entity.pitch,
             itemCount = entity.itemCount,
             totalTime = entity.totalTime,
@@ -46,6 +68,15 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
     }
 
+    /**
+     * 新しいオーディオテープを挿入する
+     *
+     * @param folderPath フォルダのパス
+     * @param currentName 現在のアイテム名
+     * @param position 再生位置
+     * @param sortOrder ソート順
+     * @return 挿入した行のID
+     */
     suspend fun insertNew(
         folderPath: String,
         currentName: String,
@@ -65,6 +96,13 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
     }
 
+    /**
+     * 再生位置を更新する
+     *
+     * @param folderPath フォルダのパス
+     * @param currentName 現在のアイテム名
+     * @param position 再生位置
+     */
     suspend fun updatePlayingPosition(folderPath: String, currentName: String, position: Long) =
         audioTapeDao.updatePlayingPosition(
             AudioTapePlayingPosition(
@@ -75,6 +113,12 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             )
         )
 
+    /**
+     * [AudioTapeDto]が有効かどうかを判定する
+     *
+     * @param dto 判定対象のDTO
+     * @return 有効な場合はtrue
+     */
     fun validAudioTapeDto(dto: AudioTapeDto): Boolean {
         return dto.folderPath.isNotEmpty() && dto.currentName.isNotEmpty()
     }
