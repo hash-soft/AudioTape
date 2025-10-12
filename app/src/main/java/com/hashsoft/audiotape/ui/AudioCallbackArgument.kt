@@ -19,6 +19,7 @@ sealed interface AudioCallbackArgument {
     data object OpenAudioPlay : AudioCallbackArgument
 
     data object CloseAudioPlay : AudioCallbackArgument
+    data object TransferAudioPlay: AudioCallbackArgument
 
 
     // フォルダ選択用

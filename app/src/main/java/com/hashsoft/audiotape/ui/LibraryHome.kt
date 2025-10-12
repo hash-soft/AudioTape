@@ -15,7 +15,7 @@ import com.hashsoft.audiotape.ui.bar.TopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryHomeRoute() {
+fun LibraryHomeRoute(onAudioPlayClick: () -> Unit = {}) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -27,7 +27,7 @@ fun LibraryHomeRoute() {
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            LibrarySheetRoute()
+            LibrarySheetRoute(onAudioPlayClick)
         }
     }
 }

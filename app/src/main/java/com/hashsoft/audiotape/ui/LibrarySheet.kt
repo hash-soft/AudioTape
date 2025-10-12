@@ -33,6 +33,7 @@ import timber.log.Timber
 
 @Composable
 fun LibrarySheetRoute(
+    onAudioPlayClick: () -> Unit = {},
     viewModel: LibraryStateViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -46,7 +47,13 @@ fun LibrarySheetRoute(
         is LibraryStateUiState.Success -> LibrarySheetPager(
             state.libraryState,
             playItem = playItem,
-            audioCallback = { argument -> playItemSelected(viewModel, argument) },
+            audioCallback = { argument ->
+                if (argument is AudioCallbackArgument.TransferAudioPlay) {
+                    onAudioPlayClick()
+                    return@LibrarySheetPager AudioCallbackResult.None
+                }
+                playItemSelected(viewModel, argument)
+            },
             tabs = viewModel.tabs()
         ) {
             viewModel.saveSelectedTabName(it)
@@ -171,7 +178,7 @@ private fun LibrarySheetPager(
     }
 
     // composeが作り直されたときだけアニメーションしない
-    if(playItem != null) {
+    if (playItem != null) {
         val isAnimated = rememberOneFrameLaterTrue()
         if (libraryState.playViewVisible) {
             SimpleBottomSheet(

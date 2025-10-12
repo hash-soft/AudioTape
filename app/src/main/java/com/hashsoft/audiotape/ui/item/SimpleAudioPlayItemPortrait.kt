@@ -79,7 +79,7 @@ fun SimpleAudioPlayItemPortrait(
         },
         trailingContent = null,
         modifier = Modifier.clickable {
-            audioCallback(AudioCallbackArgument.OpenAudioPlay)
+            audioCallback(AudioCallbackArgument.TransferAudioPlay)
         },
         colors = ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant, // 背景色
