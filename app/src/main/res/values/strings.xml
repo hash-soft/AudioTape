@@ -18,4 +18,5 @@
     <string name="volume_title">volume</string>
     <string name="speed_title">speed</string>
     <string name="pitch_title">pitch</string>
+    <string name="no_tape_warn">No tape available</string>
 </resources>

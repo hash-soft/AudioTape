@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
     playbackRepository: PlaybackRepository,
-    audioTapeRepository: AudioTapeRepository,
+    private val _audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     resumeAudioRepository: ResumeAudioRepository,
     storageItemListRepository: StorageItemListRepository,
@@ -27,7 +27,7 @@ class AudioPlayViewModel @Inject constructor(
 
     val playItemState = PlayItemState(
         playbackRepository,
-        audioTapeRepository,
+        _audioTapeRepository,
         resumeAudioRepository
     )
 
@@ -42,14 +42,14 @@ class AudioPlayViewModel @Inject constructor(
             playingStateRepository.playingStateFlow().flatMapLatest { state ->
                 playListState.loadStorageCache(state.folderPath)
                 combine(
-                    audioTapeRepository.findByPath(state.folderPath),
+                    _audioTapeRepository.findByPath(state.folderPath),
                     playbackRepository.data
                 ) { audioTape, playback ->
                     audioTape to playback
                 }
             }.collect { (audioTape, playback) ->
                 playListState.updateList(audioTape)
-                playItemState.updatePlayAudio(audioTape, playback)
+                playItemState.updatePlayAudioForExclusive(audioTape, playback)
                 playListState.loadMetadata()
             }
         }
@@ -58,5 +58,21 @@ class AudioPlayViewModel @Inject constructor(
     fun play() = _controller.play()
 
     fun pause() = _controller.pause()
+
+    fun setVolume(volume: Float) = _controller.setVolume(volume)
+
+    fun updateVolume(path: String, volume: Float) =
+        viewModelScope.launch { _audioTapeRepository.updateVolume(path, volume) }
+
+    fun setSpeed(speed: Float) = _controller.setSpeed(speed)
+
+    fun updateSpeed(path: String, speed: Float) =
+        viewModelScope.launch { _audioTapeRepository.updateSpeed(path, speed) }
+
+    fun setPitch(pitch: Float) = _controller.setPitch(pitch)
+
+    fun updatePitch(path: String, pitch: Float) =
+        viewModelScope.launch { _audioTapeRepository.updatePitch(path, pitch) }
+
 
 }

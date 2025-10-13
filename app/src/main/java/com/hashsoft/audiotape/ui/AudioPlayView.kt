@@ -21,11 +21,20 @@ import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
 
+/**
+ * 再生音量の値リスト
+ */
 private val PlayVolumeValues: List<Float> =
     listOf(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f)
+/**
+ * 再生速度の値リスト
+ */
 private val PlaySpeedValues: List<Float> =
     listOf(0.25f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f)
 
+/**
+ * 再生ピッチの値リスト
+ */
 private val PlayPitchValues: List<Float> = listOf(
     0.5f,
     0.52973f,
@@ -54,17 +63,29 @@ private val PlayPitchValues: List<Float> = listOf(
     2.0f
 )
 
+/**
+ * オーディオ再生ビュー
+ *
+ * @param playItem 再生アイテム
+ * @param playList 再生リスト
+ * @param onChangeTapeSettings テープ設定変更時のコールバック
+ */
 @Composable
-fun AudioPlayView(playItem: PlayAudioDto?, playList: List<DisplayStorageItem>) {
+fun AudioPlayView(
+    playItem: PlayAudioDto,
+    playList: List<DisplayStorageItem>,
+    onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            VolumeDropdownSelector()
-            SpeedDropdownSelector()
-            PitchDropdownSelector()
+            val tape = playItem.audioTape
+            VolumeDropdownSelector(tape.volume, onChangeTapeSettings)
+            SpeedDropdownSelector(tape.speed, onChangeTapeSettings)
+            PitchDropdownSelector(tape.pitch, onChangeTapeSettings)
 
             IconButton(onClick = { }) {
                 Icon(
@@ -83,8 +104,17 @@ fun AudioPlayView(playItem: PlayAudioDto?, playList: List<DisplayStorageItem>) {
     }
 }
 
+/**
+ * 音量ドロップダウンセレクター
+ *
+ * @param volume 音量
+ * @param onVolumeChange 音量変更時のコールバック
+ */
 @Composable
-private fun VolumeDropdownSelector(volume: Float = 1.0f) {
+private fun VolumeDropdownSelector(
+    volume: Float = 1.0f,
+    onVolumeChange: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
     val title = stringResource(R.string.volume_title)
     val volumeLabels = stringArrayResource(R.array.play_volume_labels).toList()
 
@@ -95,11 +125,22 @@ private fun VolumeDropdownSelector(volume: Float = 1.0f) {
             volume
         ) else volumeLabels[index]
 
-    TextDropdownSelector(volumeLabels, selectedLabel, title = title, onItemSelected = {})
+    TextDropdownSelector(volumeLabels, selectedLabel, title = title) {
+        onVolumeChange(TapeSettingsCallbackArgument.Volume(PlayVolumeValues[it]))
+    }
 }
 
+/**
+ * 再生速度ドロップダウンセレクター
+ *
+ * @param speed 再生速度
+ * @param onVolumeChange 再生速度変更時のコールバック
+ */
 @Composable
-private fun SpeedDropdownSelector(speed: Float = 1.0f) {
+private fun SpeedDropdownSelector(
+    speed: Float = 1.0f,
+    onVolumeChange: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
     val title = stringResource(R.string.speed_title)
     val speedLabels = stringArrayResource(R.array.play_speed_labels).toList()
 
@@ -107,11 +148,22 @@ private fun SpeedDropdownSelector(speed: Float = 1.0f) {
     val selectedLabel =
         if (index < 0) stringResource(R.string.not_found_speed_label, speed) else speedLabels[index]
 
-    TextDropdownSelector(speedLabels, selectedLabel, title = title, onItemSelected = {})
+    TextDropdownSelector(speedLabels, selectedLabel, title = title) {
+        onVolumeChange(TapeSettingsCallbackArgument.Speed(PlaySpeedValues[it]))
+    }
 }
 
+/**
+ * ピッチドロップダウンセレクター
+ *
+ * @param speed ピッチ
+ * @param onVolumeChange ピッチ変更時のコールバック
+ */
 @Composable
-private fun PitchDropdownSelector(speed: Float = 1.0f) {
+private fun PitchDropdownSelector(
+    speed: Float = 1.0f,
+    onVolumeChange: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
     val title = stringResource(R.string.pitch_title)
     val pitchLabels = stringArrayResource(R.array.play_pitch_labels).toList()
 
@@ -119,5 +171,7 @@ private fun PitchDropdownSelector(speed: Float = 1.0f) {
     val selectedLabel =
         if (index < 0) stringResource(R.string.not_found_speed_label, speed) else pitchLabels[index]
 
-    TextDropdownSelector(pitchLabels, selectedLabel, title = title, onItemSelected = {})
+    TextDropdownSelector(pitchLabels, selectedLabel, title = title) {
+        onVolumeChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
+    }
 }

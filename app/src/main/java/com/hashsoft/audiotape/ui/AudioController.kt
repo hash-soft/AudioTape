@@ -69,6 +69,18 @@ class AudioController(
         _controller?.playbackParameters = PlaybackParameters(speed, pitch)
     }
 
+    fun setSpeed(speed: Float) {
+        _controller?.run {
+            playbackParameters = PlaybackParameters(speed, playbackParameters.pitch)
+        }
+    }
+
+    fun setPitch(pitch: Float) {
+        _controller?.run {
+            playbackParameters = PlaybackParameters(playbackParameters.speed, pitch)
+        }
+    }
+
     fun setVolume(volume: Float) {
         _controller?.volume = volume
     }
@@ -202,7 +214,10 @@ class AudioController(
         ): Pair<List<StorageItemDto>, Int> {
             val itemListRepository = AudioItemListRepository(folderPath)
             val sortList =
-                StorageItemListRepository.sorted(itemListRepository.getAudioItemList(), sortOrder)
+                StorageItemListRepository.sorted(
+                    itemListRepository.getAudioItemList(),
+                    sortOrder
+                )
             val startIndex = sortList.indexOfFirst { it.name == currentFilename }
             return sortList to 0.coerceAtLeast(startIndex)
         }

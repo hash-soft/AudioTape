@@ -114,6 +114,49 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
 
     /**
+     * 音量を更新する
+     *
+     * @param folderPath フォルダのパス
+     * @param volume 音量
+     */
+    suspend fun updateVolume(folderPath: String, volume: Float) = audioTapeDao.updateVolume(
+        AudioTapeVolume(
+            folderPath = folderPath,
+            volume = volume,
+            updateTime = SystemTime.currentMillis()
+        )
+    )
+
+    /**
+     * 再生速度を更新する
+     *
+     * @param folderPath フォルダのパス
+     * @param speed 再生速度
+     */
+    suspend fun updateSpeed(folderPath: String, speed: Float) = audioTapeDao.updateSpeed(
+        AudioTapeSpeed(
+            folderPath = folderPath,
+            speed = speed,
+            updateTime = SystemTime.currentMillis()
+        )
+    )
+
+    /**
+     * ピッチを更新する
+     *
+     * @param folderPath フォルダのパス
+     * @param pitch ピッチ
+     */
+    suspend fun updatePitch(folderPath: String, pitch: Float) = audioTapeDao.updatePitch(
+        AudioTapePitch(
+            folderPath = folderPath,
+            pitch = pitch,
+            updateTime = SystemTime.currentMillis()
+        )
+    )
+
+
+    /**
      * [AudioTapeDto]が有効かどうかを判定する
      *
      * @param dto 判定対象のDTO

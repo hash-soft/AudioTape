@@ -24,10 +24,41 @@ class PlayItemState(
 ) {
     val item: StateFlow<PlayAudioDto?> = _item.asStateFlow()
 
-    fun updatePlayAudio(audioTape: AudioTapeDto, playback: PlaybackDto) {
+    fun updatePlayAudioForExclusive(audioTape: AudioTapeDto, playback: PlaybackDto) {
+        val path = audioTape.folderPath + File.separator + audioTape.currentName
+        // audioTapeが存在しない場合だけnullになる
+        val playAudio =
+            if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
+                val durationMs = if (playback.durationMs < 0) {
+                    getDuration(path)
+                } else {
+                    playback.durationMs
+                }
+                _resumeAudioRepository.updateAll(
+                    path,
+                    durationMs,
+                    audioTape.position,
+                    audioTape.sortOrder
+                )
+                PlayAudioDto(
+                    exist = File(path).isFile,
+                    playback.isReadyOk,
+                    playback.isPlaying,
+                    path,
+                    durationMs,
+                    audioTape.position,
+                    audioTape = audioTape
+                )
+            } else {
+                null
+            }
+        _item.update { playAudio }
+    }
+
+    fun updatePlayAudioForSimple(audioTape: AudioTapeDto, playback: PlaybackDto) {
         val path = audioTape.folderPath + File.separator + audioTape.currentName
         val playAudio =
-            if (_audioTapeRepository.validAudioTapeDto(audioTape) && File(path).isFile) {
+            if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
                 val durationMs = if (playback.durationMs < 0) {
                     // Todo 呼び出される回数が多かったら見直す
                     getDuration(path)
@@ -41,6 +72,7 @@ class PlayItemState(
                     audioTape.sortOrder
                 )
                 PlayAudioDto(
+                    exist = File(path).isFile,
                     playback.isReadyOk,
                     playback.isPlaying,
                     path,

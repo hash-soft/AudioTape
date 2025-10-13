@@ -17,6 +17,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * テキストドロップダウンセレクター
+ *
+ * @param labels ラベルのリスト
+ * @param selectedLabel 選択されているラベル
+ * @param title タイトル
+ * @param onItemSelected アイテム選択時のコールバック
+ */
 @Composable
 fun TextDropdownSelector(
     labels: List<String>,

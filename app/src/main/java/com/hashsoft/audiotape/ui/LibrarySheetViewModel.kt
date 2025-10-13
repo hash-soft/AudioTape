@@ -51,7 +51,7 @@ class LibraryStateViewModel @Inject constructor(
                         audioTape to playback
                     }
                 }.collect { (audioTape, playback) ->
-                    playItemState.updatePlayAudio(audioTape, playback)
+                    playItemState.updatePlayAudioForSimple(audioTape, playback)
                 }
             }
         }

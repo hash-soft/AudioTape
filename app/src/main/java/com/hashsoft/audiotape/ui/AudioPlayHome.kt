@@ -18,9 +18,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 
 
+/**
+ * オーディオ再生画面のルート
+ *
+ * @param viewModel ViewModel
+ * @param onBackClick 戻るボタンクリック時のコールバック
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioPlayHomeRoute(
@@ -52,7 +59,49 @@ fun AudioPlayHomeRoute(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayView(playItem, playList)
+            AudioPlayHome(playItem, playList) { argument ->
+                val tape = playItem?.audioTape
+                if (tape == null) {
+                    return@AudioPlayHome
+                }
+                when (argument) {
+                    is TapeSettingsCallbackArgument.Volume -> {
+                        viewModel.updateVolume(tape.folderPath, argument.volume)
+                        viewModel.setVolume(argument.volume)
+                    }
+
+                    is TapeSettingsCallbackArgument.Speed -> {
+                        viewModel.updateSpeed(tape.folderPath, argument.speed)
+                        viewModel.setSpeed(argument.speed)
+                    }
+
+                    is TapeSettingsCallbackArgument.Pitch -> {
+                        viewModel.updatePitch(tape.folderPath, argument.pitch)
+                        viewModel.setPitch(argument.pitch)
+                    }
+                }
+            }
         }
+    }
+}
+
+/**
+ * オーディオ再生画面のホーム
+ *
+ * @param playItem 再生アイテム
+ * @param playList 再生リスト
+ * @param onChangeTapeSettings テープ設定変更時のコールバック
+ */
+@Composable
+private fun AudioPlayHome(
+    playItem: PlayAudioDto?,
+    playList: List<DisplayStorageItem>,
+    onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
+    // Todo 再生画面でテープがありませんが一瞬表示されるが見せたくない nullだけではだめ
+    if (playItem == null) {
+        NoTapeView()
+    } else {
+        AudioPlayView(playItem, playList, onChangeTapeSettings)
     }
 }
