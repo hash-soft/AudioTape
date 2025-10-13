@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">AudioTape</string>
+    <string name="loading">loading…</string>
+    <string name="back">back</string>
     <string name="permission_required">Permission Required</string>
     <string name="permission_rationale">Please turn on storage permissions to load audio files.</string>
     <string name="volume_name_unknown">unknown</string>

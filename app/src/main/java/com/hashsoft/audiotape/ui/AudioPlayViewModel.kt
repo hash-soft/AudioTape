@@ -2,66 +2,61 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hashsoft.audiotape.data.AudioItemListRepository
-import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.StorageItemDto
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.data.StorageItemListRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
-class AudioPlayViewModel(
-    private val _audioTape: AudioTapeDto,
-    private val _audioTapeRepository: AudioTapeRepository
+@HiltViewModel
+class AudioPlayViewModel @Inject constructor(
+    private val _controller: AudioController,
+    playbackRepository: PlaybackRepository,
+    audioTapeRepository: AudioTapeRepository,
+    playingStateRepository: PlayingStateRepository,
+    resumeAudioRepository: ResumeAudioRepository,
+    storageItemListRepository: StorageItemListRepository,
 ) :
     ViewModel() {
 
-    private val _audioItemListRepository: AudioItemListRepository =
-        AudioItemListRepository(_audioTape.folderPath)
+    val playItemState = PlayItemState(
+        playbackRepository,
+        audioTapeRepository,
+        resumeAudioRepository
+    )
 
-    //val uiState: MutableState<AudioPlayUiState> = mutableStateOf(AudioPlayUiState.Loading)
+    val playListState = PlayListState(
+        storageItemListRepository
+    )
 
-    val uiState: StateFlow<AudioPlayUiState> =
-        _audioTapeRepository.findByPath(_audioTape.folderPath).map {
-            val audioItemList = when (val value = uiState.value) {
-                is AudioPlayUiState.Success -> value.audioItemList
-                else -> _audioItemListRepository.getAudioItemList()
-            }
-            AudioPlayUiState.Success(audioItemList, it.currentName, it)
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AudioPlayUiState.Loading
-        )
 
     init {
         viewModelScope.launch {
-            //_audioTapeRepository.insertAll(_audioTape)
-            //val audioItemList = _audioItemListRepository.getAudioItemList()
-            //uiState.value = AudioPlayUiState.Success(audioItemList, _audioTape.currentName)
+            @OptIn(ExperimentalCoroutinesApi::class)
+            playingStateRepository.playingStateFlow().flatMapLatest { state ->
+                playListState.loadStorageCache(state.folderPath)
+                combine(
+                    audioTapeRepository.findByPath(state.folderPath),
+                    playbackRepository.data
+                ) { audioTape, playback ->
+                    audioTape to playback
+                }
+            }.collect { (audioTape, playback) ->
+                playListState.updateList(audioTape)
+                playItemState.updatePlayAudio(audioTape, playback)
+                playListState.loadMetadata()
+            }
         }
     }
 
-}
+    fun play() = _controller.play()
 
-// 必要リポジトリ
-// オーディオリスト
-// 再生設定
-// ・再生中の曲
-// ・再生中の曲のリジューム時間
-// ・再生中の曲の再生状態
-// ひとまずこんなものだがDBからの取得とメモリから渡すパターンがある
-// かと思ったが事前に読み込んでるからメモリから渡すパターン一択か
-// いや、オーディオリストだけは取得するから待ちが発生するかと思ったが同期だから待たないか
+    fun pause() = _controller.pause()
 
-sealed interface AudioPlayUiState {
-    data object Loading : AudioPlayUiState
-    data class Success(
-        val audioItemList: List<StorageItemDto>,
-        val currentPlay: String,
-        val audioTape: AudioTapeDto
-
-    ) : AudioPlayUiState
 }

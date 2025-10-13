@@ -1,76 +1,57 @@
 package com.hashsoft.audiotape.ui
 
 import android.media.MediaMetadataRetriever
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlayAudioDto
+import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
-import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.logic.AudioFileChecker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
 
 class PlayItemState(
-    externalScope: CoroutineScope,
     private val _playbackRepository: PlaybackRepository,
     private val _audioTapeRepository: AudioTapeRepository,
-    playingStateRepository: PlayingStateRepository,
-    resumeAudioRepository: ResumeAudioRepository,
+    private val _resumeAudioRepository: ResumeAudioRepository,
     private val _item: MutableStateFlow<PlayAudioDto?> = MutableStateFlow(null)
 ) {
-
     val item: StateFlow<PlayAudioDto?> = _item.asStateFlow()
 
-    init {
-        externalScope.launch {
-            @OptIn(ExperimentalCoroutinesApi::class)
-            playingStateRepository.playingStateFlow().flatMapLatest { state ->
-                combine(
-                    _audioTapeRepository.findByPath(state.folderPath),
-                    _playbackRepository.data
-                ) { audioTape, playback ->
-                    val path = audioTape.folderPath + File.separator + audioTape.currentName
-                    if (_audioTapeRepository.validAudioTapeDto(audioTape) && File(path).isFile) {
-                        val durationMs = if (playback.durationMs < 0) {
-                            // Todo 呼び出される回数が多かったら見直す
-                            getDuration(path)
-                        } else {
-                            playback.durationMs
-                        }
-                        resumeAudioRepository.updateAll(
-                            path,
-                            durationMs,
-                            audioTape.position,
-                            audioTape.sortOrder
-                        )
-                        PlayAudioDto(
-                            playback.isReadyOk,
-                            playback.isPlaying,
-                            path,
-                            durationMs,
-                            audioTape.position,
-                            audioTape = audioTape
-                        )
-                    } else {
-                        null
-                    }
+    fun updatePlayAudio(audioTape: AudioTapeDto, playback: PlaybackDto) {
+        val path = audioTape.folderPath + File.separator + audioTape.currentName
+        val playAudio =
+            if (_audioTapeRepository.validAudioTapeDto(audioTape) && File(path).isFile) {
+                val durationMs = if (playback.durationMs < 0) {
+                    // Todo 呼び出される回数が多かったら見直す
+                    getDuration(path)
+                } else {
+                    playback.durationMs
                 }
-            }.collect { playAudio ->
-                Timber.d("##audioUpdate: $playAudio")
-                _item.update { playAudio }
+                _resumeAudioRepository.updateAll(
+                    path,
+                    durationMs,
+                    audioTape.position,
+                    audioTape.sortOrder
+                )
+                PlayAudioDto(
+                    playback.isReadyOk,
+                    playback.isPlaying,
+                    path,
+                    durationMs,
+                    audioTape.position,
+                    audioTape = audioTape
+                )
+            } else {
+                null
             }
-
-        }
+        _item.update { playAudio }
     }
 
     private fun getDuration(path: String): Long {

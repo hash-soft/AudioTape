@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">オーディオテープ</string>
+    <string name="loading">取得中</string>
+    <string name="back">戻る</string>
     <string name="permission_required">権限要求</string>
     <string name="permission_rationale">音声ファイルを読み込むためにストレージの権限をONにしてください</string>
     <string name="volume_name_unknown">不明</string>

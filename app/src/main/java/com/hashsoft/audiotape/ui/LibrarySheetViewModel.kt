@@ -12,6 +12,9 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -29,10 +32,8 @@ class LibraryStateViewModel @Inject constructor(
     val uiState: MutableState<LibraryStateUiState> = mutableStateOf(LibraryStateUiState.Loading)
 
     val playItemState = PlayItemState(
-        viewModelScope,
         playbackRepository,
         audioTapeRepository,
-        playingStateRepository,
         resumeAudioRepository
     )
 
@@ -40,6 +41,19 @@ class LibraryStateViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _libraryStateRepository.getLibraryState()
             uiState.value = LibraryStateUiState.Success(state)
+            viewModelScope.launch {
+                @OptIn(ExperimentalCoroutinesApi::class)
+                playingStateRepository.playingStateFlow().flatMapLatest { state ->
+                    combine(
+                        audioTapeRepository.findByPath(state.folderPath),
+                        playbackRepository.data
+                    ) { audioTape, playback ->
+                        audioTape to playback
+                    }
+                }.collect { (audioTape, playback) ->
+                    playItemState.updatePlayAudio(audioTape, playback)
+                }
+            }
         }
     }
 

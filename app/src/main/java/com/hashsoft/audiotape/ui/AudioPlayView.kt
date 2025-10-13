@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
 
@@ -54,9 +55,7 @@ private val PlayPitchValues: List<Float> = listOf(
 )
 
 @Composable
-fun AudioPlayView(item: PlayAudioDto) {
-
-
+fun AudioPlayView(playItem: PlayAudioDto?, playList: List<DisplayStorageItem>) {
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),

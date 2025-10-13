@@ -77,7 +77,9 @@ private fun RouteScreen(
             enterTransition = { slideInVertically(initialOffsetY = { it }) },
             popExitTransition = { slideOutVertically(targetOffsetY = { it }) }
         ) {
-            AudioPlayHomeRoute()
+            AudioPlayHomeRoute {
+                popAndNavigateLibrary(navController)
+            }
         }
         composable<Route.UserSettings> {
             UserSettingsRoute()

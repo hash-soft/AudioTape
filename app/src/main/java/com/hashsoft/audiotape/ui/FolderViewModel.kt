@@ -68,7 +68,7 @@ class FolderViewModel @Inject constructor(
                 ) { audioTape, playback, playingState ->
                     Triple(audioTape, playback, playingState)
                 }
-            }.collect() { (audioTape, playback, playingState) ->
+            }.collect { (audioTape, playback, playingState) ->
                 folderListState.updateList(audioTape, playback, playingState.folderPath)
                 _state.update { FolderViewState.Success }
                 _audioTape = audioTape
