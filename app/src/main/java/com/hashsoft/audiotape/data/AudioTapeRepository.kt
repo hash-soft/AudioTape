@@ -57,7 +57,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             position = entity.position,
             tapeName = entity.tapeName,
             sortOrder = AudioTapeSortOrder.fromInt(entity.sortOrder),
-            repeat = entity.repeat,
+            repeat = entity.repeat > 0,
             volume = entity.volume,
             speed = entity.speed,
             pitch = entity.pitch,
@@ -151,6 +151,14 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         AudioTapePitch(
             folderPath = folderPath,
             pitch = pitch,
+            updateTime = SystemTime.currentMillis()
+        )
+    )
+
+    suspend fun updateRepeat(folderPath: String, repeat: Boolean) = audioTapeDao.updateRepeat(
+        AudioTapeRepeat(
+            folderPath = folderPath,
+            repeat = if (repeat) 2 else 0,
             updateTime = SystemTime.currentMillis()
         )
     )

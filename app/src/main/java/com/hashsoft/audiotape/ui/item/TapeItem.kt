@@ -18,6 +18,23 @@ import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 
+/**
+ * テープリストのアイテムを表示するComposable関数
+ *
+ * @param index リスト内でのインデックス
+ * @param folderPath フォルダパス
+ * @param currentName 現在再生中のファイル名
+ * @param position 再生位置
+ * @param sortOrder ソート順
+ * @param repeat リピート設定
+ * @param speed 再生速度
+ * @param volume 音量
+ * @param pitch ピッチ
+ * @param createTime 作成日時
+ * @param updateTime 更新日時
+ * @param color アイテムの背景色
+ * @param audioCallback オーディオ関連のコールバック
+ */
 @Composable
 fun TapeItem(
     index: Int,

@@ -79,6 +79,11 @@ fun AudioPlayHomeRoute(
                         viewModel.updatePitch(tape.folderPath, argument.pitch)
                         viewModel.setPitch(argument.pitch)
                     }
+
+                    is TapeSettingsCallbackArgument.Repeat -> {
+                        viewModel.updateRepeat(tape.folderPath, argument.repeat)
+                        viewModel.setRepeat(argument.repeat)
+                    }
                 }
             }
         }

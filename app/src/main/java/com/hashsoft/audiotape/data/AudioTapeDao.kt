@@ -62,6 +62,18 @@ data class AudioTapePitch(
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
 
+/**
+ * オーディオテープのリピート設定
+ *
+ * @property folderPath フォルダパス
+ * @property repeat リピート設定
+ * @property updateTime 更新日時
+ */
+data class AudioTapeRepeat(
+    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "repeat") val repeat: Int,
+    @ColumnInfo(name = "update_time") val updateTime: Long
+)
 
 /**
  * オーディオテープDAO
@@ -125,5 +137,13 @@ interface AudioTapeDao {
      */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePitch(entity: AudioTapePitch)
+
+    /**
+     * リピート設定を更新する
+     *
+     * @param entity リピート設定
+     */
+    @Update(entity = AudioTapeEntity::class)
+    suspend fun updateRepeat(entity: AudioTapeRepeat)
 
 }

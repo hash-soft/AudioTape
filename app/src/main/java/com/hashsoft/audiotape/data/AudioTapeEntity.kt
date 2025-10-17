@@ -28,7 +28,7 @@ data class AudioTapeEntity(
     @ColumnInfo(name = "position", defaultValue = "0") val position: Long = 0,
     @ColumnInfo(name = "tape_name", defaultValue = "") val tapeName: String = "",
     @ColumnInfo(name = "sort_order", defaultValue = "0") val sortOrder: Int = 0,
-    @ColumnInfo(name = "repeat", defaultValue = "true") val repeat: Boolean = true,
+    @ColumnInfo(name = "repeat", defaultValue = "2") val repeat: Int = 2,
     @ColumnInfo(name = "volume", defaultValue = "1.0") val volume: Float = 1.0f,
     @ColumnInfo(name = "speed", defaultValue = "1.0") val speed: Float = 1.0f,
     @ColumnInfo(name = "pitch", defaultValue = "1.0") val pitch: Float = 1.0f,

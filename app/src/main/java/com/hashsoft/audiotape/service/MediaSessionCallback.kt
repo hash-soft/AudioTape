@@ -10,10 +10,12 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.hashsoft.audiotape.data.AudioItemListRepository
+import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.data.ResumeAudioDto
 import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.data.StorageItemMetadata
 import com.hashsoft.audiotape.logic.AudioFileChecker
-import com.hashsoft.audiotape.ui.AudioController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,7 +29,8 @@ import java.io.FileInputStream
 
 class MediaSessionCallback(
     private val _ioScope: CoroutineScope,
-    private val _resumeAudioRepository: ResumeAudioRepository
+    private val _resumeAudioRepository: ResumeAudioRepository,
+    private val _audioItemListRepository: AudioItemListRepository
 ) : MediaSession.Callback {
     private var metadataJob: Job? = null
 
@@ -95,12 +98,25 @@ class MediaSessionCallback(
     private fun restorePlaylist(data: ResumeAudioDto): Pair<List<MediaItem>, Int> {
         val file = File(data.path)
         val folderPath = file.parent ?: ""
-        val audioPair =
-            AudioController.getAudioList(folderPath, file.name, data.sortOrder)
-        // metadataは取得していないのでここでは設定しない
-        return audioPair.first.map { audio ->
-            MediaItem.Builder().setUri(audio.path).setMediaId(audio.name).build()
-        } to audioPair.second
+        val itemList =
+            _audioItemListRepository.getAudioItemListFromMediaStore(folderPath, data.sortOrder)
+        val startIndex = itemList.indexOfFirst { it.name == file.name }
+        return itemList.map { audio ->
+            // MediaItemを作成する
+            val metadata = if (audio.metadata is StorageItemMetadata.Audio) {
+                audio.metadata.contents
+            } else {
+                AudioItemMetadata("", "", "", 0)
+            }
+            MediaItem.Builder().setUri(audio.path).setMediaId(audio.name).setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(metadata.title.ifEmpty { audio.name })
+                    .setArtist(metadata.artist)
+                    .setDurationMs(metadata.duration)
+                    .setAlbumTitle(metadata.album)
+                    .build()
+            ).build()
+        } to startIndex
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)

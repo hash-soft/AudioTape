@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui.di.entry
 
+import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
@@ -13,4 +14,5 @@ interface PlaybackServiceEntryPoint {
     fun playbackRepository(): PlaybackRepository
     fun audioTapeRepository(): AudioTapeRepository
     fun resumeAudioRepository(): ResumeAudioRepository
+    fun audioItemListRepository(): AudioItemListRepository
 }

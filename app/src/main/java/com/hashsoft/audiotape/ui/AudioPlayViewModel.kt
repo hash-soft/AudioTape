@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -9,11 +10,23 @@ import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.data.StorageItemListRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+/**
+ * オーディオ再生画面のViewModel
+ *
+ * @param _controller オーディオコントローラー
+ * @param playbackRepository 再生リポジトリ
+ * @param _audioTapeRepository オーディオテープレポジトリ
+ * @param playingStateRepository 再生状態リポジトリ
+ * @param resumeAudioRepository レジュームオーディオリポジトリ
+ * @param storageItemListRepository ストレージアイテムリストリポジトリ
+ */
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
@@ -22,6 +35,7 @@ class AudioPlayViewModel @Inject constructor(
     playingStateRepository: PlayingStateRepository,
     resumeAudioRepository: ResumeAudioRepository,
     storageItemListRepository: StorageItemListRepository,
+    audioItemListRepository: AudioItemListRepository
 ) :
     ViewModel() {
 
@@ -32,7 +46,8 @@ class AudioPlayViewModel @Inject constructor(
     )
 
     val playListState = PlayListState(
-        storageItemListRepository
+        storageItemListRepository,
+        audioItemListRepository
     )
 
 
@@ -50,29 +65,83 @@ class AudioPlayViewModel @Inject constructor(
             }.collect { (audioTape, playback) ->
                 playListState.updateList(audioTape)
                 playItemState.updatePlayAudioForExclusive(audioTape, playback)
-                playListState.loadMetadata()
             }
         }
     }
 
+    /**
+     * 再生を開始する
+     */
     fun play() = _controller.play()
 
+    /**
+     * 再生を一時停止する
+     */
     fun pause() = _controller.pause()
 
+    /**
+     * 音量を設定する
+     *
+     * @param volume 音量
+     */
     fun setVolume(volume: Float) = _controller.setVolume(volume)
 
+    /**
+     * 音量を更新する
+     *
+     * @param path パス
+     * @param volume 音量
+     */
     fun updateVolume(path: String, volume: Float) =
         viewModelScope.launch { _audioTapeRepository.updateVolume(path, volume) }
 
+    /**
+     * 再生速度を設定する
+     *
+     * @param speed 再生速度
+     */
     fun setSpeed(speed: Float) = _controller.setSpeed(speed)
 
+    /**
+     * 再生速度を更新する
+     *
+     * @param path パス
+     * @param speed 再生速度
+     */
     fun updateSpeed(path: String, speed: Float) =
         viewModelScope.launch { _audioTapeRepository.updateSpeed(path, speed) }
 
+    /**
+     * ピッチを設定する
+     *
+     * @param pitch ピッチ
+     */
     fun setPitch(pitch: Float) = _controller.setPitch(pitch)
 
+    /**
+     * ピッチを更新する
+     *
+     * @param path パス
+     * @param pitch ピッチ
+     */
     fun updatePitch(path: String, pitch: Float) =
         viewModelScope.launch { _audioTapeRepository.updatePitch(path, pitch) }
+
+    /**
+     * リピートを設定する
+     *
+     * @param repeat リピートするかどうか
+     */
+    fun setRepeat(repeat: Boolean) = _controller.setRepeat(repeat)
+
+    /**
+     * リピートを更新する
+     *
+     * @param path パス
+     * @param repeat リピートするかどうか
+     */
+    fun updateRepeat(path: String, repeat: Boolean) =
+        viewModelScope.launch { _audioTapeRepository.updateRepeat(path, repeat) }
 
 
 }

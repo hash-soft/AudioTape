@@ -10,7 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +26,7 @@ import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
  */
 private val PlayVolumeValues: List<Float> =
     listOf(0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f)
+
 /**
  * 再生速度の値リスト
  */
@@ -87,11 +88,15 @@ fun AudioPlayView(
             SpeedDropdownSelector(tape.speed, onChangeTapeSettings)
             PitchDropdownSelector(tape.pitch, onChangeTapeSettings)
 
-            IconButton(onClick = { }) {
+            IconButton(onClick = { onChangeTapeSettings(TapeSettingsCallbackArgument.Repeat(!tape.repeat)) }) {
+                val tint =
+                    if (tape.repeat) LocalContentColor.current else LocalContentColor.current.copy(
+                        alpha = 0.5f
+                    )
                 Icon(
-                    Icons.Default.Repeat,
+                    imageVector = Icons.Default.Repeat,
                     contentDescription = stringResource(R.string.repeat_description),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    tint = tint
                 )
             }
             IconButton(onClick = { }) {

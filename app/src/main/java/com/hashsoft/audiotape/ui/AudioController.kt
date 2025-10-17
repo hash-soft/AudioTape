@@ -9,10 +9,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
-import com.hashsoft.audiotape.data.AudioItemListRepository
-import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.StorageItemDto
-import com.hashsoft.audiotape.data.StorageItemListRepository
 import com.hashsoft.audiotape.data.StorageItemMetadata
 import com.hashsoft.audiotape.service.PlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -204,22 +201,5 @@ class AudioController(
             }
         }
         return false
-    }
-
-    companion object {
-        fun getAudioList(
-            folderPath: String,
-            currentFilename: String,
-            sortOrder: AudioTapeSortOrder
-        ): Pair<List<StorageItemDto>, Int> {
-            val itemListRepository = AudioItemListRepository(folderPath)
-            val sortList =
-                StorageItemListRepository.sorted(
-                    itemListRepository.getAudioItemList(),
-                    sortOrder
-                )
-            val startIndex = sortList.indexOfFirst { it.name == currentFilename }
-            return sortList to 0.coerceAtLeast(startIndex)
-        }
     }
 }

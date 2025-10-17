@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "cc8eebb9e65dee5fe02a4ad9895ffd66",
+    "identityHash": "b2760d987d293709cd81ae71e36f52eb",
     "entities": [
       {
         "tableName": "user_settings",
@@ -44,7 +44,7 @@
       },
       {
         "tableName": "audio_tape",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`folder_path` TEXT NOT NULL, `current_name` TEXT NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `tape_name` TEXT NOT NULL DEFAULT '', `sort_order` INTEGER NOT NULL DEFAULT 0, `repeat` INTEGER NOT NULL DEFAULT true, `speed` REAL NOT NULL DEFAULT 1.0, `volume` REAL NOT NULL DEFAULT 1.0, `pitch` REAL NOT NULL DEFAULT 1.0, `item_count` INTEGER NOT NULL DEFAULT 0, `total_time` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER NOT NULL, `update_time` INTEGER NOT NULL, PRIMARY KEY(`folder_path`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`folder_path` TEXT NOT NULL, `current_name` TEXT NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `tape_name` TEXT NOT NULL DEFAULT '', `sort_order` INTEGER NOT NULL DEFAULT 0, `repeat` INTEGER NOT NULL DEFAULT 2, `volume` REAL NOT NULL DEFAULT 1.0, `speed` REAL NOT NULL DEFAULT 1.0, `pitch` REAL NOT NULL DEFAULT 1.0, `item_count` INTEGER NOT NULL DEFAULT 0, `total_time` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER NOT NULL, `update_time` INTEGER NOT NULL, PRIMARY KEY(`folder_path`))",
         "fields": [
           {
             "fieldPath": "folderPath",
@@ -84,18 +84,18 @@
             "columnName": "repeat",
             "affinity": "INTEGER",
             "notNull": true,
-            "defaultValue": "true"
+            "defaultValue": "2"
           },
           {
-            "fieldPath": "speed",
-            "columnName": "speed",
+            "fieldPath": "volume",
+            "columnName": "volume",
             "affinity": "REAL",
             "notNull": true,
             "defaultValue": "1.0"
           },
           {
-            "fieldPath": "volume",
-            "columnName": "volume",
+            "fieldPath": "speed",
+            "columnName": "speed",
             "affinity": "REAL",
             "notNull": true,
             "defaultValue": "1.0"
@@ -144,7 +144,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cc8eebb9e65dee5fe02a4ad9895ffd66')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b2760d987d293709cd81ae71e36f52eb')"
     ]
   }
 }

@@ -31,4 +31,13 @@ sealed interface TapeSettingsCallbackArgument {
     data class Pitch(
         val pitch: Float
     ) : TapeSettingsCallbackArgument
+
+    /**
+     * 繰り返し
+     *
+     * @property repeat 繰り返し
+     */
+    data class Repeat(
+        val repeat: Boolean
+    ) : TapeSettingsCallbackArgument
 }
