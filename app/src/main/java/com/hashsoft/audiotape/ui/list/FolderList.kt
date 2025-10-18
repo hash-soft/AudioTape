@@ -10,7 +10,6 @@ import com.hashsoft.audiotape.ui.AudioCallbackResult
 import com.hashsoft.audiotape.ui.item.AudioItem
 import com.hashsoft.audiotape.ui.item.FolderItem
 import com.hashsoft.audiotape.ui.item.InvalidFileItem
-import com.hashsoft.audiotape.ui.item.UnanalyzedFileItem
 
 @Composable
 fun FolderList(
@@ -36,16 +35,6 @@ fun FolderList(
                         item.icon,
                         item.isResume,
                         item.contentPosition,
-                        audioCallback = audioCallback
-                    )
-                }
-
-                is StorageItemMetadata.UnanalyzedFile -> {
-                    UnanalyzedFileItem(
-                        base.name,
-                        base.size,
-                        base.lastModified,
-                        index = it,
                         audioCallback = audioCallback
                     )
                 }

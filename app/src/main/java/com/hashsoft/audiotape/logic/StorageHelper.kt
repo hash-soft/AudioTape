@@ -14,5 +14,7 @@ class StorageHelper {
 
         fun getVolumeList(context: Context): List<StorageItem> = StorageItemProvider.getVolumeList(context)
         fun getFileList(path: String): List<StorageItem> = StorageItemProvider.getFileList(path)
+
+        fun getDirectoryList(path: String): List<StorageItem> = StorageItemProvider.getDirectoryList(path)
     }
 }

@@ -42,6 +42,7 @@ class AudioItemListRepository(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             }
 
+        // Todo Q以降はRELATIVE_PATH、以前はDATAで判別
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DISPLAY_NAME,
@@ -52,13 +53,17 @@ class AudioItemListRepository(
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.ARTIST,
             MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.ALBUM_ID
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.RELATIVE_PATH,
+            MediaStore.Audio.Media.VOLUME_NAME
         )
 
         // show only music
         val selection =
             MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " + MediaStore.Audio.Media.DATA + " LIKE ?"
         val selectionArgs = arrayOf("$path%")
+        //val selection: String = MediaStore.Audio.Media.IS_MUSIC + " != 0 AND " + "${MediaStore.Audio.Media.RELATIVE_PATH} = ?"
+        //val selectionArgs = arrayOf(path + "")
 
         val sortColumn = when (sortOrder) {
             AudioTapeSortOrder.NAME_ASC -> "${MediaStore.Audio.Media.DATA} ASC"
@@ -85,12 +90,15 @@ class AudioItemListRepository(
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val relativePathColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH)
+            val volumeNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.VOLUME_NAME)
             //val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
             while (cursor.moveToNext()) {
                 val filePath = cursor.getString(dataColumn)
                 val file = File(filePath)
-                if (file.exists()) {
+                if (file.exists() && file.parent == path) {
                     //val albumId = cursor.getLong(albumIdColumn)
                     //val artwork = loadArtwork(albumId)
                     val metadata = AudioItemMetadata(

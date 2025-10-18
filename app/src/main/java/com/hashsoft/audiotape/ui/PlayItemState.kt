@@ -56,6 +56,8 @@ class PlayItemState(
         _item.update { playAudio }
     }
 
+    // ここを改修する
+    // 高速で読み出せるのでリストごと取得してしまう
     fun updatePlayAudioForSimple(audioTape: AudioTapeDto, playback: PlaybackDto) {
         val path = audioTape.folderPath + File.separator + audioTape.currentName
         val playAudio =

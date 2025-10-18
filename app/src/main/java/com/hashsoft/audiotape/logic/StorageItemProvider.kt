@@ -2,12 +2,9 @@ package com.hashsoft.audiotape.logic
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.database.Cursor
-import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
-import android.provider.MediaStore
 import com.hashsoft.audiotape.R
 import timber.log.Timber
 
@@ -20,6 +17,7 @@ class StorageItemProvider {
             val data = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 volumes.mapNotNull {
                     val directory = it.directory
+                    Timber.d("getVolume:${it.getDescription(context)},${it.mediaStoreVolumeName}")
                     if (directory != null) {
                         val name = it.getDescription(context)
                             ?: context.getString(R.string.volume_name_unknown)
@@ -63,6 +61,19 @@ class StorageItemProvider {
                 )
             } ?: listOf()
 
+        }
+
+        fun getDirectoryList(path: String): List<StorageItem> {
+            val file = java.io.File(path)
+            return file.listFiles { file -> file.isDirectory }?.map {
+                StorageItem(
+                    it.name,
+                    it.absolutePath,
+                    it.length(),
+                    it.lastModified(),
+                    isDirectory = it.isDirectory
+                )
+            } ?: listOf()
         }
     }
 }

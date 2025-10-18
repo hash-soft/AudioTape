@@ -36,9 +36,6 @@ fun FolderViewRoute(
                 onFolderClick = viewModel::saveSelectedPath
             ) { argument ->
                 when (argument) {
-                    is AudioCallbackArgument.Display -> {
-                        viewModel.loadMetadata(argument.index)
-                    }
 
                     is AudioCallbackArgument.AudioSelected -> {
                         viewModel.updatePlayingFolderPath(selectedPath)

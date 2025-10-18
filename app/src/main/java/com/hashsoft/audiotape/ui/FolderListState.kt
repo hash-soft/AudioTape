@@ -59,23 +59,6 @@ class FolderListState(
         return DisplayStorageItem(item, index, color, icon, isResume, contentPosition)
     }
 
-    fun loadMetadataByIndex(index: Int) {
-        val item = _list.value.getOrNull(index)
-        // 未解析ファイル以外はスキップ
-        if (item == null || item.base.metadata !is StorageItemMetadata.UnanalyzedFile) return
-        val metadata = _storageItemListRepository.loadMetadata(item.base.path)
-        val itemMetadata =
-            if (metadata == null) StorageItemMetadata.InvalidFile else StorageItemMetadata.Audio(
-                metadata
-            )
-        _storageCache[index] = item.base.copy(metadata = itemMetadata)
-        _list.update { list ->
-            list.toMutableList().apply {
-                this[index] = item.copy(_storageCache[index])
-            }
-        }
-    }
-
 }
 
 

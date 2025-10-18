@@ -46,36 +46,12 @@ class StorageItemListRepository(private val _context: Context) {
     }
 
     private fun getStorageItemList(path: String): List<StorageItemDto> {
-        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            StorageHelper.getFileList(path).mapNotNull {
-                if (it.isDirectory) {
-                    StorageItemDto(it.name, it.path, it.size, it.lastModified)
-                } else {
-                    val isAudio = StorageHelper.isAudioExtension(it.path)
-                    if (isAudio) {
-                        StorageItemDto(
-                            it.name,
-                            it.path,
-                            it.size,
-                            it.lastModified,
-                            StorageItemMetadata.UnanalyzedFile
-                        )
-                    } else {
-                        return@mapNotNull null
-                    }
-                }
-            }
-        } else {
-            StorageHelper.getFileList(path).map {
-                StorageItemDto(
-                    it.name,
-                    it.path,
-                    it.size,
-                    it.lastModified,
-                    if (it.isDirectory) StorageItemMetadata.Folder else StorageItemMetadata.UnanalyzedFile
-                )
-            }
+        val directoryList = StorageHelper.getDirectoryList(path).map{
+            StorageItemDto(it.name, it.path, it.size, it.lastModified)
         }
+        val audioList = AudioItemListRepository(_context).getAudioItemListFromMediaStore(path,
+            AudioTapeSortOrder.NAME_ASC)
+        return directoryList + audioList
     }
 
     fun loadMetadata(path: String): AudioItemMetadata? {

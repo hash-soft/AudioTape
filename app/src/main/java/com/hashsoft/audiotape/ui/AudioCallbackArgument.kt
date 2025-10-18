@@ -19,7 +19,6 @@ sealed interface AudioCallbackArgument {
 
 
     // フォルダ選択用
-    data class Display(val index: Int) : AudioCallbackArgument
 
     data class AudioSelected(
         val index: Int

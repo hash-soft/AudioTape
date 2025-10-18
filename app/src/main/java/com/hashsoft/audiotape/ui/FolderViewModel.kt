@@ -76,12 +76,6 @@ class FolderViewModel @Inject constructor(
         }
     }
 
-    fun loadMetadata(index: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            folderListState.loadMetadataByIndex(index)
-        }
-    }
-
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
     }
