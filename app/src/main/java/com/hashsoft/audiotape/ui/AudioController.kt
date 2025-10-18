@@ -9,13 +9,13 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
-import com.hashsoft.audiotape.data.StorageItemDto
-import com.hashsoft.audiotape.data.StorageItemMetadata
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.service.PlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
+import java.io.File
 
 
 class AudioController(
@@ -133,7 +133,7 @@ class AudioController(
     }
 
     fun setMediaItems(
-        audioList: List<StorageItemDto>,
+        audioList: List<AudioItemDto>,
         mediaItemIndex: Int = 0,
         positionMs: Long = 0
     ) {
@@ -142,24 +142,16 @@ class AudioController(
         }
         // audio判定されたファイルはmetadata取得済みなので設定する
         val mediaItems = audioList.map { audio ->
-            val builder = MediaItem.Builder().setUri(audio.path)
-                .setMediaId(audio.name)
-            val mediaMetadata = when (audio.metadata) {
-                is StorageItemMetadata.Audio -> {
-                    val metadata = audio.metadata.contents
-                    MediaMetadata.Builder()
-                        .setArtist(metadata.artist)
-                        .setTitle(audio.name)
-                        .setDurationMs(metadata.duration)
-                        .setAlbumTitle(metadata.album)
-                        .build()
-                }
-
-                else -> null
-            }
-            if (mediaMetadata != null) {
-                builder.setMediaMetadata(mediaMetadata)
-            }
+            val builder = MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name)
+                .setMediaId(audio.id.toString())
+            val metadata = audio.metadata
+            val mediaMetadata = MediaMetadata.Builder()
+                .setArtist(metadata.artist)
+                .setTitle(audio.name)
+                .setDurationMs(metadata.duration)
+                .setAlbumTitle(metadata.album)
+                .build()
+            builder.setMediaMetadata(mediaMetadata)
             builder.build()
         }
 

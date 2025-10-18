@@ -1,13 +1,10 @@
 package com.hashsoft.audiotape.data
 
 
-data class AudioItemDto(
+data class FolderItemDto(
     override val name: String,
     override val absolutePath: String,
     override val relativePath: String,
     override val lastModified: Long,
-    val id: Long,
-    val size: Long,
-    val volumeName: String,
-    val metadata: AudioItemMetadata
+    val itemCount: Long
 ) : StorageItem

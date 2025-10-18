@@ -2,12 +2,12 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.StorageItemListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ class TapeViewModel @Inject constructor(
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
     private val _folderStateRepository: FolderStateRepository,
-    private val _audioItemListRepository: AudioItemListRepository
+    private val _storageItemListUseCase: StorageItemListUseCase
 ) :
     ViewModel() {
 
@@ -72,8 +72,7 @@ class TapeViewModel @Inject constructor(
             _playbackRepository.updateContentPosition(_controller.getContentPosition())
         }
         // folderPathからオーディオファイルを取得する
-        val audioList =
-            _audioItemListRepository.getAudioItemListFromMediaStore(tape.folderPath, tape.sortOrder)
+        val audioList = _storageItemListUseCase.getAudioItemList(tape.folderPath, tape.sortOrder)
         val startIndex = audioList.indexOfFirst { it.name == tape.currentName }
 
         _controller.setMediaItems(audioList, startIndex, tape.position)

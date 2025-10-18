@@ -2,20 +2,17 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
-import com.hashsoft.audiotape.data.StorageItemListRepository
+import com.hashsoft.audiotape.data.StorageItemListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * オーディオ再生画面のViewModel
@@ -34,8 +31,7 @@ class AudioPlayViewModel @Inject constructor(
     private val _audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     resumeAudioRepository: ResumeAudioRepository,
-    storageItemListRepository: StorageItemListRepository,
-    audioItemListRepository: AudioItemListRepository
+    storageItemListUseCase: StorageItemListUseCase
 ) :
     ViewModel() {
 
@@ -46,8 +42,7 @@ class AudioPlayViewModel @Inject constructor(
     )
 
     val playListState = PlayListState(
-        storageItemListRepository,
-        audioItemListRepository
+        storageItemListUseCase
     )
 
 

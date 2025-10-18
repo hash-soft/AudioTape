@@ -5,8 +5,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.RouteStateDto
 import com.hashsoft.audiotape.data.RouteStateRepository
+import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -14,7 +16,9 @@ import javax.inject.Inject
 @HiltViewModel
 class RouteContentViewModel @Inject constructor(
     private val _controller: AudioController,
-    private val _routeStateRepository: RouteStateRepository
+    private val _routeStateRepository: RouteStateRepository,
+    private val _storageVolumeRepository: StorageVolumeRepository,
+    private val _audioStoreRepository: AudioStoreRepository
 ) :
     ViewModel() {
 
@@ -22,6 +26,8 @@ class RouteContentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            _storageVolumeRepository.reload()
+            _audioStoreRepository.reload()
             val state = _routeStateRepository.getRouteState()
             uiState.value = RouteStateUiState.Success(state)
         }

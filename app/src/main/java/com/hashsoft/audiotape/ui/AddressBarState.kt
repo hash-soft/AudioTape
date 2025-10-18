@@ -1,6 +1,6 @@
 package com.hashsoft.audiotape.ui
 
-import com.hashsoft.audiotape.data.StorageAddressRepository
+import com.hashsoft.audiotape.data.StorageAddressUseCase
 import com.hashsoft.audiotape.data.StorageLocationDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class AddressBarState(
-    private val _storageAddressRepository: StorageAddressRepository,
+    private val _storageAddressRepository: StorageAddressUseCase,
     private val _list: MutableStateFlow<List<StorageLocationDto>> = MutableStateFlow(
         emptyList()
     )

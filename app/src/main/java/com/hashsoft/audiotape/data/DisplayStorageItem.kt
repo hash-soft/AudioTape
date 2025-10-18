@@ -1,7 +1,7 @@
 package com.hashsoft.audiotape.data
 
 data class DisplayStorageItem(
-    val base: StorageItemDto,
+    val base: StorageItem,
     val index: Int,
     val color: Int = 0,
     val icon: Int = 0,

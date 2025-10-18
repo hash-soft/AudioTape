@@ -6,12 +6,18 @@ package com.hashsoft.audiotape.data
 enum class AudioTapeSortOrder {
     /** 名前(昇順) */
     NAME_ASC,
+
     /** 名前(降順) */
     NAME_DESC,
+
     /** 日付(昇順) */
     DATE_ASC,
+
     /** 日付(降順) */
-    DATE_DESC;
+    DATE_DESC,
+
+    /** そのまま */
+    ASIS;
 
     companion object {
         /**

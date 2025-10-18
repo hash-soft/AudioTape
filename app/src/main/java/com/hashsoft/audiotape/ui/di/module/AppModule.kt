@@ -1,11 +1,12 @@
 package com.hashsoft.audiotape.ui.di.module
 
 import android.content.Context
-import com.hashsoft.audiotape.data.AudioItemListRepository
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
-import com.hashsoft.audiotape.data.StorageAddressRepository
-import com.hashsoft.audiotape.data.StorageItemListRepository
+import com.hashsoft.audiotape.data.StorageAddressUseCase
+import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.StorageVolumeRepository
 import com.hashsoft.audiotape.ui.AudioController
 import dagger.Module
 import dagger.Provides
@@ -24,13 +25,11 @@ object AppModule {
     fun provideAudioController(): AudioController = AudioController()
 
     @Provides
-    fun provideStorageAddressRepository(@ApplicationContext context: Context): StorageAddressRepository {
-        return StorageAddressRepository(context)
-    }
-
-    @Provides
-    fun provideStorageItemListRepository(@ApplicationContext context: Context): StorageItemListRepository {
-        return StorageItemListRepository(context)
+    fun provideStorageAddressUseCase(
+        storageVolumeRepository: StorageVolumeRepository,
+        @ApplicationContext context: Context
+    ): StorageAddressUseCase {
+        return StorageAddressUseCase(storageVolumeRepository, context)
     }
 
     @Provides
@@ -42,8 +41,24 @@ object AppModule {
     fun provideResumeAudioRepository(): ResumeAudioRepository = ResumeAudioRepository()
 
     @Provides
-    fun provideAudioItemListRepository(@ApplicationContext context: Context): AudioItemListRepository {
-        return AudioItemListRepository(context)
+    @Singleton
+    fun provideAudioStoreRepository(@ApplicationContext context: Context): AudioStoreRepository {
+        return AudioStoreRepository(context)
+    }
+
+    @Provides
+    fun provideStorageItemListUseCase(
+        storageVolumeRepository: StorageVolumeRepository,
+        audioStoreRepository: AudioStoreRepository,
+        @ApplicationContext context: Context
+    ): StorageItemListUseCase {
+        return StorageItemListUseCase(storageVolumeRepository, audioStoreRepository, context)
+    }
+
+    @Provides
+    @Singleton
+    fun providerStorageVolumeRepository(@ApplicationContext context: Context): StorageVolumeRepository {
+        return StorageVolumeRepository(context)
     }
 
 }

@@ -13,11 +13,11 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.hashsoft.audiotape.MainActivity
-import com.hashsoft.audiotape.data.AudioItemListRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.ui.di.entry.PlaybackServiceEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +40,7 @@ class PlaybackService : MediaSessionService() {
 
     private lateinit var _audioTapeRepository: AudioTapeRepository
     private lateinit var _resumeAudioRepository: ResumeAudioRepository
-    private lateinit var _audioItemListRepository: AudioItemListRepository
+    private lateinit var _storageItemListUseCase: StorageItemListUseCase
 
 
     // Create your player and media session in the onCreate lifecycle event
@@ -58,7 +58,7 @@ class PlaybackService : MediaSessionService() {
                     MediaSessionCallback(
                         ioScope,
                         _resumeAudioRepository,
-                        _audioItemListRepository
+                        _storageItemListUseCase
                     )
                 ).build()
                 .also { builder ->
@@ -81,7 +81,7 @@ class PlaybackService : MediaSessionService() {
         _playbackRepository = entryPoint.playbackRepository()
         _audioTapeRepository = entryPoint.audioTapeRepository()
         _resumeAudioRepository = entryPoint.resumeAudioRepository()
-        _audioItemListRepository = entryPoint.audioItemListRepository()
+        _storageItemListUseCase = entryPoint.storageItemListUseCase()
     }
 
     private fun observeState() {

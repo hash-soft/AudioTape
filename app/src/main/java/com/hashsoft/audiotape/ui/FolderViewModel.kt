@@ -2,17 +2,16 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
-import com.hashsoft.audiotape.data.StorageAddressRepository
-import com.hashsoft.audiotape.data.StorageItemListRepository
-import com.hashsoft.audiotape.data.StorageItemMetadata
+import com.hashsoft.audiotape.data.StorageAddressUseCase
+import com.hashsoft.audiotape.data.StorageItemListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 enum class FolderViewState {
@@ -34,11 +34,12 @@ enum class FolderViewState {
 class FolderViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _folderStateRepository: FolderStateRepository,
-    storageAddressRepository: StorageAddressRepository,
-    storageItemListRepository: StorageItemListRepository,
+    storageAddressUseCase: StorageAddressUseCase,
+    storageItemListUseCase: StorageItemListUseCase,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
+    private val _storageItemListUseCase: StorageItemListUseCase
 ) :
     ViewModel() {
 
@@ -47,8 +48,8 @@ class FolderViewModel @Inject constructor(
     private val _selectedPath = MutableStateFlow("")
     val selectedPath: StateFlow<String> = _selectedPath.asStateFlow()
 
-    val addressBarState = AddressBarState(storageAddressRepository)
-    val folderListState = FolderListState(storageItemListRepository)
+    val addressBarState = AddressBarState(storageAddressUseCase)
+    val folderListState = FolderListState(storageItemListUseCase)
     private var _audioTape: AudioTapeDto = AudioTapeDto("", "")
 
 
@@ -61,6 +62,10 @@ class FolderViewModel @Inject constructor(
                 _state.update { FolderViewState.ItemLoading }
                 // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
                 folderListState.loadStorageCache(folderState.selectedPath)
+                val result = _storageItemListUseCase.pathToStorageItemList(
+                    folderState.selectedPath,
+                    AudioTapeSortOrder.ASIS
+                )
                 combine(
                     _audioTapeRepository.findByPath(folderState.selectedPath),
                     _playbackRepository.data,
@@ -87,19 +92,20 @@ class FolderViewModel @Inject constructor(
     fun setMediaItemsInFolderList(index: Int = 0) {
         // ファイルを抽出する
         val audioList = folderListState.list.value.mapNotNull {
-            when (it.base.metadata) {
-                is StorageItemMetadata.Folder -> {
-                    return@mapNotNull null
+            when (it.base) {
+                is AudioItemDto -> {
+                    it.base
                 }
 
-                else -> it.base
+                else -> return@mapNotNull null
             }
         }
         val item = folderListState.list.value[index]
-        if (_controller.isCurrentByPath(item.base.path)) {
+        val fullPath = item.base.absolutePath + File.separator + item.base.name
+        if (_controller.isCurrentByPath(fullPath)) {
             return
         }
-        if (_controller.seekToByPath(item.base.path, item.contentPosition)) {
+        if (_controller.seekToByPath(fullPath, item.contentPosition)) {
             return
         }
         if (_controller.isCurrentMediaItem()) {
