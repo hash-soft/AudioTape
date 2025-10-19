@@ -3,7 +3,6 @@ package com.hashsoft.audiotape.ui.di.module
 import android.content.Context
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
-import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -34,10 +33,6 @@ object AppModule {
     @Provides
     @Singleton
     fun providePlaybackRepository(): PlaybackRepository = PlaybackRepository()
-
-    @Provides
-    @Singleton
-    fun provideResumeAudioRepository(): ResumeAudioRepository = ResumeAudioRepository()
 
     @Provides
     @Singleton

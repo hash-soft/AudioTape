@@ -3,7 +3,7 @@ package com.hashsoft.audiotape.ui.di.entry
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
-import com.hashsoft.audiotape.data.ResumeAudioRepository
+import com.hashsoft.audiotape.data.PlayingStateRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -13,6 +13,6 @@ import dagger.hilt.components.SingletonComponent
 interface PlaybackServiceEntryPoint {
     fun playbackRepository(): PlaybackRepository
     fun audioTapeRepository(): AudioTapeRepository
-    fun resumeAudioRepository(): ResumeAudioRepository
     fun audioStoreRepository(): AudioStoreRepository
+    fun playingStateRepository(): PlayingStateRepository
 }

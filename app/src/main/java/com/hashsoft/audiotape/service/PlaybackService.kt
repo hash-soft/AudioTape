@@ -17,8 +17,7 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
-import com.hashsoft.audiotape.data.ResumeAudioRepository
-import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.ui.di.entry.PlaybackServiceEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -40,8 +39,8 @@ class PlaybackService : MediaSessionService() {
     private lateinit var _playbackRepository: PlaybackRepository
 
     private lateinit var _audioTapeRepository: AudioTapeRepository
-    private lateinit var _resumeAudioRepository: ResumeAudioRepository
     private lateinit var _audioStoreRepository: AudioStoreRepository
+    private lateinit var _playingStateRepository: PlayingStateRepository
 
 
     // Create your player and media session in the onCreate lifecycle event
@@ -57,9 +56,9 @@ class PlaybackService : MediaSessionService() {
             MediaSession.Builder(this, player)
                 .setCallback(
                     MediaSessionCallback(
-                        ioScope,
-                        _resumeAudioRepository,
-                        _audioStoreRepository
+                        _audioStoreRepository,
+                        _playingStateRepository,
+                        _audioTapeRepository
                     )
                 ).build()
                 .also { builder ->
@@ -81,18 +80,17 @@ class PlaybackService : MediaSessionService() {
         )
         _playbackRepository = entryPoint.playbackRepository()
         _audioTapeRepository = entryPoint.audioTapeRepository()
-        _resumeAudioRepository = entryPoint.resumeAudioRepository()
         _audioStoreRepository = entryPoint.audioStoreRepository()
+        _playingStateRepository = entryPoint.playingStateRepository()
     }
 
     private fun observeState() {
         serviceScope.launch {
             // UIとサービスからの変更をここで監視してaudioTapeを更新する
             _playbackRepository.data.collect { playback ->
-                Timber.d("##observeState playback = $playback")
+                Timber.d("1#observeState playback = $playback")
                 // 再生可能状態になっていないと判断した場合は更新しない
-                // durationMsではなくreadyOkで見たほうがいいかも
-                if (playback.folderPath.isEmpty() || playback.durationMs <= 0) {
+                if (!playback.isReadyOk) {
                     return@collect
                 }
                 // 何らかの異常がなければキーは存在しているはず

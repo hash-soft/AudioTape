@@ -6,7 +6,6 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
-import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -31,7 +30,6 @@ class AudioPlayViewModel @Inject constructor(
     playbackRepository: PlaybackRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
-    resumeAudioRepository: ResumeAudioRepository,
     storageItemListUseCase: StorageItemListUseCase,
     private val _audioStoreRepository: AudioStoreRepository
 ) :
@@ -40,7 +38,7 @@ class AudioPlayViewModel @Inject constructor(
     val playItemState = PlayItemState(
         playbackRepository,
         _audioTapeRepository,
-        resumeAudioRepository
+        _audioStoreRepository
     )
 
     val playListState = PlayListState(

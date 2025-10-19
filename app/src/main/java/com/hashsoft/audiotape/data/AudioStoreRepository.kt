@@ -62,11 +62,15 @@ class AudioStoreRepository(
         scope.cancel()
     }
 
+    fun getAudioItem(absolutePath: String): AudioItemDto? {
+        return cache.find { it.absolutePath + File.separator + it.name == absolutePath }
+    }
+
     fun getListByPath(path: String): List<AudioItemDto> {
         return cache.filter { it.absolutePath == path }
     }
 
-    suspend private fun changeAudioItemList() {
+    private suspend fun changeAudioItemList() {
         _audioLoadState.value = AudioLoadState.Loading
         cache = loadAudioItemList()
         _audioLoadState.value = AudioLoadState.Success(cache)

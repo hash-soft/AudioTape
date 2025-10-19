@@ -4,12 +4,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
-import com.hashsoft.audiotape.data.ResumeAudioRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,7 +24,7 @@ class LibraryStateViewModel @Inject constructor(
     playbackRepository: PlaybackRepository,
     audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
-    resumeAudioRepository: ResumeAudioRepository
+    private val _audioStoreRepository: AudioStoreRepository,
 ) :
     ViewModel() {
 
@@ -34,7 +34,7 @@ class LibraryStateViewModel @Inject constructor(
     val playItemState = PlayItemState(
         playbackRepository,
         audioTapeRepository,
-        resumeAudioRepository
+        _audioStoreRepository
     )
 
     init {
@@ -43,12 +43,14 @@ class LibraryStateViewModel @Inject constructor(
             uiState.value = LibraryStateUiState.Success(state)
             viewModelScope.launch {
                 @OptIn(ExperimentalCoroutinesApi::class)
-                playingStateRepository.playingStateFlow().flatMapLatest { state ->
-                    combine(
-                        audioTapeRepository.findByPath(state.folderPath),
-                        playbackRepository.data
-                    ) { audioTape, playback ->
-                        audioTape to playback
+                _audioStoreRepository.updateFlow.flatMapLatest {
+                    playingStateRepository.playingStateFlow().flatMapLatest { state ->
+                        combine(
+                            audioTapeRepository.findByPath(state.folderPath),
+                            playbackRepository.data
+                        ) { audioTape, playback ->
+                            audioTape to playback
+                        }
                     }
                 }.collect { (audioTape, playback) ->
                     playItemState.updatePlayAudioForSimple(audioTape, playback)
