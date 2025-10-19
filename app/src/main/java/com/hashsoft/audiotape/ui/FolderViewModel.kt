@@ -11,6 +11,7 @@ import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
 import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,7 @@ class FolderViewModel @Inject constructor(
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
-    private val _storageItemListUseCase: StorageItemListUseCase
+    private val _storageVolumeRepository: StorageVolumeRepository
 ) :
     ViewModel() {
 
@@ -56,22 +57,20 @@ class FolderViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
-            _folderStateRepository.folderStateFlow().flatMapLatest { folderState ->
-                addressBarState.load(folderState.selectedPath)
-                _selectedPath.update { folderState.selectedPath }
-                _state.update { FolderViewState.ItemLoading }
-                // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
-                folderListState.loadStorageCache(folderState.selectedPath)
-                val result = _storageItemListUseCase.pathToStorageItemList(
-                    folderState.selectedPath,
-                    AudioTapeSortOrder.ASIS
-                )
-                combine(
-                    _audioTapeRepository.findByPath(folderState.selectedPath),
-                    _playbackRepository.data,
-                    _playingStateRepository.playingStateFlow()
-                ) { audioTape, playback, playingState ->
-                    Triple(audioTape, playback, playingState)
+            _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
+                _folderStateRepository.folderStateFlow().flatMapLatest { folderState ->
+                    addressBarState.load(folderState.selectedPath, volumes)
+                    _selectedPath.update { folderState.selectedPath }
+                    _state.update { FolderViewState.ItemLoading }
+                    // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
+                    folderListState.loadStorageCache(folderState.selectedPath, volumes)
+                    combine(
+                        _audioTapeRepository.findByPath(folderState.selectedPath),
+                        _playbackRepository.data,
+                        _playingStateRepository.playingStateFlow()
+                    ) { audioTape, playback, playingState ->
+                        Triple(audioTape, playback, playingState)
+                    }
                 }
             }.collect { (audioTape, playback, playingState) ->
                 folderListState.updateList(audioTape, playback, playingState.folderPath)

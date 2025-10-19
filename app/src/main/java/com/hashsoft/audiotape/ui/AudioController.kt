@@ -1,7 +1,9 @@
 package com.hashsoft.audiotape.ui
 
 import android.content.ComponentName
+import android.content.ContentUris
 import android.content.Context
+import android.provider.MediaStore
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -140,10 +142,11 @@ class AudioController(
         if (audioList.isEmpty()) {
             return
         }
-        // audio判定されたファイルはmetadata取得済みなので設定する
         val mediaItems = audioList.map { audio ->
-            val builder = MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name)
-                .setMediaId(audio.id.toString())
+            //val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audio.id)
+            val builder =
+                MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name)
+                    .setMediaId(audio.id.toString())
             val metadata = audio.metadata
             val mediaMetadata = MediaMetadata.Builder()
                 .setArtist(metadata.artist)
@@ -156,9 +159,9 @@ class AudioController(
         }
 
         // 初期位置も合わせて設定する
-        _controller?.let {
-            it.setMediaItems(mediaItems, mediaItemIndex, positionMs)
-            it.prepare()
+        _controller?.run {
+            setMediaItems(mediaItems, mediaItemIndex, positionMs)
+            prepare()
         }
     }
 
@@ -166,19 +169,6 @@ class AudioController(
         val controller = _controller ?: return false
         val currentPath = controller.currentMediaItem?.localConfiguration?.uri?.path ?: ""
         return currentPath == path
-    }
-
-    fun includeMediaItemByPath(path: String): Boolean {
-        val controller = _controller ?: return false
-        val count = controller.mediaItemCount
-        for (i in 0 until count) {
-            val item = controller.getMediaItemAt(i)
-            val itemPath = item.localConfiguration?.uri?.path ?: ""
-            if (itemPath == path) {
-                return true
-            }
-        }
-        return false
     }
 
     fun seekToByPath(path: String, position: Long): Boolean {

@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import com.hashsoft.audiotape.data.StorageAddressUseCase
 import com.hashsoft.audiotape.data.StorageLocationDto
+import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,8 +16,8 @@ class AddressBarState(
 ) {
     val list: StateFlow<List<StorageLocationDto>> = _list.asStateFlow()
 
-    fun load(path: String) {
-        _list.update { _storageAddressRepository.pathToStorageLocationList(path) }
+    fun load(path: String, volumes: List<VolumeItem>) {
+        _list.update { _storageAddressRepository.pathToStorageLocationList(path, volumes) }
     }
 
 }

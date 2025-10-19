@@ -10,7 +10,9 @@ import com.hashsoft.audiotape.data.RouteStateDto
 import com.hashsoft.audiotape.data.RouteStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,7 +28,7 @@ class RouteContentViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _storageVolumeRepository.reload()
+            //val volumes = _storageVolumeRepository.volumeChangeFlow().first()
             _audioStoreRepository.reload()
             val state = _routeStateRepository.getRouteState()
             uiState.value = RouteStateUiState.Success(state)

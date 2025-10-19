@@ -7,6 +7,7 @@ import com.hashsoft.audiotape.data.FolderItemDto
 import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +22,9 @@ class FolderListState(
     private val _storageCache: MutableList<StorageItem> = mutableListOf()
     val list: StateFlow<List<DisplayStorageItem>> = _list.asStateFlow()
 
-    fun loadStorageCache(path: String) {
+    fun loadStorageCache(path: String, volumes: List<VolumeItem>) {
         _storageCache.clear()
-        _storageCache.addAll(_storageItemListUseCase.pathToStorageItemList(path, AudioTapeSortOrder.ASIS))
+        _storageCache.addAll(_storageItemListUseCase.pathToStorageItemList(path, volumes, AudioTapeSortOrder.ASIS))
     }
 
     fun updateList(audioTape: AudioTapeDto, playback: PlaybackDto, playingFolderPath: String) {

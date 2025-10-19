@@ -1,13 +1,10 @@
 package com.hashsoft.audiotape.data
 
-import android.content.Context
 import jakarta.inject.Inject
 
 
 class StorageItemListUseCase @Inject constructor(
-    private val _storageVolumeRepository: StorageVolumeRepository,
     private val _audioStoreRepository: AudioStoreRepository,
-    private val _context: Context
 ) {
 
     companion object {
@@ -71,17 +68,24 @@ class StorageItemListUseCase @Inject constructor(
 
     }
 
-    fun pathToStorageItemList(path: String, sortOrder: AudioTapeSortOrder): List<StorageItem> {
+    fun pathToStorageItemList(
+        path: String,
+        volumes: List<VolumeItem>,
+        sortOrder: AudioTapeSortOrder
+    ): List<StorageItem> {
         // pathが空の場合ルート
         return if (path.isEmpty()) {
-            getRootStorageItemList(sortOrder)
+            getRootStorageItemList(volumes, sortOrder)
         } else {
             getStorageItemList(path, sortOrder)
         }
     }
 
-    private fun getRootStorageItemList(sortOrder: AudioTapeSortOrder): List<FolderItemDto> {
-        val list = _storageVolumeRepository.getVolumeList()
+    private fun getRootStorageItemList(
+        volumes: List<VolumeItem>,
+        sortOrder: AudioTapeSortOrder
+    ): List<FolderItemDto> {
+        val list = volumes
             .map { FolderItemDto(it.name, it.path, "", it.lastModified, 0) }
         return sortedFolderList(list, sortOrder)
     }

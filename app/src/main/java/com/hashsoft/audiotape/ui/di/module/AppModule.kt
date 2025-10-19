@@ -26,10 +26,9 @@ object AppModule {
 
     @Provides
     fun provideStorageAddressUseCase(
-        storageVolumeRepository: StorageVolumeRepository,
         @ApplicationContext context: Context
     ): StorageAddressUseCase {
-        return StorageAddressUseCase(storageVolumeRepository, context)
+        return StorageAddressUseCase(context)
     }
 
     @Provides
@@ -48,11 +47,9 @@ object AppModule {
 
     @Provides
     fun provideStorageItemListUseCase(
-        storageVolumeRepository: StorageVolumeRepository,
         audioStoreRepository: AudioStoreRepository,
-        @ApplicationContext context: Context
     ): StorageItemListUseCase {
-        return StorageItemListUseCase(storageVolumeRepository, audioStoreRepository, context)
+        return StorageItemListUseCase(audioStoreRepository)
     }
 
     @Provides

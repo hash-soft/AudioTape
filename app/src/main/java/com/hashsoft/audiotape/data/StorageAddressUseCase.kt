@@ -4,14 +4,14 @@ import android.content.Context
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.logic.StorageHelper
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.first
 import java.io.File
 
 class StorageAddressUseCase @Inject constructor(
-    private val _storageVolumeRepository: StorageVolumeRepository,
     private val _context: Context
 ) {
 
-    fun pathToStorageLocationList(path: String): List<StorageLocationDto> {
+    fun pathToStorageLocationList(path: String, volumes: List<VolumeItem>): List<StorageLocationDto> {
         // pathが空の場合ルート
         if (path.isEmpty()) {
             return listOf(
@@ -22,7 +22,6 @@ class StorageAddressUseCase @Inject constructor(
                 )
             )
         }
-        val volumes = _storageVolumeRepository.getVolumeList()
         val storageIndex = volumes.indexOfFirst { path.startsWith(it.path) }
         // 存在しないpathを含んでいる場合ホームを試し失敗したらルートに変更する
         if (storageIndex < 0) {
