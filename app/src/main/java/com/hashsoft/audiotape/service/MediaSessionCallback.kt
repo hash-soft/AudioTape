@@ -10,6 +10,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.ResumeAudioDto
 import com.hashsoft.audiotape.data.ResumeAudioRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
@@ -28,7 +29,7 @@ import java.io.FileInputStream
 class MediaSessionCallback(
     private val _ioScope: CoroutineScope,
     private val _resumeAudioRepository: ResumeAudioRepository,
-    private val _storageItemListUseCase: StorageItemListUseCase
+    private val _audioStoreRepository: AudioStoreRepository
 ) : MediaSession.Callback {
     private var metadataJob: Job? = null
 
@@ -93,15 +94,18 @@ class MediaSessionCallback(
         return settable
     }
 
-    private fun restorePlaylist(data: ResumeAudioDto): Pair<List<MediaItem>, Int> {
+    private suspend fun restorePlaylist(data: ResumeAudioDto): Pair<List<MediaItem>, Int> {
         val file = File(data.path)
         val folderPath = file.parent ?: ""
-        val itemList = _storageItemListUseCase.getAudioItemList(folderPath, data.sortOrder)
-        val startIndex = itemList.indexOfFirst { it.name == file.name }
-        return itemList.map { audio ->
+        val itemList = _audioStoreRepository.getListByPathOrTimeout(folderPath, 1000)
+            ?: return emptyList<MediaItem>() to 0
+        val sortedList = StorageItemListUseCase.sortedAudioList(itemList, data.sortOrder)
+        val startIndex = sortedList.indexOfFirst { it.name == file.name }
+        return sortedList.map { audio ->
             // MediaItemを作成する
             val metadata = audio.metadata
-            MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name).setMediaId(audio.id.toString())
+            MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name)
+                .setMediaId(audio.id.toString())
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setTitle(metadata.title.ifEmpty { audio.name })

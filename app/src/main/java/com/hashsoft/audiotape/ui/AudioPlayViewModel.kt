@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -31,7 +32,8 @@ class AudioPlayViewModel @Inject constructor(
     private val _audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     resumeAudioRepository: ResumeAudioRepository,
-    storageItemListUseCase: StorageItemListUseCase
+    storageItemListUseCase: StorageItemListUseCase,
+    private val _audioStoreRepository: AudioStoreRepository
 ) :
     ViewModel() {
 
@@ -49,13 +51,15 @@ class AudioPlayViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
-            playingStateRepository.playingStateFlow().flatMapLatest { state ->
-                playListState.loadStorageCache(state.folderPath)
-                combine(
-                    _audioTapeRepository.findByPath(state.folderPath),
-                    playbackRepository.data
-                ) { audioTape, playback ->
-                    audioTape to playback
+            _audioStoreRepository.updateFlow.flatMapLatest {
+                playingStateRepository.playingStateFlow().flatMapLatest { state ->
+                    playListState.loadStorageCache(state.folderPath)
+                    combine(
+                        _audioTapeRepository.findByPath(state.folderPath),
+                        playbackRepository.data
+                    ) { audioTape, playback ->
+                        audioTape to playback
+                    }
                 }
             }.collect { (audioTape, playback) ->
                 playListState.updateList(audioTape)

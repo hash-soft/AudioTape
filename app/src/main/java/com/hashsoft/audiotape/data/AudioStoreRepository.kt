@@ -1,24 +1,76 @@
 package com.hashsoft.audiotape.data
 
 import android.content.Context
+import android.database.ContentObserver
 import android.database.Cursor
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
+
+sealed class AudioLoadState {
+    object Loading : AudioLoadState()
+    data class Success(val audioList: List<AudioItemDto>) : AudioLoadState()
+    data class Error(val throwable: Throwable) : AudioLoadState()
+}
 
 class AudioStoreRepository(
     private val context: Context
 ) {
-    val audioFlow = MutableStateFlow<List<AudioItemDto>>(emptyList())
+    private val scope = CoroutineScope(Dispatchers.IO + Job())
 
-    suspend fun reload() {
-        audioFlow.value = loadAudioItemList()
+    private val _updateFlow = MutableStateFlow(Unit)
+    val updateFlow: StateFlow<Unit> = _updateFlow
+
+    private var cache = listOf<AudioItemDto>()
+
+    private val _audioLoadState = MutableStateFlow<AudioLoadState>(AudioLoadState.Loading)
+    val audioLoadState: StateFlow<AudioLoadState> = _audioLoadState
+
+    private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            scope.launch {
+                changeAudioItemList()
+            }
+        }
+    }
+
+    init {
+        context.contentResolver.registerContentObserver(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            true, // サブディレクトリも監視する
+            observer
+        )
+        // 初回キャッシュロード
+        scope.launch { changeAudioItemList() }
+    }
+
+    fun release() {
+        context.contentResolver.unregisterContentObserver(observer)
+        scope.cancel()
     }
 
     fun getListByPath(path: String): List<AudioItemDto> {
-        return audioFlow.value.filter { it.absolutePath == path }
+        return cache.filter { it.absolutePath == path }
+    }
+
+    suspend private fun changeAudioItemList() {
+        _audioLoadState.value = AudioLoadState.Loading
+        cache = loadAudioItemList()
+        _audioLoadState.value = AudioLoadState.Success(cache)
+        _updateFlow.emit(Unit) // 更新通知
     }
 
     private fun loadAudioItemList(): List<AudioItemDto> {
@@ -113,5 +165,16 @@ class AudioStoreRepository(
     private fun audioItemListFromCursorLegacy(query: Cursor?): List<AudioItemDto> {
         val audioItemList = mutableListOf<AudioItemDto>()
         return audioItemList
+    }
+
+    suspend fun getListByPathOrTimeout(path: String, timeoutMillis: Long): List<AudioItemDto>? {
+        return withTimeoutOrNull(timeoutMillis) {
+            // 初期値が Success だった場合にも即座に返る
+            val state = audioLoadState
+                .filterIsInstance<AudioLoadState.Success>()
+                .first()
+
+            state.audioList.filter { it.absolutePath == path }
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
@@ -10,9 +11,11 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -30,7 +33,8 @@ class TapeViewModel @Inject constructor(
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
     private val _folderStateRepository: FolderStateRepository,
-    private val _storageItemListUseCase: StorageItemListUseCase
+    private val _storageItemListUseCase: StorageItemListUseCase,
+    private val _audioStoreRepository: AudioStoreRepository
 ) :
     ViewModel() {
 
@@ -41,13 +45,16 @@ class TapeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            // Todo DBのほうにソートを入れるようにする DBにソートに必要な情報が入っているから可能
-            combine(
-                audioTapeRepository.getAll(),
-                _playbackRepository.data,
-                _playingStateRepository.playingStateFlow()
-            ) { list, playback, playingState ->
-                Triple(list, playback, playingState)
+            @OptIn(ExperimentalCoroutinesApi::class)
+            _audioStoreRepository.updateFlow.flatMapLatest {
+                // Todo DBのほうにソートを入れるようにする DBにソートに必要な情報が入っているから可能
+                combine(
+                    audioTapeRepository.getAll(),
+                    _playbackRepository.data,
+                    _playingStateRepository.playingStateFlow()
+                ) { list, playback, playingState ->
+                    Triple(list, playback, playingState)
+                }
             }.collect { (list, playback, playingState) ->
                 tapeListState.updateList(list, playback, playingState.folderPath)
                 _state.update { TapeViewState.Success }

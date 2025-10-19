@@ -3,17 +3,22 @@ package com.hashsoft.audiotape.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.FolderStateRepository
+import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.PlayingStateDto
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.data.VolumeItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +45,8 @@ class FolderViewModel @Inject constructor(
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _playbackRepository: PlaybackRepository,
-    private val _storageVolumeRepository: StorageVolumeRepository
+    private val _storageVolumeRepository: StorageVolumeRepository,
+    private val _audioStoreRepository: AudioStoreRepository
 ) :
     ViewModel() {
 
@@ -58,24 +64,36 @@ class FolderViewModel @Inject constructor(
         viewModelScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
             _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
-                _folderStateRepository.folderStateFlow().flatMapLatest { folderState ->
-                    addressBarState.load(folderState.selectedPath, volumes)
-                    _selectedPath.update { folderState.selectedPath }
-                    _state.update { FolderViewState.ItemLoading }
-                    // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
-                    folderListState.loadStorageCache(folderState.selectedPath, volumes)
-                    combine(
-                        _audioTapeRepository.findByPath(folderState.selectedPath),
-                        _playbackRepository.data,
-                        _playingStateRepository.playingStateFlow()
-                    ) { audioTape, playback, playingState ->
-                        Triple(audioTape, playback, playingState)
-                    }
-                }
+                watchAudioStore(volumes)
             }.collect { (audioTape, playback, playingState) ->
                 folderListState.updateList(audioTape, playback, playingState.folderPath)
                 _state.update { FolderViewState.Success }
                 _audioTape = audioTape
+            }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun watchAudioStore(volume: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
+        // 待つだけ
+        return _audioStoreRepository.updateFlow.flatMapLatest { folderListFlow(volume) }
+    }
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun folderListFlow(volumes: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
+        return _folderStateRepository.folderStateFlow().flatMapLatest { folderState ->
+            addressBarState.load(folderState.selectedPath, volumes)
+            _selectedPath.update { folderState.selectedPath }
+            _state.update { FolderViewState.ItemLoading }
+            // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
+            folderListState.loadStorageCache(folderState.selectedPath, volumes)
+            combine(
+                _audioTapeRepository.findByPath(folderState.selectedPath),
+                _playbackRepository.data,
+                _playingStateRepository.playingStateFlow()
+            ) { audioTape, playback, playingState ->
+                Triple(audioTape, playback, playingState)
             }
         }
     }

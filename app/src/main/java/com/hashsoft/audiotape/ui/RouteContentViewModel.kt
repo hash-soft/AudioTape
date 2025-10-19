@@ -29,7 +29,7 @@ class RouteContentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             //val volumes = _storageVolumeRepository.volumeChangeFlow().first()
-            _audioStoreRepository.reload()
+            //_audioStoreRepository.reload()
             val state = _routeStateRepository.getRouteState()
             uiState.value = RouteStateUiState.Success(state)
         }
