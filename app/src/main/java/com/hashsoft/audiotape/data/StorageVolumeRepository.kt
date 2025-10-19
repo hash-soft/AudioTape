@@ -25,14 +25,14 @@ class StorageVolumeRepository(
             // API 30+
             val callback = object : StorageManager.StorageVolumeCallback() {
                 override fun onStateChanged(volume: StorageVolume) {
-                    trySend(loadVolumeList())
+                    trySend(loadVolumeList(storageManager))
                 }
             }
             storageManager.registerStorageVolumeCallback(
                 Executors.newSingleThreadExecutor(),
                 callback
             )
-            trySend(loadVolumeList())
+            trySend(loadVolumeList(storageManager))
             awaitClose { storageManager.unregisterStorageVolumeCallback(callback) }
 
         } else {
@@ -45,17 +45,16 @@ class StorageVolumeRepository(
             }
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context?, intent: Intent?) {
-                    trySend(loadVolumeList())
+                    trySend(loadVolumeList(storageManager))
                 }
             }
             context.registerReceiver(receiver, filter)
-            trySend(loadVolumeList())
+            trySend(loadVolumeList(storageManager))
             awaitClose { context.unregisterReceiver(receiver) }
         }
     }
 
-    private fun loadVolumeList(): List<VolumeItem> {
-        val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+    private fun loadVolumeList(storageManager: StorageManager): List<VolumeItem> {
         val volumes = storageManager.storageVolumes
         val data = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             volumes.mapNotNull {
@@ -83,10 +82,7 @@ class StorageVolumeRepository(
                 if (path != null) {
                     val name = it.getDescription(context)
                         ?: context.getString(R.string.volume_name_unknown)
-                    val getLastModifier = StorageVolume::class.java.getDeclaredMethod(
-                        "getLastModified"
-                    )
-                    VolumeItem(name, path, getLastModifier.invoke(it) as Long, "")
+                    VolumeItem(name, path, 0, "")
                 } else {
                     return@mapNotNull null
                 }

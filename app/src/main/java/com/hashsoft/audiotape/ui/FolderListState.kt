@@ -20,16 +20,31 @@ class FolderListState(
     ),
 ) {
     private val _storageCache: MutableList<StorageItem> = mutableListOf()
+    private var _lastSortOrder: AudioTapeSortOrder = AudioTapeSortOrder.ASIS
+
     val list: StateFlow<List<DisplayStorageItem>> = _list.asStateFlow()
 
     fun loadStorageCache(path: String, volumes: List<VolumeItem>) {
         _storageCache.clear()
-        _storageCache.addAll(_storageItemListUseCase.pathToStorageItemList(path, volumes, AudioTapeSortOrder.ASIS))
+        // キャッシュ取得時点ではソートしない
+        _storageCache.addAll(
+            _storageItemListUseCase.pathToStorageItemList(
+                path,
+                volumes,
+                AudioTapeSortOrder.ASIS
+            )
+        )
+        _lastSortOrder = AudioTapeSortOrder.ASIS
     }
 
     fun updateList(audioTape: AudioTapeDto, playback: PlaybackDto, playingFolderPath: String) {
-        // Todo フォルダとオーディオがまざってしまうのでやるなら別々に取得しておく必要がある、キャッシュしておく必要もなさそうなのでやめるか
-        StorageItemListUseCase.sortStorageList(_storageCache, audioTape.sortOrder)
+        if (_lastSortOrder != audioTape.sortOrder) {
+            StorageItemListUseCase.sortFoldersAndAudiosSeparately(
+                _storageCache,
+                audioTape.sortOrder
+            )
+            _lastSortOrder = audioTape.sortOrder
+        }
         val isCurrent = audioTape.folderPath == playingFolderPath
         var folderCount = 0
         var fileCount = 0

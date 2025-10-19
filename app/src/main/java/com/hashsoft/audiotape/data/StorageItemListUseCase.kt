@@ -8,23 +8,14 @@ class StorageItemListUseCase @Inject constructor(
 ) {
 
     companion object {
-        fun sorted(
-            list: List<StorageItem>,
+        fun sortFoldersAndAudiosSeparately(
+            list: MutableList<StorageItem>,
             sortOrder: AudioTapeSortOrder
-        ): List<StorageItem> {
-            return when (sortOrder) {
-                AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
-                AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { it.name }
-                else -> list
-            }
-        }
-
-        fun sortStorageList(list: MutableList<StorageItem>, sortOrder: AudioTapeSortOrder) {
-            when (sortOrder) {
-                AudioTapeSortOrder.NAME_ASC -> list.sortBy { it.name }
-                AudioTapeSortOrder.NAME_DESC -> list.sortByDescending { it.name }
-                else -> {}
-            }
+        ) {
+            val folders = list.filterIsInstance<FolderItemDto>()
+            val audios = list.filterIsInstance<AudioItemDto>()
+            list.clear()
+            list.addAll(sortedFolderList(folders, sortOrder) + sortedAudioList(audios, sortOrder))
         }
 
         fun sortedFolderList(

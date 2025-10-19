@@ -5,5 +5,6 @@ data class AudioItemMetadata(
     val title: String,
     val artist: String,
     val duration: Long,
+    val albumId: Long,
     val artwork: List<Byte> = emptyList()
 )

@@ -86,7 +86,7 @@ class FolderViewModel @Inject constructor(
             addressBarState.load(folderState.selectedPath, volumes)
             _selectedPath.update { folderState.selectedPath }
             _state.update { FolderViewState.ItemLoading }
-            // collect後にloadするとアドレス不変で再取得されるのでキャッシュしておく
+            // collect後にloadすると同じものを再取得するだけになるのでキャッシュしておく
             folderListState.loadStorageCache(folderState.selectedPath, volumes)
             combine(
                 _audioTapeRepository.findByPath(folderState.selectedPath),

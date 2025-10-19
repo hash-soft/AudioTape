@@ -19,7 +19,6 @@ import timber.log.Timber
 @Composable
 fun FolderViewRoute(
     viewModel: FolderViewModel = hiltViewModel()
-    //navController: NavHostController = LocalNavController.current,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val selectedPath by viewModel.selectedPath.collectAsStateWithLifecycle()
