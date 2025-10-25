@@ -1,6 +1,8 @@
 package com.hashsoft.audiotape.service
 
+import android.content.ContentUris
 import android.content.Intent
+import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
@@ -18,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.future.future
 import timber.log.Timber
-import java.io.File
 
 
 class MediaSessionCallback(
@@ -93,6 +94,7 @@ class MediaSessionCallback(
     }
 
     private suspend fun restorePlaylist(tape: AudioTapeDto): Pair<List<MediaItem>, Int> {
+        // Todo キャッシュからではなく、MediaStoreから取得する。デバイス情報も。
         val itemList = _audioStoreRepository.getListByPathOrTimeout(tape.folderPath, 1000)
             ?: return emptyList<MediaItem>() to 0
         val sortedList = StorageItemListUseCase.sortedAudioList(itemList, tape.sortOrder)
@@ -100,7 +102,9 @@ class MediaSessionCallback(
         return sortedList.map { audio ->
             // MediaItemを作成する
             val metadata = audio.metadata
-            MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name)
+            val uri =
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audio.id)
+            MediaItem.Builder().setUri(uri)
                 .setMediaId(audio.id.toString())
                 .setMediaMetadata(
                     MediaMetadata.Builder()

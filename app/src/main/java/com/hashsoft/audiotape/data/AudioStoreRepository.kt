@@ -3,10 +3,14 @@ package com.hashsoft.audiotape.data
 import android.content.Context
 import android.database.ContentObserver
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.storage.StorageManager
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
+import com.hashsoft.audiotape.logic.StorageHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,6 +33,15 @@ sealed class AudioLoadState {
 class AudioStoreRepository(
     private val context: Context
 ) {
+    companion object {
+        /**
+        Android R以降はRELATIVE_PATH、以前はDATAで判別
+        Android QでもRELATIVE_PATH、VOLUME_NAMEは取得できるが
+        Android QはStorageVolumeからmediaVolumeNameを取得できないため Android R以降にする
+         */
+        private val notUseData = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+    }
+
     private val scope = CoroutineScope(Dispatchers.IO + Job())
 
     private val _updateFlow = MutableStateFlow(Unit)
@@ -89,8 +102,7 @@ class AudioStoreRepository(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             }
 
-        // Todo Q以降はRELATIVE_PATH、以前はDATAで判別
-        val projection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val projection = if (notUseData) {
             arrayOf(
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.DISPLAY_NAME,
@@ -131,14 +143,14 @@ class AudioStoreRepository(
             null,
         )
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            audioItemListFromCursorQ(query)
+        return if (notUseData) {
+            audioItemListFromCursor(query)
         } else {
-            audioItemListFromCursorLegacy(query)
+            audioItemListFromCursorUseData(query)
         }
     }
 
-    private fun audioItemListFromCursorQ(query: Cursor?): List<AudioItemDto> {
+    private fun audioItemListFromCursor(query: Cursor?): List<AudioItemDto> {
         val audioItemList = mutableListOf<AudioItemDto>()
         query?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
@@ -183,7 +195,7 @@ class AudioStoreRepository(
         return audioItemList
     }
 
-    private fun audioItemListFromCursorLegacy(query: Cursor?): List<AudioItemDto> {
+    private fun audioItemListFromCursorUseData(query: Cursor?): List<AudioItemDto> {
         val audioItemList = mutableListOf<AudioItemDto>()
         query?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
@@ -233,4 +245,42 @@ class AudioStoreRepository(
             state.audioList.filter { it.absolutePath == path }
         }
     }
+
+    fun uriToPath(uri: Uri): String {
+        val projection = if (notUseData) {
+            arrayOf(
+                MediaStore.Audio.Media.DISPLAY_NAME,
+                MediaStore.Audio.Media.RELATIVE_PATH,
+                MediaStore.Audio.Media.VOLUME_NAME
+            )
+        } else {
+            arrayOf(MediaStore.Audio.Media.DATA)
+        }
+        context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (!cursor.moveToFirst()) {
+                return@use
+            }
+            if (notUseData) {
+                val name =
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                val path =
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH))
+                val volume =
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.VOLUME_NAME))
+                return makeDataPath(volume, path, name)
+            } else {
+                return cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
+            }
+        }
+        return ""
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun makeDataPath(volumeName: String, relativePath: String, fileName: String): String {
+        val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+        val volumes = StorageHelper.getVolumesR(context, storageManager)
+        val volume = volumes.find { it.mediaStorageVolumeName == volumeName } ?: return ""
+        return volume.path + File.separator + relativePath + fileName
+    }
+
 }

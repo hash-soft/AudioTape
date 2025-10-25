@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 enum class FolderViewState {
@@ -118,11 +117,11 @@ class FolderViewModel @Inject constructor(
             }
         }
         val item = folderListState.list.value[index]
-        val fullPath = item.base.absolutePath + File.separator + item.base.name
-        if (_controller.isCurrentByPath(fullPath)) {
+        val audioItem = audioList[item.index]
+        if (_controller.isCurrentById(audioItem.id)) {
             return
         }
-        if (_controller.seekToByPath(fullPath, item.contentPosition)) {
+        if (_controller.seekToById(audioItem.id, item.contentPosition)) {
             return
         }
         if (_controller.isCurrentMediaItem()) {

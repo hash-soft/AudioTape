@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
-import java.io.File
 
 
 class AudioController(
@@ -143,10 +142,9 @@ class AudioController(
             return
         }
         val mediaItems = audioList.map { audio ->
-            //val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audio.id)
-            val builder =
-                MediaItem.Builder().setUri(audio.absolutePath + File.separator + audio.name)
-                    .setMediaId(audio.id.toString())
+            val uri =
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audio.id)
+            val builder = MediaItem.Builder().setUri(uri).setMediaId(audio.id.toString())
             val metadata = audio.metadata
             val mediaMetadata = MediaMetadata.Builder()
                 .setArtist(metadata.artist)
@@ -165,23 +163,23 @@ class AudioController(
         }
     }
 
-    fun isCurrentByPath(path: String): Boolean {
-        val controller = _controller ?: return false
-        val currentPath = controller.currentMediaItem?.localConfiguration?.uri?.path ?: ""
-        return currentPath == path
+    fun isCurrentById(id: Long): Boolean {
+        return _controller?.run {
+            val currentId = currentMediaItem?.mediaId ?: ""
+            currentId == id.toString()
+        } ?: false
     }
 
-    fun seekToByPath(path: String, position: Long): Boolean {
-        val controller = _controller ?: return false
-        val count = controller.mediaItemCount
-        for (i in 0 until count) {
-            val item = controller.getMediaItemAt(i)
-            val itemPath = item.localConfiguration?.uri?.path ?: ""
-            if (itemPath == path) {
-                controller.seekTo(i, position)
-                return true
+    fun seekToById(id: Long, position: Long): Boolean {
+        return _controller?.run {
+            for (i in 0 until mediaItemCount) {
+                val item = getMediaItemAt(i)
+                if (item.mediaId == id.toString()) {
+                    seekTo(i, position)
+                    return@run true
+                }
             }
-        }
-        return false
+            false
+        } ?: false
     }
 }

@@ -9,10 +9,10 @@ import android.os.Build
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.logic.StorageHelper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import timber.log.Timber
 import java.util.concurrent.Executors
 
 class StorageVolumeRepository(
@@ -57,23 +57,7 @@ class StorageVolumeRepository(
     private fun loadVolumeList(storageManager: StorageManager): List<VolumeItem> {
         val volumes = storageManager.storageVolumes
         val data = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            volumes.mapNotNull {
-                Timber.d("getVolume:${it.getDescription(context)},${it.mediaStoreVolumeName}")
-                val directory = it.directory
-                val mediaStoreVolumeName = it.mediaStoreVolumeName
-                if (directory != null && mediaStoreVolumeName != null) {
-                    val name = it.getDescription(context)
-                        ?: context.getString(R.string.volume_name_unknown)
-                    VolumeItem(
-                        name,
-                        directory.absolutePath,
-                        directory.lastModified(),
-                        mediaStoreVolumeName
-                    )
-                } else {
-                    return@mapNotNull null
-                }
-            }
+            StorageHelper.getVolumesR(context, storageManager)
         } else {
             volumes.mapNotNull {
                 @SuppressLint("DiscouragedPrivateApi")

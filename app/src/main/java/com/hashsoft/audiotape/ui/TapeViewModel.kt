@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 
 
 enum class TapeViewState {
@@ -67,20 +66,20 @@ class TapeViewModel @Inject constructor(
     }
 
     fun setMediaItemsByTape(tape: AudioTapeDto) {
-        val path = tape.folderPath + File.separator + tape.currentName
-        if (_controller.isCurrentByPath(path)) {
+        // folderPathからオーディオファイルを取得する
+        val audioList = _storageItemListUseCase.getAudioItemList(tape.folderPath, tape.sortOrder)
+        val startIndex = audioList.indexOfFirst { it.name == tape.currentName }
+        val id = audioList.getOrNull(startIndex)?.id ?: 0
+        if (_controller.isCurrentById(id)) {
             return
         }
-        if (_controller.seekToByPath(path, tape.position)) {
+        if (_controller.seekToById(id, tape.position)) {
             return
         }
         if (_controller.isCurrentMediaItem()) {
             // 位置を更新する
             _playbackRepository.updateContentPosition(_controller.getContentPosition())
         }
-        // folderPathからオーディオファイルを取得する
-        val audioList = _storageItemListUseCase.getAudioItemList(tape.folderPath, tape.sortOrder)
-        val startIndex = audioList.indexOfFirst { it.name == tape.currentName }
 
         _controller.setMediaItems(audioList, startIndex, tape.position)
     }

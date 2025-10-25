@@ -108,9 +108,6 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        //pauseAllPlayersAndStopSelf()
-        //isPlaybackOngoing()
-        Timber.d("**onTaskRemoved mediaSession = $mediaSession")
         super.onTaskRemoved(rootIntent)
     }
 
@@ -119,14 +116,16 @@ class PlaybackService : MediaSessionService() {
         Timber.d("**onDestroy: mediaSession = $mediaSession")
         ioScope.cancel()
         mediaSession?.run {
-            // 再生情報の保存をする UI状態はUIから行う
-            val audioTape = playerToAudioTape(player)
-            runBlocking {
-                _audioTapeRepository.updatePlayingPosition(
-                    audioTape.folderPath,
-                    audioTape.currentName,
-                    audioTape.position
-                )
+            // 再生中の場合だけ再生情報の保存をする
+            if (player.isPlaying) {
+                val audioTape = playerToAudioTape(player)
+                runBlocking {
+                    _audioTapeRepository.updatePlayingPosition(
+                        audioTape.folderPath,
+                        audioTape.currentName,
+                        audioTape.position
+                    )
+                }
             }
             release()
         }
@@ -137,9 +136,13 @@ class PlaybackService : MediaSessionService() {
 
     private fun playerToAudioTape(player: Player): AudioTapeDto {
         val position = player.contentPosition
-        val path = player.currentMediaItem?.localConfiguration?.uri?.path ?: ""
-        val file = File(path)
-        return AudioTapeDto(file.parent ?: "", file.name, position)
+        val uri = player.currentMediaItem?.localConfiguration?.uri
+        return if (uri != null) {
+            val file = File(_audioStoreRepository.uriToPath(uri))
+            AudioTapeDto(file.parent ?: "", file.name, position)
+        } else {
+            AudioTapeDto("", "", 0)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -267,16 +270,18 @@ class PlaybackService : MediaSessionService() {
                     val position = player.contentPosition
                     // current変更のときだけcurrentNameも変更する
                     if ((uiFlag and 4) > 0) {
-                        val file =
-                            File(player.currentMediaItem?.localConfiguration?.uri?.path ?: "")
-                        _playbackRepository.updateAll(
-                            isReadyOk,
-                            isPlaying,
-                            file.name,
-                            file.parent ?: "",
-                            duration,
-                            position
-                        )
+                        val uri = player.currentMediaItem?.localConfiguration?.uri
+                        if (uri != null) {
+                            val file = File(_audioStoreRepository.uriToPath(uri))
+                            _playbackRepository.updateAll(
+                                isReadyOk,
+                                isPlaying,
+                                file.name,
+                                file.parent ?: "",
+                                duration,
+                                position
+                            )
+                        }
                     } else {
                         _playbackRepository.updateWithoutStringItem(
                             isReadyOk,
