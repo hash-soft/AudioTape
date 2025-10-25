@@ -47,7 +47,7 @@ class AudioStoreRepository(
             name: String = ""
         ): AudioSearchObject {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                return AudioSearchObject.Direct(path + File.separator + name)
+                return AudioSearchObject.Direct(path + if(name.isEmpty()) "" else File.separator + name)
             }
             val volume = StorageHelper.findVolumeByPath(volumes, path)
             return volume?.run {
