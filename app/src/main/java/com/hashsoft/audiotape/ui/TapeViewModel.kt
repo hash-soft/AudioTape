@@ -9,6 +9,8 @@ import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.data.VolumeItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,7 +35,8 @@ class TapeViewModel @Inject constructor(
     private val _playbackRepository: PlaybackRepository,
     private val _folderStateRepository: FolderStateRepository,
     private val _storageItemListUseCase: StorageItemListUseCase,
-    private val _audioStoreRepository: AudioStoreRepository
+    private val _audioStoreRepository: AudioStoreRepository,
+    private val _storageVolumeRepository: StorageVolumeRepository
 ) :
     ViewModel() {
 
@@ -42,17 +45,22 @@ class TapeViewModel @Inject constructor(
 
     val tapeListState = TapeListState()
 
+    private lateinit var _volumes: List<VolumeItem>
+
     init {
         viewModelScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
-            _audioStoreRepository.updateFlow.flatMapLatest {
-                // Todo DBのほうにソートを入れるようにする DBにソートに必要な情報が入っているから可能
-                combine(
-                    audioTapeRepository.getAll(),
-                    _playbackRepository.data,
-                    _playingStateRepository.playingStateFlow()
-                ) { list, playback, playingState ->
-                    Triple(list, playback, playingState)
+            _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
+                _volumes = volumes
+                _audioStoreRepository.updateFlow.flatMapLatest {
+                    // Todo DBのほうにソートを入れるようにする DBにソートに必要な情報が入っているから可能
+                    combine(
+                        audioTapeRepository.getAll(),
+                        _playbackRepository.data,
+                        _playingStateRepository.playingStateFlow()
+                    ) { list, playback, playingState ->
+                        Triple(list, playback, playingState)
+                    }
                 }
             }.collect { (list, playback, playingState) ->
                 tapeListState.updateList(list, playback, playingState.folderPath)
@@ -67,7 +75,8 @@ class TapeViewModel @Inject constructor(
 
     fun setMediaItemsByTape(tape: AudioTapeDto) {
         // folderPathからオーディオファイルを取得する
-        val audioList = _storageItemListUseCase.getAudioItemList(tape.folderPath, tape.sortOrder)
+        val audioList =
+            _storageItemListUseCase.getAudioItemList(_volumes, tape.folderPath, tape.sortOrder)
         val startIndex = audioList.indexOfFirst { it.name == tape.currentName }
         val id = audioList.getOrNull(startIndex)?.id ?: 0
         if (_controller.isCurrentById(id)) {

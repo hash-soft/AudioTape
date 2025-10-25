@@ -6,6 +6,7 @@ import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,11 +21,11 @@ class PlayListState(
     private val _storageCache: MutableList<AudioItemDto> = mutableListOf()
     val list: StateFlow<List<DisplayStorageItem>> = _list.asStateFlow()
 
-    fun loadStorageCache(path: String) {
+    fun loadStorageCache(volumes: List<VolumeItem>, path: String) {
         _storageCache.clear()
         _storageCache.addAll(
             _storageItemListUseCase.getAudioItemList(
-                path, AudioTapeSortOrder.ASIS
+                volumes, path, AudioTapeSortOrder.ASIS
             )
         )
     }

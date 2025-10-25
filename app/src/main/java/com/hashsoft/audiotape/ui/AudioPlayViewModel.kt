@@ -3,13 +3,18 @@ package com.hashsoft.audiotape.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioStoreRepository
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.data.VolumeItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
@@ -27,16 +32,17 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
-    playbackRepository: PlaybackRepository,
+    private val _playbackRepository: PlaybackRepository,
     private val _audioTapeRepository: AudioTapeRepository,
-    playingStateRepository: PlayingStateRepository,
+    private val _playingStateRepository: PlayingStateRepository,
     storageItemListUseCase: StorageItemListUseCase,
-    private val _audioStoreRepository: AudioStoreRepository
+    private val _audioStoreRepository: AudioStoreRepository,
+    private val _storageVolumeRepository: StorageVolumeRepository
 ) :
     ViewModel() {
 
     val playItemState = PlayItemState(
-        playbackRepository,
+        _playbackRepository,
         _audioTapeRepository,
         _audioStoreRepository
     )
@@ -49,19 +55,31 @@ class AudioPlayViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
-            _audioStoreRepository.updateFlow.flatMapLatest {
-                playingStateRepository.playingStateFlow().flatMapLatest { state ->
-                    playListState.loadStorageCache(state.folderPath)
-                    combine(
-                        _audioTapeRepository.findByPath(state.folderPath),
-                        playbackRepository.data
-                    ) { audioTape, playback ->
-                        audioTape to playback
-                    }
-                }
-            }.collect { (audioTape, playback) ->
+            _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
+                watchAudioStore(volumes)
+            }.collect { (volumes, audioTape, playback) ->
                 playListState.updateList(audioTape)
-                playItemState.updatePlayAudioForExclusive(audioTape, playback)
+                playItemState.updatePlayAudioForExclusive(volumes, audioTape, playback)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
+        // 待つだけ
+        return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
+    }
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
+        return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
+            playListState.loadStorageCache(volumes, state.folderPath)
+            combine(
+                _audioTapeRepository.findByPath(state.folderPath),
+                _playbackRepository.data
+            ) { audioTape, playback ->
+                Triple(volumes, audioTape, playback)
             }
         }
     }

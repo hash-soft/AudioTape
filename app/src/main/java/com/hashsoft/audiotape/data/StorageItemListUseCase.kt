@@ -60,15 +60,15 @@ class StorageItemListUseCase @Inject constructor(
     }
 
     fun pathToStorageItemList(
-        path: String,
         volumes: List<VolumeItem>,
+        path: String,
         sortOrder: AudioTapeSortOrder
     ): List<StorageItem> {
         // pathが空の場合ルート
         return if (path.isEmpty()) {
             getRootStorageItemList(volumes, sortOrder)
         } else {
-            getStorageItemList(path, sortOrder)
+            getStorageItemList(volumes, path, sortOrder)
         }
     }
 
@@ -81,9 +81,14 @@ class StorageItemListUseCase @Inject constructor(
         return sortedFolderList(list, sortOrder)
     }
 
-    private fun getStorageItemList(path: String, sortOrder: AudioTapeSortOrder): List<StorageItem> {
+    private fun getStorageItemList(
+        volumes: List<VolumeItem>,
+        path: String,
+        sortOrder: AudioTapeSortOrder
+    ): List<StorageItem> {
         val folderList = getDirectoryList(path)
-        val audioList = _audioStoreRepository.getListByPath(path)
+        val searchItem = AudioStoreRepository.pathToSearchObject(volumes, path)
+        val audioList = _audioStoreRepository.getListByPath(searchItem)
         return sortedFolderList(folderList, sortOrder) + sortedAudioList(audioList, sortOrder)
     }
 
@@ -100,8 +105,13 @@ class StorageItemListUseCase @Inject constructor(
         } ?: listOf()
     }
 
-    fun getAudioItemList(path: String, sortOrder: AudioTapeSortOrder): List<AudioItemDto> {
-        val list = _audioStoreRepository.getListByPath(path)
+    fun getAudioItemList(
+        volumes: List<VolumeItem>,
+        path: String,
+        sortOrder: AudioTapeSortOrder
+    ): List<AudioItemDto> {
+        val searchItem = AudioStoreRepository.pathToSearchObject(volumes, path)
+        val list = _audioStoreRepository.getListByPath(searchItem)
         return sortedAudioList(list, sortOrder)
     }
 }

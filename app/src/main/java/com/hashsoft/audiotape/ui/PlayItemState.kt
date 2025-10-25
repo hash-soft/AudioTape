@@ -6,6 +6,7 @@ import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,18 +22,22 @@ class PlayItemState(
 ) {
     val item: StateFlow<PlayAudioDto?> = _item.asStateFlow()
 
-    fun updatePlayAudioForExclusive(audioTape: AudioTapeDto, playback: PlaybackDto) {
-        val path = audioTape.folderPath + File.separator + audioTape.currentName
+    fun updatePlayAudioForExclusive(volumes: List<VolumeItem>, audioTape: AudioTapeDto, playback: PlaybackDto) {
         // audioTapeが存在しない場合だけnullになる
         val playAudio =
             if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
-                val item = _audioStoreRepository.getAudioItem(path)
+                val searchObject = AudioStoreRepository.pathToSearchObject(
+                    volumes,
+                    audioTape.folderPath,
+                    audioTape.currentName
+                )
+                val item = _audioStoreRepository.getAudioItem(searchObject)
                 val durationMs = item?.metadata?.duration ?: 0
                 PlayAudioDto(
                     exist = item != null,
                     playback.isReadyOk,
                     playback.isPlaying,
-                    path,
+                    audioTape.folderPath + File.separator + audioTape.currentName,
                     durationMs,
                     audioTape.position,
                     audioTape = audioTape
@@ -45,17 +50,25 @@ class PlayItemState(
 
     // ここを改修する
     // 高速で読み出せるのでリストごと取得してしまう
-    fun updatePlayAudioForSimple(audioTape: AudioTapeDto, playback: PlaybackDto) {
-        val path = audioTape.folderPath + File.separator + audioTape.currentName
+    fun updatePlayAudioForSimple(
+        volumes: List<VolumeItem>,
+        audioTape: AudioTapeDto,
+        playback: PlaybackDto
+    ) {
         val playAudio =
             if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
-                val item = _audioStoreRepository.getAudioItem(path)
+                val searchObject = AudioStoreRepository.pathToSearchObject(
+                    volumes,
+                    audioTape.folderPath,
+                    audioTape.currentName
+                )
+                val item = _audioStoreRepository.getAudioItem(searchObject)
                 val durationMs = item?.metadata?.duration ?: 0
                 PlayAudioDto(
                     exist = item != null,
                     playback.isReadyOk,
                     playback.isPlaying,
-                    path,
+                    audioTape.folderPath + File.separator + audioTape.currentName,
                     durationMs,
                     audioTape.position,
                     audioTape = audioTape

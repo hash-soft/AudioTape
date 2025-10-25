@@ -16,11 +16,8 @@ class StorageHelper {
             return file?.absolutePath ?: ""
         }
 
-        fun pathToVolumeName(list: List<VolumeItem>, path: String): String? {
-            list.find { path.startsWith(it.path) }?.let {
-                return it.mediaStorageVolumeName
-            }
-            return null
+        fun findVolumeByPath(list: List<VolumeItem>, path: String): VolumeItem? {
+            return list.find { path.startsWith(it.path) }
         }
 
         @RequiresApi(Build.VERSION_CODES.R)

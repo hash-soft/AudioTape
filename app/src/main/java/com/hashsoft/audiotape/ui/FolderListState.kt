@@ -29,8 +29,8 @@ class FolderListState(
         // キャッシュ取得時点ではソートしない
         _storageCache.addAll(
             _storageItemListUseCase.pathToStorageItemList(
-                path,
                 volumes,
+                path,
                 AudioTapeSortOrder.ASIS
             )
         )

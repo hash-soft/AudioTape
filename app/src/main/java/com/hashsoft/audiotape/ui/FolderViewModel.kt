@@ -75,12 +75,12 @@ class FolderViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchAudioStore(volume: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
         // 待つだけ
-        return _audioStoreRepository.updateFlow.flatMapLatest { folderListFlow(volume) }
+        return _audioStoreRepository.updateFlow.flatMapLatest { watchFolderState(volume) }
     }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun folderListFlow(volumes: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
+    private fun watchFolderState(volumes: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
         return _folderStateRepository.folderStateFlow().flatMapLatest { folderState ->
             addressBarState.load(folderState.selectedPath, volumes)
             _selectedPath.update { folderState.selectedPath }

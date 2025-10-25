@@ -40,6 +40,21 @@ class AudioStoreRepository(
         Android QはStorageVolumeからmediaVolumeNameを取得できないため Android R以降にする
          */
         private val notUseData = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+
+        fun pathToSearchObject(
+            volumes: List<VolumeItem>,
+            path: String,
+            name: String = ""
+        ): AudioSearchObject {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                return AudioSearchObject.Direct(path + File.separator + name)
+            }
+            val volume = StorageHelper.findVolumeByPath(volumes, path)
+            return volume?.run {
+                val relativePath = path.substring(volume.path.length + 1) + File.separator
+                AudioSearchObject.Relative(volume.mediaStorageVolumeName, relativePath, name)
+            } ?: AudioSearchObject.Relative("", "", name)
+        }
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + Job())
@@ -75,12 +90,22 @@ class AudioStoreRepository(
         scope.cancel()
     }
 
-    fun getAudioItem(absolutePath: String): AudioItemDto? {
-        return cache.find { it.absolutePath + File.separator + it.name == absolutePath }
+    fun getAudioItem(searchItem: AudioSearchObject): AudioItemDto? {
+        return when (searchItem) {
+            is AudioSearchObject.Direct -> cache.find { it.absolutePath + File.separator + it.name == searchItem.searchPath }
+            is AudioSearchObject.Relative -> {
+                cache.find {
+                    it.volumeName == searchItem.volumeName && it.relativePath == searchItem.relativePath && it.name == searchItem.name
+                }
+            }
+        }
     }
 
-    fun getListByPath(path: String): List<AudioItemDto> {
-        return cache.filter { it.absolutePath == path }
+    fun getListByPath(searchItem: AudioSearchObject): List<AudioItemDto> {
+        return when (searchItem) {
+            is AudioSearchObject.Direct -> cache.filter { it.absolutePath == searchItem.searchPath }
+            is AudioSearchObject.Relative -> cache.filter { it.volumeName == searchItem.volumeName && it.relativePath == searchItem.relativePath }
+        }
     }
 
     private suspend fun changeAudioItemList() {
@@ -106,7 +131,6 @@ class AudioStoreRepository(
             arrayOf(
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.DISPLAY_NAME,
-                MediaStore.Audio.Media.DATA, // file path
                 MediaStore.Audio.Media.SIZE,
                 MediaStore.Audio.Media.DATE_MODIFIED,
                 MediaStore.Audio.Media.ALBUM,
@@ -155,7 +179,6 @@ class AudioStoreRepository(
         query?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
             val dateModifiedColumn =
                 cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)
@@ -169,11 +192,10 @@ class AudioStoreRepository(
             val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
             while (cursor.moveToNext()) {
-                val file = File(cursor.getString(dataColumn))
                 audioItemList.add(
                     AudioItemDto(
                         name = cursor.getString(nameColumn),
-                        absolutePath = file.parent ?: "",
+                        absolutePath =  "",
                         relativePath = cursor.getString(relativePathColumn),
                         lastModified = cursor.getLong(dateModifiedColumn) * 1000,
                         id = cursor.getLong(idColumn),
@@ -241,8 +263,19 @@ class AudioStoreRepository(
             val state = audioLoadState
                 .filterIsInstance<AudioLoadState.Success>()
                 .first()
-
-            state.audioList.filter { it.absolutePath == path }
+            val searchItem = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                pathToSearchObject(emptyList(), path)
+            } else {
+                val volumes = StorageHelper.getVolumesR(
+                    context,
+                    context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+                )
+                pathToSearchObject(volumes, path)
+            }
+            when (searchItem) {
+                is AudioSearchObject.Direct -> state.audioList.filter { it.absolutePath == searchItem.searchPath }
+                is AudioSearchObject.Relative -> state.audioList.filter { it.volumeName == searchItem.volumeName && it.relativePath == searchItem.relativePath }
+            }
         }
     }
 
