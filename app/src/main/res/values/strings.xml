@@ -14,9 +14,13 @@
     <string name="no_title_information">No title information</string>
     <string name="repeat_description">repeat</string>
     <string name="list_description">audio list</string>
+    <string name="sort_order_description">Sort order</string>
+    <string name="not_found_volume_label" translatable="false">%f$1%</string>
     <string name="not_found_speed_label" translatable="false">%f$1x</string>
+    <string name="not_found_pitch_label" translatable="false">%f</string>
     <string name="volume_title">volume</string>
     <string name="speed_title">speed</string>
     <string name="pitch_title">pitch</string>
+    <string name="sort_order_title">Sort order</string>
     <string name="no_tape_warn">No tape available</string>
 </resources>

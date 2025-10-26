@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +24,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
@@ -106,6 +109,7 @@ fun AudioPlayView(
                 )
             }
             AudioListDropdownSelector(playList, onChangeTapeSettings)
+            SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
         }
     }
 }
@@ -127,11 +131,11 @@ private fun VolumeDropdownSelector(
     val index = PlayVolumeValues.indexOf(volume)
     val selectedLabel =
         if (index < 0) stringResource(
-            R.string.not_found_speed_label,
+            R.string.not_found_volume_label,
             volume
         ) else volumeLabels[index]
 
-    TextDropdownSelector(volumeLabels, selectedLabel, title = title) {
+    TextDropdownSelector(volumeLabels, title, iconContent = { Text(selectedLabel) }) {
         onVolumeChange(TapeSettingsCallbackArgument.Volume(PlayVolumeValues[it]))
     }
 }
@@ -140,12 +144,12 @@ private fun VolumeDropdownSelector(
  * 再生速度ドロップダウンセレクター
  *
  * @param speed 再生速度
- * @param onVolumeChange 再生速度変更時のコールバック
+ * @param onSpeedChange 再生速度変更時のコールバック
  */
 @Composable
 private fun SpeedDropdownSelector(
     speed: Float = 1.0f,
-    onVolumeChange: (TapeSettingsCallbackArgument) -> Unit = {}
+    onSpeedChange: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     val title = stringResource(R.string.speed_title)
     val speedLabels = stringArrayResource(R.array.play_speed_labels).toList()
@@ -154,31 +158,31 @@ private fun SpeedDropdownSelector(
     val selectedLabel =
         if (index < 0) stringResource(R.string.not_found_speed_label, speed) else speedLabels[index]
 
-    TextDropdownSelector(speedLabels, selectedLabel, title = title) {
-        onVolumeChange(TapeSettingsCallbackArgument.Speed(PlaySpeedValues[it]))
+    TextDropdownSelector(speedLabels, title, iconContent = { Text(selectedLabel) }) {
+        onSpeedChange(TapeSettingsCallbackArgument.Speed(PlaySpeedValues[it]))
     }
 }
 
 /**
  * ピッチドロップダウンセレクター
  *
- * @param speed ピッチ
- * @param onVolumeChange ピッチ変更時のコールバック
+ * @param pitch ピッチ
+ * @param onPitchChange ピッチ変更時のコールバック
  */
 @Composable
 private fun PitchDropdownSelector(
-    speed: Float = 1.0f,
-    onVolumeChange: (TapeSettingsCallbackArgument) -> Unit = {}
+    pitch: Float = 1.0f,
+    onPitchChange: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     val title = stringResource(R.string.pitch_title)
     val pitchLabels = stringArrayResource(R.array.play_pitch_labels).toList()
 
-    val index = PlayPitchValues.indexOf(speed)
+    val index = PlayPitchValues.indexOf(pitch)
     val selectedLabel =
-        if (index < 0) stringResource(R.string.not_found_speed_label, speed) else pitchLabels[index]
+        if (index < 0) stringResource(R.string.not_found_pitch_label, pitch) else pitchLabels[index]
 
-    TextDropdownSelector(pitchLabels, selectedLabel, title = title) {
-        onVolumeChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
+    TextDropdownSelector(pitchLabels, title, iconContent = { Text(selectedLabel) }) {
+        onPitchChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
     }
 }
 
@@ -211,5 +215,30 @@ private fun AudioListDropdownSelector(
     ) {
         expanded = false
         onItemSelected(TapeSettingsCallbackArgument.ItemSelected(it))
+    }
+}
+
+/**
+ * ソート順ドロップダウンセレクター
+ *
+ * @param sortOrder ソート順
+ * @param onSortChange ソート順変更時のコールバック
+ */
+@Composable
+private fun SortDropdownSelector(
+    sortOrder: AudioTapeSortOrder = AudioTapeSortOrder.NAME_ASC,
+    onSortChange: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
+    val title = stringResource(R.string.sort_order_title)
+    val sortLabels = stringArrayResource(R.array.audio_list_sort_labels).toList()
+    val index = sortOrder.ordinal
+
+    TextDropdownSelector(sortLabels, title, iconContent = {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Sort,
+            contentDescription = stringResource(R.string.sort_order_description),
+        )
+    }) {
+        onSortChange(TapeSettingsCallbackArgument.SortOrder(it))
     }
 }

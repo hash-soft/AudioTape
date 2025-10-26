@@ -89,6 +89,10 @@ fun AudioPlayHomeRoute(
                     is TapeSettingsCallbackArgument.ItemSelected -> {
                         //
                     }
+
+                    is TapeSettingsCallbackArgument.SortOrder -> {
+                        //
+                    }
                 }
             }
         }

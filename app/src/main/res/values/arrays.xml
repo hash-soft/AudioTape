@@ -26,31 +26,36 @@
     </string-array>
 
     <string-array name="play_pitch_labels">
-        <item>-12p</item>
-        <item>-11p</item>
-        <item>-10p</item>
-        <item>-9p</item>
-        <item>-8p</item>
-        <item>-7p</item>
-        <item>-6p</item>
-        <item>-5p</item>
-        <item>-4p</item>
-        <item>-3p</item>
-        <item>-2p</item>
-        <item>-1p</item>
-        <item>0p</item>
-        <item>+1p</item>
-        <item>+2p</item>
-        <item>+3p</item>
-        <item>+4p</item>
-        <item>+5p</item>
-        <item>+6p</item>
-        <item>+7p</item>
-        <item>+8p</item>
-        <item>+9p</item>
-        <item>+10p</item>
-        <item>+11p</item>
-        <item>+12p</item>
+        <item>-12#</item>
+        <item>-11#</item>
+        <item>-10#</item>
+        <item>-9#</item>
+        <item>-8#</item>
+        <item>-7#</item>
+        <item>-6#</item>
+        <item>-5#</item>
+        <item>-4#</item>
+        <item>-3#</item>
+        <item>-2#</item>
+        <item>-1#</item>
+        <item>0#</item>
+        <item>+1#</item>
+        <item>+2#</item>
+        <item>+3#</item>
+        <item>+4#</item>
+        <item>+5#</item>
+        <item>+6#</item>
+        <item>+7#</item>
+        <item>+8#</item>
+        <item>+9#</item>
+        <item>+10#</item>
+        <item>+11#</item>
+        <item>+12#</item>
+    </string-array>
+
+    <string-array name="audio_list_sort_labels">
+        <item>File Name (Ascending)</item>
+        <item>File Name (Descending)</item>
     </string-array>
 
 </resources>

@@ -41,7 +41,22 @@ sealed interface TapeSettingsCallbackArgument {
         val repeat: Boolean
     ) : TapeSettingsCallbackArgument
 
+    /**
+     * アイテム選択
+     *
+     * @property index 選択されたアイテムのインデックス
+     */
     data class ItemSelected(
         val index: Int
     ) : TapeSettingsCallbackArgument
+
+    /**
+     * ソート順
+     *
+     * @property order ソート順
+     */
+    data class SortOrder(
+        val order: Int
+    ) : TapeSettingsCallbackArgument
+
 }

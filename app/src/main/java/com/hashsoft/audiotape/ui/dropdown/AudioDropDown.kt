@@ -6,6 +6,9 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,15 +38,20 @@ fun AudioDropDown(
                 DropdownMenuItem(
                     text = {
                         SimpleAudioItem(
-                            index,
                             base.name,
                             base.size,
                             base.lastModified,
-                            base.metadata.duration,
-                            item.color
+                            base.metadata.duration
                         )
                     },
-                    onClick = { onItemClick(index) }
+                    onClick = { onItemClick(index) },
+                    leadingIcon = { Text(text = (index + 1).toString()) },
+                    colors = if (item.color > 0) MenuDefaults.itemColors(
+                        textColor = MaterialTheme.colorScheme.primary,
+                        leadingIconColor = MaterialTheme.colorScheme.primary
+                    ) else {
+                        MenuDefaults.itemColors()
+                    }
                 )
                 if (index < audioItemList.lastIndex) {
                     HorizontalDivider(

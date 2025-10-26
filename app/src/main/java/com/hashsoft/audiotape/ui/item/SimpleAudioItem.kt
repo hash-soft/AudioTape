@@ -17,15 +17,20 @@ import androidx.compose.runtime.Composable
  */
 @Composable
 fun SimpleAudioItem(
-    index: Int,
     name: String,
     size: Long,
     lastModified: Long,
-    duration: Long,
-    color: Int = 0
+    duration: Long
 ) {
     Column {
         Text(text = name)
-        AudioFileSubInfoItem(size, lastModified, duration, false, 0, MaterialTheme.typography.bodySmall)
+        AudioFileSubInfoItem(
+            size,
+            lastModified,
+            duration,
+            false,
+            0,
+            MaterialTheme.typography.bodySmall
+        )
     }
 }

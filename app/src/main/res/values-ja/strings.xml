@@ -15,8 +15,10 @@
     <string name="no_title_information">タイトル情報なし</string>
     <string name="repeat_description">リピート</string>
     <string name="list_description">オーディオリスト</string>
+    <string name="sort_order_description">並び順</string>
     <string name="volume_title">音量</string>
     <string name="speed_title">速度</string>
     <string name="pitch_title">音程</string>
+    <string name="sort_order_title">並び順</string>
     <string name="no_tape_warn">テープがありません</string>
 </resources>

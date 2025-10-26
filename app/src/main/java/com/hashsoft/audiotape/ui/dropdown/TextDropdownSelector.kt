@@ -21,23 +21,21 @@ import androidx.compose.ui.unit.dp
  * テキストドロップダウンセレクター
  *
  * @param labels ラベルのリスト
- * @param selectedLabel 選択されているラベル
  * @param title タイトル
+ * @param iconContent アイコンコンテンツ
  * @param onItemSelected アイテム選択時のコールバック
  */
 @Composable
 fun TextDropdownSelector(
     labels: List<String>,
-    selectedLabel: String,
     title: String = "",
+    iconContent: @Composable (() -> Unit),
     onItemSelected: (Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { expanded = true }) {
-            Text(selectedLabel)
-        }
+        IconButton(onClick = { expanded = true }, content = iconContent)
 
         DropdownMenu(
             expanded = expanded,
