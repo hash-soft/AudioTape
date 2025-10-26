@@ -90,6 +90,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
                 currentName = currentName,
                 position = position,
                 sortOrder = sortOrder.ordinal,
+                lastPlayedAt = time,
                 createTime = time,
                 updateTime = time
             )

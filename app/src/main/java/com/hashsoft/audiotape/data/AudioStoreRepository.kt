@@ -47,11 +47,12 @@ class AudioStoreRepository(
             name: String = ""
         ): AudioSearchObject {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                return AudioSearchObject.Direct(path + if(name.isEmpty()) "" else File.separator + name)
+                return AudioSearchObject.Direct(path + if (name.isEmpty()) "" else File.separator + name)
             }
             val volume = StorageHelper.findVolumeByPath(volumes, path)
             return volume?.run {
-                val relativePath = path.substring(volume.path.length + 1) + File.separator
+                val relativePath =
+                    if (path.length <= volume.path.length) "" else path.substring(volume.path.length + 1) + File.separator
                 AudioSearchObject.Relative(volume.mediaStorageVolumeName, relativePath, name)
             } ?: AudioSearchObject.Relative("", "", name)
         }
@@ -195,7 +196,7 @@ class AudioStoreRepository(
                 audioItemList.add(
                     AudioItemDto(
                         name = cursor.getString(nameColumn),
-                        absolutePath =  "",
+                        absolutePath = "",
                         relativePath = cursor.getString(relativePathColumn),
                         lastModified = cursor.getLong(dateModifiedColumn) * 1000,
                         id = cursor.getLong(idColumn),
