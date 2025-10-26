@@ -40,4 +40,8 @@ sealed interface TapeSettingsCallbackArgument {
     data class Repeat(
         val repeat: Boolean
     ) : TapeSettingsCallbackArgument
+
+    data class ItemSelected(
+        val index: Int
+    ) : TapeSettingsCallbackArgument
 }

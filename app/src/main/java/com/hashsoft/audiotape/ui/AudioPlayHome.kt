@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 
@@ -84,6 +85,10 @@ fun AudioPlayHomeRoute(
                         viewModel.updateRepeat(tape.folderPath, argument.repeat)
                         viewModel.setRepeat(argument.repeat)
                     }
+
+                    is TapeSettingsCallbackArgument.ItemSelected -> {
+                        //
+                    }
                 }
             }
         }
@@ -100,7 +105,7 @@ fun AudioPlayHomeRoute(
 @Composable
 private fun AudioPlayHome(
     playItem: PlayAudioDto?,
-    playList: List<DisplayStorageItem>,
+    playList: List<DisplayStorageItem<AudioItemDto>>,
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     // Todo 再生画面でテープがありませんが一瞬表示されるが見せたくない nullだけではだめ

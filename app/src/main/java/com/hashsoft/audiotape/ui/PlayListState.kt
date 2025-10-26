@@ -4,7 +4,6 @@ import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.DisplayStorageItem
-import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +13,12 @@ import kotlinx.coroutines.flow.update
 
 class PlayListState(
     private val _storageItemListUseCase: StorageItemListUseCase,
-    private val _list: MutableStateFlow<List<DisplayStorageItem>> = MutableStateFlow(
+    private val _list: MutableStateFlow<List<DisplayStorageItem<AudioItemDto>>> = MutableStateFlow(
         emptyList()
     ),
 ) {
     private val _storageCache: MutableList<AudioItemDto> = mutableListOf()
-    val list: StateFlow<List<DisplayStorageItem>> = _list.asStateFlow()
+    val list: StateFlow<List<DisplayStorageItem<AudioItemDto>>> = _list.asStateFlow()
 
     fun loadStorageCache(volumes: List<VolumeItem>, path: String) {
         _storageCache.clear()
@@ -39,10 +38,10 @@ class PlayListState(
     }
 
     private fun makeDisplayStorageItem(
-        item: StorageItem,
+        item: AudioItemDto,
         audioTape: AudioTapeDto,
         index: Int
-    ): DisplayStorageItem {
+    ): DisplayStorageItem<AudioItemDto> {
         val isTarget = item.name == audioTape.currentName
         val contentPosition = if (isTarget) audioTape.position else 0
         val color = when {
@@ -50,5 +49,10 @@ class PlayListState(
             else -> 0
         }
         return DisplayStorageItem(item, index, color, 0, false, contentPosition)
+    }
+
+    fun sortList(sortOder: AudioTapeSortOrder) {
+        val list = StorageItemListUseCase.sortedList(_list.value, sortOder, { it -> it.base.name })
+        _list.update { list.mapIndexed { index, item -> item.copy(index = index) } }
     }
 }

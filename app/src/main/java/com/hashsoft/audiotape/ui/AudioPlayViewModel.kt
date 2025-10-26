@@ -23,11 +23,12 @@ import kotlinx.coroutines.launch
  * オーディオ再生画面のViewModel
  *
  * @param _controller オーディオコントローラー
- * @param playbackRepository 再生リポジトリ
+ * @param _playbackRepository 再生リポジトリ
  * @param _audioTapeRepository オーディオテープレポジトリ
- * @param playingStateRepository 再生状態リポジトリ
- * @param resumeAudioRepository レジュームオーディオリポジトリ
- * @param storageItemListRepository ストレージアイテムリストリポジトリ
+ * @param _playingStateRepository 再生状態リポジトリ
+ * @param storageItemListUseCase ストレージアイテムリストユースケース
+ * @param _audioStoreRepository オーディオストアリポジトリ
+ * @param _storageVolumeRepository ストレージボリュームリポジトリ
  */
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
@@ -41,12 +42,18 @@ class AudioPlayViewModel @Inject constructor(
 ) :
     ViewModel() {
 
+    /**
+     * 再生アイテムの状態
+     */
     val playItemState = PlayItemState(
         _playbackRepository,
         _audioTapeRepository,
         _audioStoreRepository
     )
 
+    /**
+     * 再生リストの状態
+     */
     val playListState = PlayListState(
         storageItemListUseCase
     )
@@ -64,13 +71,24 @@ class AudioPlayViewModel @Inject constructor(
         }
     }
 
+    /**
+     * オーディオストアの変更を監視する
+     *
+     * @param volumes ボリュームリスト
+     * @return ボリュームリスト、オーディオテープ、再生状態のTripleを返すFlow
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
         // 待つだけ
         return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
     }
 
-
+    /**
+     * 再生状態の変更を監視する
+     *
+     * @param volumes ボリュームリスト
+     * @return ボリュームリスト、オーディオテープ、再生状態のTripleを返すFlow
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
         return _playingStateRepository.playingStateFlow().flatMapLatest { state ->

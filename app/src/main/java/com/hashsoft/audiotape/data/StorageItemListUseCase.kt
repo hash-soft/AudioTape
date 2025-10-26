@@ -56,7 +56,17 @@ class StorageItemListUseCase @Inject constructor(
             }
         }
 
-
+        fun <T> sortedList(
+            list: List<T>,
+            sortOrder: AudioTapeSortOrder,
+            sortName: (T) -> String
+        ): List<T> {
+            return when (sortOrder) {
+                AudioTapeSortOrder.NAME_ASC -> list.sortedBy { sortName(it) }
+                AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { sortName(it) }
+                else -> list
+            }
+        }
     }
 
     fun pathToStorageItemList(

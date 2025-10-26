@@ -12,13 +12,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
+import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
 
 /**
@@ -74,7 +80,7 @@ private val PlayPitchValues: List<Float> = listOf(
 @Composable
 fun AudioPlayView(
     playItem: PlayAudioDto,
-    playList: List<DisplayStorageItem>,
+    playList: List<DisplayStorageItem<AudioItemDto>>,
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -99,12 +105,7 @@ fun AudioPlayView(
                     tint = tint
                 )
             }
-            IconButton(onClick = { }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ListAlt,
-                    contentDescription = stringResource(R.string.list_description)
-                )
-            }
+            AudioListDropdownSelector(playList, onChangeTapeSettings)
         }
     }
 }
@@ -178,5 +179,37 @@ private fun PitchDropdownSelector(
 
     TextDropdownSelector(pitchLabels, selectedLabel, title = title) {
         onVolumeChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
+    }
+}
+
+
+/**
+ * オーディオリストドロップダウンセレクター
+ *
+ * @param playList 再生リスト
+ * @param onItemSelected アイテム選択時のコールバック
+ */
+@Composable
+private fun AudioListDropdownSelector(
+    playList: List<DisplayStorageItem<AudioItemDto>>,
+    onItemSelected: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    AudioDropDown(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        trigger = {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ListAlt,
+                    contentDescription = stringResource(R.string.list_description)
+                )
+            }
+        },
+        audioItemList = playList
+    ) {
+        expanded = false
+        onItemSelected(TapeSettingsCallbackArgument.ItemSelected(it))
     }
 }

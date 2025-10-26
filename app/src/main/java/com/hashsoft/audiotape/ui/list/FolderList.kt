@@ -6,15 +6,23 @@ import androidx.compose.ui.Modifier
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.FolderItemDto
+import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.AudioCallbackResult
 import com.hashsoft.audiotape.ui.item.AudioItem
 import com.hashsoft.audiotape.ui.item.FolderItem
 
+/**
+ * フォルダリスト
+ *
+ * @param modifier Modifier
+ * @param storageItemList ストレージアイテムリスト
+ * @param audioCallback オーディオコールバック
+ */
 @Composable
 fun FolderList(
     modifier: Modifier = Modifier,
-    storageItemList: List<DisplayStorageItem> = emptyList(),
+    storageItemList: List<DisplayStorageItem<StorageItem>> = emptyList(),
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
     LazyColumn(

@@ -15,14 +15,14 @@ import kotlinx.coroutines.flow.update
 
 class FolderListState(
     private val _storageItemListUseCase: StorageItemListUseCase,
-    private val _list: MutableStateFlow<List<DisplayStorageItem>> = MutableStateFlow(
+    private val _list: MutableStateFlow<List<DisplayStorageItem<StorageItem>>> = MutableStateFlow(
         emptyList()
     ),
 ) {
     private val _storageCache: MutableList<StorageItem> = mutableListOf()
     private var _lastSortOrder: AudioTapeSortOrder = AudioTapeSortOrder.ASIS
 
-    val list: StateFlow<List<DisplayStorageItem>> = _list.asStateFlow()
+    val list: StateFlow<List<DisplayStorageItem<StorageItem>>> = _list.asStateFlow()
 
     fun loadStorageCache(path: String, volumes: List<VolumeItem>) {
         _storageCache.clear()
@@ -64,7 +64,7 @@ class FolderListState(
         audioTape: AudioTapeDto,
         playback: PlaybackDto,
         index: Int
-    ): DisplayStorageItem {
+    ): DisplayStorageItem<StorageItem> {
         val isTarget = item.name == audioTape.currentName
         val contentPosition = if (isTarget) audioTape.position else 0
         val isResume = !isCurrent && isTarget

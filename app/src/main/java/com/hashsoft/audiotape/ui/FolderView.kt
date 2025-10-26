@@ -12,6 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.directorytest.ui.view.AddressBar
 import com.hashsoft.audiotape.data.DisplayStorageItem
+import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageLocationDto
 import com.hashsoft.audiotape.ui.list.FolderList
 import timber.log.Timber
@@ -63,7 +64,7 @@ fun FolderViewRoute(
 @Composable
 private fun FolderView(
     addressList: List<StorageLocationDto>,
-    itemList: List<DisplayStorageItem> = listOf(),
+    itemList: List<DisplayStorageItem<StorageItem>> = listOf(),
     onFolderClick: (String) -> Unit = {},
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
@@ -71,7 +72,7 @@ private fun FolderView(
         // パディング不要なので消去
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        Column() {
+        Column {
             AddressBar(addressList, onFolderClick)
             FolderList(
                 modifier = Modifier.padding(innerPadding),
