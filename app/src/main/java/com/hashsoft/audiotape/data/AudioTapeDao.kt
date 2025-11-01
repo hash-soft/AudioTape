@@ -23,6 +23,25 @@ data class AudioTapePlayingPosition(
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
 
+data class AudioTapeSortOrderSubEntity(
+    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "sort_order") val sortOrder: Int,
+    @ColumnInfo(name = "update_time") val updateTime: Long
+)
+
+/**
+ * オーディオテープのリピート設定
+ *
+ * @property folderPath フォルダパス
+ * @property repeat リピート設定
+ * @property updateTime 更新日時
+ */
+data class AudioTapeRepeat(
+    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "repeat") val repeat: Int,
+    @ColumnInfo(name = "update_time") val updateTime: Long
+)
+
 /**
  * オーディオテープの音量
  *
@@ -63,19 +82,6 @@ data class AudioTapePitch(
 )
 
 /**
- * オーディオテープのリピート設定
- *
- * @property folderPath フォルダパス
- * @property repeat リピート設定
- * @property updateTime 更新日時
- */
-data class AudioTapeRepeat(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
-    @ColumnInfo(name = "repeat") val repeat: Int,
-    @ColumnInfo(name = "update_time") val updateTime: Long
-)
-
-/**
  * オーディオテープDAO
  */
 @Dao
@@ -98,6 +104,15 @@ interface AudioTapeDao {
     fun findByPath(path: String): Flow<AudioTapeEntity?>
 
     /**
+     * パスでsortOrderを検索する
+     *
+     * @param path パス
+     * @return sortOrder
+     */
+    @Query("SELECT sort_order FROM audio_tape WHERE folder_path = :path")
+    fun findSortOrderByPath(path: String): Flow<Int?>
+
+    /**
      * オーディオテープを挿入する
      *
      * @param entity オーディオテープ
@@ -113,6 +128,18 @@ interface AudioTapeDao {
      */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePlayingPosition(entity: AudioTapePlayingPosition)
+
+
+    @Update(entity = AudioTapeEntity::class)
+    suspend fun updateSortOrder(entity: AudioTapeSortOrderSubEntity)
+
+    /**
+     * リピート設定を更新する
+     *
+     * @param entity リピート設定
+     */
+    @Update(entity = AudioTapeEntity::class)
+    suspend fun updateRepeat(entity: AudioTapeRepeat)
 
     /**
      * 音量を更新する
@@ -137,13 +164,5 @@ interface AudioTapeDao {
      */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePitch(entity: AudioTapePitch)
-
-    /**
-     * リピート設定を更新する
-     *
-     * @param entity リピート設定
-     */
-    @Update(entity = AudioTapeEntity::class)
-    suspend fun updateRepeat(entity: AudioTapeRepeat)
 
 }

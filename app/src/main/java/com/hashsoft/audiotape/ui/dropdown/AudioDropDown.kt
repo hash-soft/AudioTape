@@ -13,15 +13,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.hashsoft.audiotape.data.AudioItemDto
-import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.ui.item.SimpleAudioItem
 
+/**
+ * オーディオ項目のドロップダウンメニュー
+ *
+ * @param expanded ドロップダウンメニューが開いているかどうか
+ * @param onExpandedChange ドロップダウンメニューの開閉状態が変更されたときのコールバック
+ * @param trigger ドロップダウンメニューのトリガーとなるコンポーザブル
+ * @param audioItemList オーディオ項目のリスト
+ * @param targetName 対象のオーディオ項目の名前
+ * @param onItemClick オーディオ項目がクリックされたときのコールバック
+ */
 @Composable
 fun AudioDropDown(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     trigger: @Composable (() -> Unit),
-    audioItemList: List<DisplayStorageItem<AudioItemDto>> = emptyList(),
+    audioItemList: List<AudioItemDto> = emptyList(),
+    targetName: String = "",
     onItemClick: (Int, Boolean) -> Unit = { index, lastCurrent -> }
 ) {
     Box(
@@ -34,22 +44,22 @@ fun AudioDropDown(
             onExpandedChange(false)
         }) {
             audioItemList.forEachIndexed { index, item ->
-                val base = item.base
+                val isTarget = item.name == targetName
                 DropdownMenuItem(
                     text = {
                         SimpleAudioItem(
-                            base.name,
-                            base.size,
-                            base.lastModified,
-                            base.metadata.duration
+                            item.name,
+                            item.size,
+                            item.lastModified,
+                            item.metadata.duration
                         )
                     },
                     onClick = {
-                        onItemClick(index, item.color > 0)
+                        onItemClick(index, isTarget)
                         onExpandedChange(false)
                     },
                     leadingIcon = { Text(text = (index + 1).toString()) },
-                    colors = if (item.color > 0) MenuDefaults.itemColors(
+                    colors = if (isTarget) MenuDefaults.itemColors(
                         textColor = MaterialTheme.colorScheme.primary,
                         leadingIconColor = MaterialTheme.colorScheme.primary
                     ) else {

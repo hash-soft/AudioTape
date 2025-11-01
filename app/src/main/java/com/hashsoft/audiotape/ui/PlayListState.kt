@@ -1,9 +1,7 @@
 package com.hashsoft.audiotape.ui
 
 import com.hashsoft.audiotape.data.AudioItemDto
-import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,48 +9,46 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * 再生リストの状態を管理するクラス
+ *
+ * @param _storageItemListUseCase ストレージからアイテムリストを取得するためのユースケース
+ * @param _list オーディオアイテムのリストを保持するMutableStateFlow
+ */
 class PlayListState(
     private val _storageItemListUseCase: StorageItemListUseCase,
-    private val _list: MutableStateFlow<List<DisplayStorageItem<AudioItemDto>>> = MutableStateFlow(
+    private val _list: MutableStateFlow<List<AudioItemDto>> = MutableStateFlow(
         emptyList()
     ),
 ) {
-    private val _storageCache: MutableList<AudioItemDto> = mutableListOf()
-    val list: StateFlow<List<DisplayStorageItem<AudioItemDto>>> = _list.asStateFlow()
+    /**
+     * オーディオアイテムのリスト
+     */
+    val list: StateFlow<List<AudioItemDto>> = _list.asStateFlow()
 
-    fun loadStorageCache(volumes: List<VolumeItem>, path: String) {
-        _storageCache.clear()
-        _storageCache.addAll(
-            _storageItemListUseCase.getAudioItemList(
-                volumes, path, AudioTapeSortOrder.ASIS
-            )
+    /**
+     * 指定されたパスとソート順に基づいてリストを更新する
+     *
+     * @param volumes ボリュームのリスト
+     * @param path フォルダのパス
+     * @param sortOrder ソート順
+     */
+    fun updateList(volumes: List<VolumeItem>, path: String, sortOrder: AudioTapeSortOrder) {
+        val list = _storageItemListUseCase.getAudioItemList(
+            volumes, path, AudioTapeSortOrder.ASIS
         )
+        val sortList = StorageItemListUseCase.sortedAudioList(list, sortOrder)
+        _list.update { sortList }
     }
 
-    fun updateList(audioTape: AudioTapeDto) {
-        StorageItemListUseCase.sortAudioList(_storageCache, audioTape.sortOrder)
-        val list = _storageCache.mapIndexed { index, item ->
-            makeDisplayStorageItem(item, audioTape, index)
-        }
-        _list.update { list }
-    }
 
-    private fun makeDisplayStorageItem(
-        item: AudioItemDto,
-        audioTape: AudioTapeDto,
-        index: Int
-    ): DisplayStorageItem<AudioItemDto> {
-        val isTarget = item.name == audioTape.currentName
-        val contentPosition = if (isTarget) audioTape.position else 0
-        val color = when {
-            isTarget -> 1
-            else -> 0
-        }
-        return DisplayStorageItem(item, index, color, 0, false, contentPosition)
-    }
-
+    /**
+     * 現在のリストをソートする
+     *
+     * @param sortOder ソート順
+     */
     fun sortList(sortOder: AudioTapeSortOrder) {
-        val list = StorageItemListUseCase.sortedList(_list.value, sortOder, { it -> it.base.name })
-        _list.update { list.mapIndexed { index, item -> item.copy(index = index) } }
+        val list = StorageItemListUseCase.sortedAudioList(_list.value, sortOder)
+        _list.update { list }
     }
 }

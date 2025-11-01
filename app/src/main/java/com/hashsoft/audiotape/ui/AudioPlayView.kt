@@ -14,10 +14,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
@@ -25,10 +23,10 @@ import androidx.compose.ui.res.stringResource
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
+import java.io.File
 
 /**
  * 再生音量の値リスト
@@ -83,7 +81,7 @@ private val PlayPitchValues: List<Float> = listOf(
 @Composable
 fun AudioPlayView(
     playItem: PlayAudioDto,
-    playList: List<DisplayStorageItem<AudioItemDto>>,
+    playList: List<AudioItemDto>,
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -108,7 +106,8 @@ fun AudioPlayView(
                     tint = tint
                 )
             }
-            AudioListDropdownSelector(playList, onChangeTapeSettings)
+            val file = File(playItem.path)
+            AudioListDropdownSelector(playList, file.name, onItemSelected = onChangeTapeSettings)
             SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
         }
     }
@@ -213,23 +212,25 @@ private fun PitchDropdownSelector(
  */
 @Composable
 private fun AudioListDropdownSelector(
-    playList: List<DisplayStorageItem<AudioItemDto>>,
+    playList: List<AudioItemDto>,
+    targetName: String = "",
     onItemSelected: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    val expanded = remember { mutableStateOf(false) }
 
     AudioDropDown(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
+        expanded = expanded.value,
+        onExpandedChange = { expanded.value = it },
         trigger = {
-            IconButton(onClick = { expanded = true }) {
+            IconButton(onClick = { expanded.value = true }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ListAlt,
                     contentDescription = stringResource(R.string.list_description)
                 )
             }
         },
-        audioItemList = playList
+        audioItemList = playList,
+        targetName = targetName
     ) { index, lastCurrent ->
         if (!lastCurrent) {
             onItemSelected(TapeSettingsCallbackArgument.ItemSelected(index))
@@ -259,7 +260,7 @@ private fun SortDropdownSelector(
         )
     }) {
         if (index != it) {
-            onSortChange(TapeSettingsCallbackArgument.SortOrder(it))
+            onSortChange(TapeSettingsCallbackArgument.SortOrder(AudioTapeSortOrder.fromInt(it)))
         }
     }
 }

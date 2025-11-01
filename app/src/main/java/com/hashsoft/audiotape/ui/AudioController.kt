@@ -184,4 +184,23 @@ class AudioController(
             false
         } ?: false
     }
+
+    fun sortMediaItems(list: List<AudioItemDto>) {
+        _controller?.run {
+            for (i in 0 until mediaItemCount) {
+                val item = getMediaItemAt(i)
+                // audioItemsから同じidのitemのindexを探す
+                val index = list.indexOfFirst { audioItem ->
+                    audioItem.id.toString() == item.mediaId
+                }
+                if (index == -1) {
+                    continue
+                }
+                // indexが違ってたらその場所に移動
+                if (index != i) {
+                    moveMediaItem(i, index)
+                }
+            }
+        }
+    }
 }

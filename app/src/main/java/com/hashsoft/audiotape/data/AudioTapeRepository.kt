@@ -45,6 +45,23 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
     }
 
     /**
+     * パスを指定してソート順を検索する
+     *
+     * @param path フォルダのパス
+     * @return 見つかったソート順、見つからない場合はデフォルト値をFlowで返す
+     */
+    fun findSortOrderByPath(path: String): Flow<AudioTapeSortOrder> {
+        return audioTapeDao.findSortOrderByPath(path).map {
+            if (it == null) {
+                Timber.i("findByPath is null: $path")
+                AudioTapeSortOrder.DATE_ASC
+            } else {
+                AudioTapeSortOrder.fromInt(it)
+            }
+        }
+    }
+
+    /**
      * [AudioTapeEntity]を[AudioTapeDto]に変換する
      *
      * @param entity 変換元のエンティティ
@@ -115,6 +132,35 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
 
     /**
+     * ソート順を更新する
+     *
+     * @param folderPath フォルダのパス
+     * @param sortOrder ソート順
+     */
+    suspend fun updateSortOrder(folderPath: String, sortOrder: AudioTapeSortOrder) =
+        audioTapeDao.updateSortOrder(
+            AudioTapeSortOrderSubEntity(
+                folderPath = folderPath,
+                sortOrder = sortOrder.ordinal,
+                updateTime = SystemTime.currentMillis()
+            )
+        )
+
+    /**
+     * リピート設定を更新する
+     *
+     * @param folderPath フォルダのパス
+     * @param repeat リピート設定
+     */
+    suspend fun updateRepeat(folderPath: String, repeat: Boolean) = audioTapeDao.updateRepeat(
+        AudioTapeRepeat(
+            folderPath = folderPath,
+            repeat = if (repeat) 2 else 0,
+            updateTime = SystemTime.currentMillis()
+        )
+    )
+
+    /**
      * 音量を更新する
      *
      * @param folderPath フォルダのパス
@@ -152,14 +198,6 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         AudioTapePitch(
             folderPath = folderPath,
             pitch = pitch,
-            updateTime = SystemTime.currentMillis()
-        )
-    )
-
-    suspend fun updateRepeat(folderPath: String, repeat: Boolean) = audioTapeDao.updateRepeat(
-        AudioTapeRepeat(
-            folderPath = folderPath,
-            repeat = if (repeat) 2 else 0,
             updateTime = SystemTime.currentMillis()
         )
     )

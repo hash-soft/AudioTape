@@ -1,5 +1,7 @@
 package com.hashsoft.audiotape.ui
 
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
+
 /**
  * テープ設定のコールバック引数
  */
@@ -53,10 +55,10 @@ sealed interface TapeSettingsCallbackArgument {
     /**
      * ソート順
      *
-     * @property order ソート順
+     * @property sortOrder ソート順
      */
     data class SortOrder(
-        val order: Int
+        val sortOrder: AudioTapeSortOrder
     ) : TapeSettingsCallbackArgument
 
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -16,6 +17,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
@@ -59,13 +61,17 @@ class AudioPlayViewModel @Inject constructor(
     )
 
 
+    /**
+     * 初期化時にボリュームの変更監視を開始する。
+     * ボリューム変更、オーディオストア、再生状態の変更を検知し、
+     * 再生アイテムの状態を更新するフローを構築する。
+     */
     init {
         viewModelScope.launch {
             @OptIn(ExperimentalCoroutinesApi::class)
             _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
                 watchAudioStore(volumes)
             }.collect { (volumes, audioTape, playback) ->
-                playListState.updateList(audioTape)
                 playItemState.updatePlayAudioForExclusive(volumes, audioTape, playback)
             }
         }
@@ -92,7 +98,10 @@ class AudioPlayViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
         return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
-            playListState.loadStorageCache(volumes, state.folderPath)
+            val sortOrder = _audioTapeRepository.findSortOrderByPath(state.folderPath).first()
+            playListState.updateList(volumes, state.folderPath, sortOrder)
+            // Todo controllerのmediaItemと合わせも必要 作成されている場合のみ
+            // ここでやるのではなくフラグとcontrollerの状態を組み合わせて別で監視したほうがよさそう
             combine(
                 _audioTapeRepository.findByPath(state.folderPath),
                 _playbackRepository.data
@@ -111,6 +120,41 @@ class AudioPlayViewModel @Inject constructor(
      * 再生を一時停止する
      */
     fun pause() = _controller.pause()
+
+    /**
+     * リストをソートする
+     *
+     * @param sortOrder ソート順
+     */
+    fun sortList(sortOrder: AudioTapeSortOrder) {
+        playListState.sortList(sortOrder)
+        _controller.sortMediaItems(playListState.list.value)
+    }
+
+    /**
+     * ソート順を更新する
+     *
+     * @param path パス
+     * @param sortOrder ソート順
+     */
+    fun updateSortOrder(path: String, sortOrder: AudioTapeSortOrder) =
+        viewModelScope.launch { _audioTapeRepository.updateSortOrder(path, sortOrder) }
+
+    /**
+     * リピートを設定する
+     *
+     * @param repeat リピートするかどうか
+     */
+    fun setRepeat(repeat: Boolean) = _controller.setRepeat(repeat)
+
+    /**
+     * リピートを更新する
+     *
+     * @param path パス
+     * @param repeat リピートするかどうか
+     */
+    fun updateRepeat(path: String, repeat: Boolean) =
+        viewModelScope.launch { _audioTapeRepository.updateRepeat(path, repeat) }
 
     /**
      * 音量を設定する
@@ -159,22 +203,5 @@ class AudioPlayViewModel @Inject constructor(
      */
     fun updatePitch(path: String, pitch: Float) =
         viewModelScope.launch { _audioTapeRepository.updatePitch(path, pitch) }
-
-    /**
-     * リピートを設定する
-     *
-     * @param repeat リピートするかどうか
-     */
-    fun setRepeat(repeat: Boolean) = _controller.setRepeat(repeat)
-
-    /**
-     * リピートを更新する
-     *
-     * @param path パス
-     * @param repeat リピートするかどうか
-     */
-    fun updateRepeat(path: String, repeat: Boolean) =
-        viewModelScope.launch { _audioTapeRepository.updateRepeat(path, repeat) }
-
 
 }
