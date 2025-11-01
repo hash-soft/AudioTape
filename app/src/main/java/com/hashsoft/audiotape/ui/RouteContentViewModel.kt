@@ -35,7 +35,7 @@ class RouteContentViewModel @Inject constructor(
         }
     }
 
-    fun buildController(context: Context) = _controller.buildController(context)
+    suspend fun buildController(context: Context) = _controller.buildController(context)
     fun releaseController() = _controller.releaseController()
 
     fun saveStartScreen(startScreen: String) = viewModelScope.launch {

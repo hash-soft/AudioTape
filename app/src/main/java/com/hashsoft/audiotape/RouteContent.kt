@@ -1,10 +1,12 @@
 package com.hashsoft.audiotape
 
 
+import android.content.Context
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
@@ -19,6 +21,7 @@ import com.hashsoft.audiotape.ui.LibraryHomeRoute
 import com.hashsoft.audiotape.ui.RouteContentViewModel
 import com.hashsoft.audiotape.ui.RouteStateUiState
 import com.hashsoft.audiotape.ui.UserSettingsRoute
+import kotlinx.coroutines.launch
 
 /**
  * アプリケーションのメインコンテンツとなるルートを定義する
@@ -26,17 +29,22 @@ import com.hashsoft.audiotape.ui.UserSettingsRoute
  * @param viewModel ルートの状態を管理するViewModel
  */
 @Composable
-fun RouteContent(viewModel: RouteContentViewModel = hiltViewModel()) {
-    val context = LocalContext.current
+fun RouteContent(
+    context: Context = LocalContext.current,
+    viewModel: RouteContentViewModel = hiltViewModel()
+) {
+    val coroutineScope = rememberCoroutineScope()
+
     LifecycleStartEffect(Unit) {
-        viewModel.buildController(context)
+        coroutineScope.launch {
+            viewModel.buildController(context) // suspend関数OK
+        }
         onStopOrDispose {
             viewModel.releaseController()
         }
     }
 
-    val uiState = viewModel.uiState.value
-    when (uiState) {
+    when (val uiState = viewModel.uiState.value) {
         is RouteStateUiState.Loading -> {}
         is RouteStateUiState.Success -> {
             RouteScreen(uiState.routeState.startScreen) {

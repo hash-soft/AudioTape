@@ -4,13 +4,13 @@ import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
-import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
+import com.hashsoft.audiotape.core.extensions.await
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.service.PlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,16 +27,18 @@ class AudioController(
     private var _controller: MediaController? = null
 
     val isReady = _isReady.asStateFlow()
-
-    fun buildController(context: Context) {
+    suspend fun buildController(context: Context) {
         val sessionToken =
             SessionToken(context, ComponentName(context, PlaybackService::class.java))
-        _controllerFuture = MediaController.Builder(context, sessionToken).buildAsync().also {
-            it.addListener({
-                _controller = it.get()
-                _isReady.update { true }
-            }, ContextCompat.getMainExecutor(context))
+        _controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+        try {
+            _controller = _controllerFuture?.await()
+        } catch (e: Exception) {
+            Timber.e(e)
+            releaseController()
+            return
         }
+        _isReady.update { true }
     }
 
     fun releaseController() {
