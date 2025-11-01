@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 fun TextDropdownSelector(
     labels: List<String>,
     title: String = "",
+    selectedIndex: Int = -1,
     iconContent: @Composable (() -> Unit),
     onItemSelected: (Int) -> Unit
 ) {
@@ -52,7 +54,12 @@ fun TextDropdownSelector(
 
             labels.forEachIndexed { index, label ->
                 DropdownMenuItem(
-                    text = { Text(label) },
+                    text = {
+                        Text(
+                            text = label,
+                            color = if (selectedIndex == index) MaterialTheme.colorScheme.primary else Color.Unspecified
+                        )
+                    },
                     onClick = {
                         onItemSelected(index)
                         expanded = false

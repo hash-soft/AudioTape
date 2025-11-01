@@ -76,6 +76,7 @@ class MediaSessionCallback(
                 return@future
             }
             val playlist = restorePlaylist(tape)
+            // Todo controller設定を行う
             settable.set(
                 MediaItemsWithStartPosition(
                     playlist.first,

@@ -22,7 +22,7 @@ fun AudioDropDown(
     onExpandedChange: (Boolean) -> Unit,
     trigger: @Composable (() -> Unit),
     audioItemList: List<DisplayStorageItem<AudioItemDto>> = emptyList(),
-    onItemClick: (Int) -> Unit = {}
+    onItemClick: (Int, Boolean) -> Unit = { index, lastCurrent -> }
 ) {
     Box(
         modifier = Modifier
@@ -44,7 +44,10 @@ fun AudioDropDown(
                             base.metadata.duration
                         )
                     },
-                    onClick = { onItemClick(index) },
+                    onClick = {
+                        onItemClick(index, item.color > 0)
+                        onExpandedChange(false)
+                    },
                     leadingIcon = { Text(text = (index + 1).toString()) },
                     colors = if (item.color > 0) MenuDefaults.itemColors(
                         textColor = MaterialTheme.colorScheme.primary,

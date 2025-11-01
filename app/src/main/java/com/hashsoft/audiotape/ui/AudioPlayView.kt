@@ -135,8 +135,14 @@ private fun VolumeDropdownSelector(
             volume
         ) else volumeLabels[index]
 
-    TextDropdownSelector(volumeLabels, title, iconContent = { Text(selectedLabel) }) {
-        onVolumeChange(TapeSettingsCallbackArgument.Volume(PlayVolumeValues[it]))
+    TextDropdownSelector(
+        volumeLabels,
+        title,
+        selectedIndex = index,
+        iconContent = { Text(selectedLabel) }) {
+        if (index != it) {
+            onVolumeChange(TapeSettingsCallbackArgument.Volume(PlayVolumeValues[it]))
+        }
     }
 }
 
@@ -158,8 +164,14 @@ private fun SpeedDropdownSelector(
     val selectedLabel =
         if (index < 0) stringResource(R.string.not_found_speed_label, speed) else speedLabels[index]
 
-    TextDropdownSelector(speedLabels, title, iconContent = { Text(selectedLabel) }) {
-        onSpeedChange(TapeSettingsCallbackArgument.Speed(PlaySpeedValues[it]))
+    TextDropdownSelector(
+        speedLabels,
+        title,
+        selectedIndex = index,
+        iconContent = { Text(selectedLabel) }) {
+        if (index != it) {
+            onSpeedChange(TapeSettingsCallbackArgument.Speed(PlaySpeedValues[it]))
+        }
     }
 }
 
@@ -181,8 +193,14 @@ private fun PitchDropdownSelector(
     val selectedLabel =
         if (index < 0) stringResource(R.string.not_found_pitch_label, pitch) else pitchLabels[index]
 
-    TextDropdownSelector(pitchLabels, title, iconContent = { Text(selectedLabel) }) {
-        onPitchChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
+    TextDropdownSelector(
+        pitchLabels,
+        title,
+        selectedIndex = index,
+        iconContent = { Text(selectedLabel) }) {
+        if (index != it) {
+            onPitchChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
+        }
     }
 }
 
@@ -212,9 +230,10 @@ private fun AudioListDropdownSelector(
             }
         },
         audioItemList = playList
-    ) {
-        expanded = false
-        onItemSelected(TapeSettingsCallbackArgument.ItemSelected(it))
+    ) { index, lastCurrent ->
+        if (!lastCurrent) {
+            onItemSelected(TapeSettingsCallbackArgument.ItemSelected(index))
+        }
     }
 }
 
@@ -233,12 +252,14 @@ private fun SortDropdownSelector(
     val sortLabels = stringArrayResource(R.array.audio_list_sort_labels).toList()
     val index = sortOrder.ordinal
 
-    TextDropdownSelector(sortLabels, title, iconContent = {
+    TextDropdownSelector(sortLabels, title, selectedIndex = index, iconContent = {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Sort,
             contentDescription = stringResource(R.string.sort_order_description),
         )
     }) {
-        onSortChange(TapeSettingsCallbackArgument.SortOrder(it))
+        if (index != it) {
+            onSortChange(TapeSettingsCallbackArgument.SortOrder(it))
+        }
     }
 }
