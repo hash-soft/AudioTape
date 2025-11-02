@@ -122,6 +122,27 @@ class AudioPlayViewModel @Inject constructor(
     fun pause() = _controller.pause()
 
     /**
+     * 次の曲へ移動する
+     */
+    fun seekToNext() = _controller.seekToNext()
+
+    /**
+     * 前の曲へ移動する
+     */
+    fun seekToPrevious() = _controller.seekToPrevious()
+
+    /**
+     * 早送りする
+     */
+    fun seekForward() = _controller.seekForward()
+
+    /**
+     * 巻き戻しする
+     */
+    fun seekBack() = _controller.seekBack()
+
+
+    /**
      * リストをソートする
      *
      * @param sortOrder ソート順

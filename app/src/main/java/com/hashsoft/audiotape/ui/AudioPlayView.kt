@@ -5,10 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -24,9 +29,10 @@ import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.PlayAudioDto
+import com.hashsoft.audiotape.ui.Button.PlayPauseButton
 import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
-import java.io.File
+import com.hashsoft.audiotape.ui.theme.IconMedium
 
 /**
  * 再生音量の値リスト
@@ -82,6 +88,7 @@ private val PlayPitchValues: List<Float> = listOf(
 fun AudioPlayView(
     playItem: PlayAudioDto,
     playList: List<AudioItemDto>,
+    onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -106,9 +113,45 @@ fun AudioPlayView(
                     tint = tint
                 )
             }
-            val file = File(playItem.path)
-            AudioListDropdownSelector(playList, file.name, onItemSelected = onChangeTapeSettings)
+            AudioListDropdownSelector(
+                playList,
+                playItem.audioTape.currentName,
+                onItemSelected = onChangeTapeSettings
+            )
             SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.SkipPrevious) }) {
+                Icon(
+                    imageVector = Icons.Default.SkipPrevious,
+                    contentDescription = null,
+                )
+            }
+            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.BackIncrement) }) {
+                Icon(
+                    imageVector = Icons.Default.FastRewind,
+                    contentDescription = null,
+                )
+            }
+            PlayPauseButton(playItem.isPlaying, true, Modifier.size(IconMedium)) {
+                onAudioItemClick(AudioCallbackArgument.PlayPause(it))
+            }
+            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.ForwardIncrement) }) {
+                Icon(
+                    imageVector = Icons.Default.FastForward,
+                    contentDescription = null,
+                )
+            }
+            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.SkipNext) }) {
+                Icon(
+                    imageVector = Icons.Default.SkipNext,
+                    contentDescription = null,
+                )
+            }
         }
     }
 }

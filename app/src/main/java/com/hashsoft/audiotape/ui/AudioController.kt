@@ -19,6 +19,10 @@ import kotlinx.coroutines.flow.update
 import timber.log.Timber
 
 
+/**
+ * オーディオ再生を制御するコントローラー
+ * Media3 MediaControllerのラッパー
+ */
 class AudioController(
     private val _isReady: MutableStateFlow<Boolean> = MutableStateFlow(false)
 ) {
@@ -26,7 +30,16 @@ class AudioController(
     private var _controllerFuture: ListenableFuture<MediaController>? = null
     private var _controller: MediaController? = null
 
+    /**
+     * コントローラーが準備完了したかどうか
+     */
     val isReady = _isReady.asStateFlow()
+
+    /**
+     * コントローラーをビルドする
+     *
+     * @param context コンテキスト
+     */
     suspend fun buildController(context: Context) {
         val sessionToken =
             SessionToken(context, ComponentName(context, PlaybackService::class.java))
@@ -41,6 +54,9 @@ class AudioController(
         _isReady.update { true }
     }
 
+    /**
+     * コントローラーを解放する
+     */
     fun releaseController() {
         _controller?.let {
             it.release()
@@ -53,47 +69,94 @@ class AudioController(
         _isReady.update { false }
     }
 
+    /**
+     * 現在のメディアアイテムが存在するかどうか
+     *
+     * @return 存在する場合true
+     */
     fun isCurrentMediaItem(): Boolean {
         return _controller?.currentMediaItem != null
     }
 
+    /**
+     * 再生
+     */
     fun play() {
         _controller?.play()
     }
 
+    /**
+     * 一時停止
+     */
     fun pause() {
         _controller?.pause()
     }
 
+    /**
+     * 再生パラメータを設定する
+     *
+     * @param speed 再生速度
+     * @param pitch ピッチ
+     */
     fun setPlaybackParameters(speed: Float, pitch: Float) {
         _controller?.playbackParameters = PlaybackParameters(speed, pitch)
     }
 
+    /**
+     * 再生速度を設定する
+     *
+     * @param speed 再生速度
+     */
     fun setSpeed(speed: Float) {
         _controller?.run {
             playbackParameters = PlaybackParameters(speed, playbackParameters.pitch)
         }
     }
 
+    /**
+     * ピッチを設定する
+     *
+     * @param pitch ピッチ
+     */
     fun setPitch(pitch: Float) {
         _controller?.run {
             playbackParameters = PlaybackParameters(playbackParameters.speed, pitch)
         }
     }
 
+    /**
+     * 音量を設定する
+     *
+     * @param volume 音量
+     */
     fun setVolume(volume: Float) {
         _controller?.volume = volume
     }
 
+    /**
+     * リピートモードを設定する
+     *
+     * @param repeat リピートする場合true
+     */
     fun setRepeat(repeat: Boolean) {
         _controller?.repeatMode =
             if (repeat) MediaController.REPEAT_MODE_ALL else MediaController.REPEAT_MODE_OFF
     }
 
+    /**
+     * 現在の再生位置を取得する
+     *
+     * @return 再生位置(ms)
+     */
     fun getContentPosition(): Long {
         return _controller?.contentPosition ?: 0L
     }
 
+    /**
+     * 指定した位置にシークする
+     *
+     * @param position シークする位置(ms)
+     */
     fun seekTo(position: Long) {
         if (position < 0) {
             Timber.e("seekTo position is negative $position")
@@ -102,6 +165,9 @@ class AudioController(
         _controller?.seekTo(position)
     }
 
+    /**
+     * 次のメディアアイテムにシークする
+     */
     fun seekToNext() {
         // リピートじゃない場合最後だと先頭に戻らないので無理やり先頭に戻している
         _controller?.run {
@@ -116,6 +182,9 @@ class AudioController(
         }
     }
 
+    /**
+     * 前のメディアアイテムにシークする
+     */
     fun seekToPrevious() {
         // リピートじゃない場合最初だと最後に戻らないので無理やり最後に戻している
         // previousMediaItemIndexだけで判断すると途中の位置でも最後に戻ってしまうので2秒以内の再生位置なら最後に戻す
@@ -135,6 +204,31 @@ class AudioController(
         }
     }
 
+    /**
+     * 早送りする
+     */
+    fun seekForward() {
+        _controller?.run {
+            seekForward()
+        }
+    }
+
+    /**
+     * 巻き戻しする
+     */
+    fun seekBack() {
+        _controller?.run {
+            seekBack()
+        }
+    }
+
+    /**
+     * メディアアイテムのリストを設定する
+     *
+     * @param audioList オーディオリスト
+     * @param mediaItemIndex 開始するメディアアイテムのインデックス
+     * @param positionMs 開始位置(ms)
+     */
     fun setMediaItems(
         audioList: List<AudioItemDto>,
         mediaItemIndex: Int = 0,
@@ -165,6 +259,12 @@ class AudioController(
         }
     }
 
+    /**
+     * 指定されたIDが現在のメディアアイテムと一致するかどうか
+     *
+     * @param id 確認するID
+     * @return 一致する場合true
+     */
     fun isCurrentById(id: Long): Boolean {
         return _controller?.run {
             val currentId = currentMediaItem?.mediaId ?: ""
@@ -172,6 +272,13 @@ class AudioController(
         } ?: false
     }
 
+    /**
+     * 指定されたIDのメディアアイテムにシークする
+     *
+     * @param id シークするメディアアイテムのID
+     * @param position シークする位置(ms)
+     * @return 成功した場合true
+     */
     fun seekToById(id: Long, position: Long): Boolean {
         return _controller?.run {
             for (i in 0 until mediaItemCount) {
@@ -185,6 +292,11 @@ class AudioController(
         } ?: false
     }
 
+    /**
+     * メディアアイテムのリストを並べ替える
+     *
+     * @param list 並べ替え後のオーディオリスト
+     */
     fun sortMediaItems(list: List<AudioItemDto>) {
         _controller?.run {
             for (i in 0 until mediaItemCount) {

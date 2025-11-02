@@ -19,6 +19,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.PlayAudioDto
 
 
@@ -59,38 +60,11 @@ fun AudioPlayHomeRoute(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayHome(playItem, playList) { argument ->
+            AudioPlayHome(playItem, playList, { argument ->
+                audioPlay(argument = argument, viewModel = viewModel)
+            }) { argument ->
                 val tape = playItem?.audioTape ?: return@AudioPlayHome
-                when (argument) {
-                    is TapeSettingsCallbackArgument.Volume -> {
-                        viewModel.updateVolume(tape.folderPath, argument.volume)
-                        viewModel.setVolume(argument.volume)
-                    }
-
-                    is TapeSettingsCallbackArgument.Speed -> {
-                        viewModel.updateSpeed(tape.folderPath, argument.speed)
-                        viewModel.setSpeed(argument.speed)
-                    }
-
-                    is TapeSettingsCallbackArgument.Pitch -> {
-                        viewModel.updatePitch(tape.folderPath, argument.pitch)
-                        viewModel.setPitch(argument.pitch)
-                    }
-
-                    is TapeSettingsCallbackArgument.Repeat -> {
-                        viewModel.updateRepeat(tape.folderPath, argument.repeat)
-                        viewModel.setRepeat(argument.repeat)
-                    }
-
-                    is TapeSettingsCallbackArgument.ItemSelected -> {
-                        //
-                    }
-
-                    is TapeSettingsCallbackArgument.SortOrder -> {
-                        viewModel.updateSortOrder(tape.folderPath, argument.sortOrder)
-                        viewModel.sortList(argument.sortOrder)
-                    }
-                }
+                tapeSettings(argument, tape, viewModel)
             }
         }
     }
@@ -101,18 +75,100 @@ fun AudioPlayHomeRoute(
  *
  * @param playItem 再生アイテム
  * @param playList 再生リスト
+ * @param onAudioItemClick オーディオ項目クリック時のコールバック
  * @param onChangeTapeSettings テープ設定変更時のコールバック
  */
 @Composable
 private fun AudioPlayHome(
     playItem: PlayAudioDto?,
     playList: List<AudioItemDto>,
+    onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     // Todo 再生画面でテープがありませんが一瞬表示されるが見せたくない nullだけではだめ
     if (playItem == null) {
         NoTapeView()
     } else {
-        AudioPlayView(playItem, playList, onChangeTapeSettings)
+        AudioPlayView(playItem, playList, onAudioItemClick, onChangeTapeSettings)
+    }
+}
+
+/**
+ * オーディオ再生処理
+ *
+ * @param argument オーディオコールバックの引数
+ * @param viewModel ViewModel
+ */
+private fun audioPlay(argument: AudioCallbackArgument, viewModel: AudioPlayViewModel) {
+    when (argument) {
+        is AudioCallbackArgument.SkipPrevious -> {
+            viewModel.seekToPrevious()
+        }
+
+        is AudioCallbackArgument.BackIncrement -> {
+            viewModel.seekBack()
+        }
+
+        is AudioCallbackArgument.PlayPause -> {
+            if (argument.isPlaying) {
+                viewModel.pause()
+            } else {
+                viewModel.play()
+            }
+        }
+
+        is AudioCallbackArgument.ForwardIncrement -> {
+            viewModel.seekForward()
+        }
+
+        is AudioCallbackArgument.SkipNext -> {
+            viewModel.seekToNext()
+        }
+
+        else -> {}
+    }
+}
+
+/**
+ * テープ設定
+ *
+ * @param argument テープ設定コールバックの引数
+ * @param tape オーディオテープ
+ * @param viewModel ViewModel
+ */
+private fun tapeSettings(
+    argument: TapeSettingsCallbackArgument,
+    tape: AudioTapeDto,
+    viewModel: AudioPlayViewModel
+) {
+    when (argument) {
+        is TapeSettingsCallbackArgument.Volume -> {
+            viewModel.updateVolume(tape.folderPath, argument.volume)
+            viewModel.setVolume(argument.volume)
+        }
+
+        is TapeSettingsCallbackArgument.Speed -> {
+            viewModel.updateSpeed(tape.folderPath, argument.speed)
+            viewModel.setSpeed(argument.speed)
+        }
+
+        is TapeSettingsCallbackArgument.Pitch -> {
+            viewModel.updatePitch(tape.folderPath, argument.pitch)
+            viewModel.setPitch(argument.pitch)
+        }
+
+        is TapeSettingsCallbackArgument.Repeat -> {
+            viewModel.updateRepeat(tape.folderPath, argument.repeat)
+            viewModel.setRepeat(argument.repeat)
+        }
+
+        is TapeSettingsCallbackArgument.ItemSelected -> {
+            //
+        }
+
+        is TapeSettingsCallbackArgument.SortOrder -> {
+            viewModel.updateSortOrder(tape.folderPath, argument.sortOrder)
+            viewModel.sortList(argument.sortOrder)
+        }
     }
 }

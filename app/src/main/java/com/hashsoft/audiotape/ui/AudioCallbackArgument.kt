@@ -15,7 +15,9 @@ sealed interface AudioCallbackArgument {
 
     data object SkipNext : AudioCallbackArgument
     data object SkipPrevious : AudioCallbackArgument
-    data object TransferAudioPlay: AudioCallbackArgument
+    data object ForwardIncrement : AudioCallbackArgument
+    data object BackIncrement : AudioCallbackArgument
+    data object TransferAudioPlay : AudioCallbackArgument
 
 
     // フォルダ選択用

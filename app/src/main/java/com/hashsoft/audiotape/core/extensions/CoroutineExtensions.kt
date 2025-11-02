@@ -10,15 +10,21 @@ import java.util.concurrent.ExecutionException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/**
+ * ListenableFutureを中断可能なコルーチンで待機可能にする拡張関数。
+ *
+ * @return Futureの結果
+ * @throws java.util.concurrent.CancellationException Futureがキャンセルされた場合
+ * @throws ExecutionException Futureが例外で完了した場合
+ */
 suspend fun <T> ListenableFuture<T>.await(): T {
     try {
         if (isDone) return Uninterruptibles.getUninterruptibly(this)
     } catch (e: ExecutionException) {
-        // ExecutionException is the only kind of exception that can be thrown from a gotten
-        // Future, other than CancellationException. Cancellation is propagated upward so that
-        // the coroutine running this suspend function may process it.
-        // Any other Exception showing up here indicates a very fundamental bug in a
-        // Future implementation.
+        // ExecutionExceptionは、取得したFutureからスローされうる唯一の例外です
+        // (CancellationExceptionを除く)。キャンセルは上位に伝播され、
+        // この中断関数を実行しているコルーチンがそれを処理できるようにします。
+        // ここで他の例外が発生した場合、それはFuture実装の非常に基本的なバグを示します。
         throw e.nonNullCause()
     }
 
@@ -33,10 +39,22 @@ suspend fun <T> ListenableFuture<T>.await(): T {
     }
 }
 
+/**
+ * ExecutionExceptionからnullでない原因を取得する。
+ *
+ * @return nullでないThrowable
+ */
 private fun ExecutionException.nonNullCause(): Throwable {
     return this.cause!!
 }
 
+/**
+ * ListenableFutureの結果をCancellableContinuationに変換するためのRunnable。
+ *
+ * @param T 型
+ * @property futureToObserve 監視対象のListenableFuture
+ * @property continuation 継続
+ */
 private class ToContinuation<T>(
     val futureToObserve: ListenableFuture<T>,
     val continuation: CancellableContinuation<T>
@@ -48,9 +66,8 @@ private class ToContinuation<T>(
             try {
                 continuation.resume(Uninterruptibles.getUninterruptibly(futureToObserve))
             } catch (e: ExecutionException) {
-                // ExecutionException is the only kind of exception that can be thrown from a gotten
-                // Future. Anything else showing up here indicates a very fundamental bug in a
-                // Future implementation.
+                // ExecutionExceptionは、取得したFutureからスローされうる唯一の例外です。
+                // ここで他の例外が発生した場合、それはFuture実装の非常に基本的なバグを示します。
                 continuation.resumeWithException(e.nonNullCause())
             }
         }
