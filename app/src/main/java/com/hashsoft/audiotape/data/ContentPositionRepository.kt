@@ -11,14 +11,14 @@ class ContentPositionRepository {
      * 現在の再生位置を保持するMutableStateFlow
      * 外部からの変更は`update`メソッド経由でのみ許可される
      */
-    var value: MutableStateFlow<Long?> = MutableStateFlow(null)
+    var value: MutableStateFlow<Long> = MutableStateFlow(-1L)
         private set
 
     /**
      * 再生位置を更新する
      * @param newPosition 新しい再生位置（ミリ秒）、または再生が停止している場合はnull
      */
-    fun update(newPosition: Long?) {
+    fun update(newPosition: Long) {
         value.value = newPosition
     }
 }

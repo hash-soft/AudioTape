@@ -272,7 +272,7 @@ class PlaybackService : MediaSessionService() {
                 }
 
                 if (uiFlag > 0) {
-                    Timber.d("##parameter play:${player.isPlaying}, duration:${player.duration}, position:${player.contentPosition}")
+                    Timber.d("#1parameter play:${player.isPlaying}, duration:${player.duration}, position:${player.contentPosition}")
                     val isReadyOk = player.playbackState == Player.STATE_READY
                     val isPlaying = player.isPlaying
                     val duration = player.duration

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * オーディオ再生画面のViewModel
@@ -108,14 +109,46 @@ class AudioPlayViewModel @Inject constructor(
         return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
             val sortOrder = _audioTapeRepository.findSortOrderByPath(state.folderPath).first()
             playListState.updateList(volumes, state.folderPath, sortOrder)
-            // Todo controllerのmediaItemと合わせも必要 作成されている場合のみ
-            // ここでやるのではなくフラグとcontrollerの状態を組み合わせて別で監視したほうがよさそう
+            // MediaItemをlistと合わせる
+            _controller.replaceMediaItemsWith(playListState.list.value)
             combine(
                 _audioTapeRepository.findByPath(state.folderPath),
                 _playbackRepository.data
             ) { audioTape, playback ->
                 Triple(volumes, audioTape, playback)
             }
+        }
+    }
+
+    /**
+     * オーディオリスト内のメディアアイテムを設定する。
+     * 指定されたインデックスのアイテムが現在再生中でなければ、コントローラーにメディアアイテムリストを設定する。
+     *
+     * @param index 再生を開始するアイテムのインデックス
+     */
+    fun setMediaItemsInAudioList(index: Int = 0) {
+        val audioList = playListState.list.value
+        val audioItem = audioList[index]
+        if (_controller.isCurrentById(audioItem.id)) {
+            return
+        }
+        val playAudio = playItemState.item.value ?: return
+        val file = File(playAudio.path)
+        val position = if (audioItem.name == file.name) playAudio.contentPosition else 0
+        if (_controller.seekToById(audioItem.id, position)) {
+            return
+        }
+        _controller.setMediaItems(audioList, index, position)
+    }
+
+    /**
+     * 現在の再生アイテムのパラメータ（リピート、音量、再生速度、ピッチ）をコントローラーに設定する。
+     */
+    fun setPlayingParameters() {
+        playItemState.item.value?.audioTape?.let {
+            _controller.setRepeat(it.repeat)
+            _controller.setVolume(it.volume)
+            _controller.setPlaybackParameters(it.speed, it.pitch)
         }
     }
 

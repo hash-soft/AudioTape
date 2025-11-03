@@ -43,7 +43,7 @@ class PlayItemState(
                     playback.isPlaying,
                     audioTape.folderPath + File.separator + audioTape.currentName,
                     durationMs,
-                    audioTape.position,
+                    if (playback.contentPosition < 0) audioTape.position else playback.contentPosition,
                     audioTape = audioTape
                 )
             } else {

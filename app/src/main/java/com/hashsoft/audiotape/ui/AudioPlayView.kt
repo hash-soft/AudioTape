@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -25,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
@@ -87,7 +90,7 @@ private val PlayPitchValues: List<Float> = listOf(
  */
 @Composable
 fun AudioPlayView(
-    contentPosition: Long?,
+    contentPosition: Long,
     playItem: PlayAudioDto,
     playList: List<AudioItemDto>,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
@@ -115,18 +118,32 @@ fun AudioPlayView(
                     tint = tint
                 )
             }
+            SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = playItem.audioTape.currentName,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
             AudioListDropdownSelector(
                 playList,
                 playItem.audioTape.currentName,
-                onItemSelected = onChangeTapeSettings
+                onItemSelected = onAudioItemClick
             )
-            SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
         }
 
         PlaySliderItem(
             playItem.isPlaying,
             true,
-            contentPosition = contentPosition ?: playItem.contentPosition,
+            contentPosition = if (contentPosition >= 0) contentPosition else playItem.contentPosition,
             playItem.durationMs
         ) {
             onAudioItemClick(AudioCallbackArgument.SeekTo(it))
@@ -269,7 +286,7 @@ private fun PitchDropdownSelector(
 private fun AudioListDropdownSelector(
     playList: List<AudioItemDto>,
     targetName: String = "",
-    onItemSelected: (TapeSettingsCallbackArgument) -> Unit = {}
+    onItemSelected: (AudioCallbackArgument) -> Unit = {}
 ) {
     val expanded = remember { mutableStateOf(false) }
 
@@ -288,7 +305,7 @@ private fun AudioListDropdownSelector(
         targetName = targetName
     ) { index, lastCurrent ->
         if (!lastCurrent) {
-            onItemSelected(TapeSettingsCallbackArgument.ItemSelected(index))
+            onItemSelected(AudioCallbackArgument.AudioSelected(index))
         }
     }
 }

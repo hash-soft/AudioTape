@@ -58,8 +58,8 @@ fun <T> T.contentPositionFlow(intervalMs: Long = 1000L): Flow<Long> where T : Pl
  * @param intervalMs 再生位置を放出する間隔（ミリ秒）
  * @return 再生位置またはnullを放出するFlow
  */
-fun <T> T.playingContentPositionFlow(intervalMs: Long = 1000L): Flow<Long?> where T : Player =
+fun <T> T.playingContentPositionFlow(intervalMs: Long = 1000L): Flow<Long> where T : Player =
     @OptIn(ExperimentalCoroutinesApi::class)
     isPlayingFlow().flatMapLatest { isPlaying ->
-        if (isPlaying) contentPositionFlow(intervalMs) else flowOf(null)
+        if (isPlaying) contentPositionFlow(intervalMs) else flowOf(-1)
     }

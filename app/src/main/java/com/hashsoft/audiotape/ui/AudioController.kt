@@ -293,6 +293,54 @@ class AudioController(
     }
 
     /**
+     * 現在のメディアアイテムリストを、指定されたリストの内容に合わせて置換・挿入する
+     *
+     * @param list 新しいオーディオリスト
+     */
+    fun replaceMediaItemsWith(list: List<AudioItemDto>) {
+        if (list.isEmpty()) {
+            return
+        }
+        if ((_controller?.mediaItemCount ?: 0) == 0) {
+            return
+        }
+        _controller?.run {
+            list.forEachIndexed { index, audioItem ->
+                for (i in index until mediaItemCount) {
+                    val item = getMediaItemAt(i)
+                    if (item.mediaId == audioItem.id.toString()) {
+                        for (j in index until i) {
+                            addMediaItem(j, audioItemToMediaItem(audioItem))
+                        }
+                        return@forEachIndexed
+                    }
+                    addMediaItem(i, audioItemToMediaItem(audioItem))
+                }
+            }
+        }
+    }
+
+    /**
+     * AudioItemDtoをMediaItemに変換する
+     *
+     * @param audioItem 変換するAudioItemDto
+     * @return 変換されたMediaItem
+     */
+    private fun audioItemToMediaItem(audioItem: AudioItemDto): MediaItem {
+        val uri =
+            ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audioItem.id)
+        val builder = MediaItem.Builder().setUri(uri).setMediaId(audioItem.id.toString())
+        val metadata = audioItem.metadata
+        val mediaMetadata = MediaMetadata.Builder()
+            .setArtist(metadata.artist)
+            .setTitle(audioItem.name)
+            .setDurationMs(metadata.duration)
+            .setAlbumTitle(metadata.album)
+            .build()
+        return builder.setMediaMetadata(mediaMetadata).build()
+    }
+
+    /**
      * メディアアイテムのリストを並べ替える
      *
      * @param list 並べ替え後のオーディオリスト

@@ -44,15 +44,6 @@ sealed interface TapeSettingsCallbackArgument {
     ) : TapeSettingsCallbackArgument
 
     /**
-     * アイテム選択
-     *
-     * @property index 選択されたアイテムのインデックス
-     */
-    data class ItemSelected(
-        val index: Int
-    ) : TapeSettingsCallbackArgument
-
-    /**
      * ソート順
      *
      * @property sortOrder ソート順

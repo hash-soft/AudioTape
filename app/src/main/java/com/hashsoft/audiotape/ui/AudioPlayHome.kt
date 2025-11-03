@@ -81,7 +81,7 @@ fun AudioPlayHomeRoute(
  */
 @Composable
 private fun AudioPlayHome(
-    contentPosition: Long?,
+    contentPosition: Long,
     playItem: PlayAudioDto?,
     playList: List<AudioItemDto>,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
@@ -109,6 +109,10 @@ private fun AudioPlayHome(
  */
 private fun audioPlay(argument: AudioCallbackArgument, viewModel: AudioPlayViewModel) {
     when (argument) {
+        is AudioCallbackArgument.AudioSelected -> {
+            viewModel.setMediaItemsInAudioList(argument.index)
+        }
+
         is AudioCallbackArgument.SkipPrevious -> {
             viewModel.seekToPrevious()
         }
@@ -125,7 +129,9 @@ private fun audioPlay(argument: AudioCallbackArgument, viewModel: AudioPlayViewM
             if (argument.isPlaying) {
                 viewModel.pause()
             } else {
+                viewModel.setPlayingParameters()
                 viewModel.play()
+                // 最終再生更新
             }
         }
 
@@ -172,10 +178,6 @@ private fun tapeSettings(
         is TapeSettingsCallbackArgument.Repeat -> {
             viewModel.updateRepeat(tape.folderPath, argument.repeat)
             viewModel.setRepeat(argument.repeat)
-        }
-
-        is TapeSettingsCallbackArgument.ItemSelected -> {
-            //
         }
 
         is TapeSettingsCallbackArgument.SortOrder -> {
