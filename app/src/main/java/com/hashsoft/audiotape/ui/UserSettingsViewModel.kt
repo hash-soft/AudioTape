@@ -6,6 +6,7 @@ import com.hashsoft.audiotape.data.ThemeMode
 import com.hashsoft.audiotape.data.UserSettingsDto
 import com.hashsoft.audiotape.data.UserSettingsRepository
 import com.hashsoft.audiotape.data.UserSettingsRepository.Companion.DEFAULT_ID
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@HiltViewModel
 class UserSettingsViewModel @Inject constructor(private val _userSettingsRepository: UserSettingsRepository) :
     ViewModel() {
 

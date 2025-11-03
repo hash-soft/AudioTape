@@ -20,7 +20,7 @@ import com.hashsoft.audiotape.ui.AudioPlayHomeRoute
 import com.hashsoft.audiotape.ui.LibraryHomeRoute
 import com.hashsoft.audiotape.ui.RouteContentViewModel
 import com.hashsoft.audiotape.ui.RouteStateUiState
-import com.hashsoft.audiotape.ui.UserSettingsRoute
+import com.hashsoft.audiotape.ui.UserSettingsHomeRoute
 import kotlinx.coroutines.launch
 
 /**
@@ -78,7 +78,7 @@ private fun RouteScreen(
     ) {
         composable<Route.Library> {
             LibraryHomeRoute {
-                navController.navigate(Route.AudioPlay)
+                navController.navigate(it)
             }
         }
         composable<Route.AudioPlay>(
@@ -90,7 +90,9 @@ private fun RouteScreen(
             }
         }
         composable<Route.UserSettings> {
-            UserSettingsRoute()
+            UserSettingsHomeRoute {
+                popAndNavigateLibrary(navController)
+            }
         }
     }
 

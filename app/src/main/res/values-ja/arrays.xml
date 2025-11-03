@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="menu_labels">
+        <item>設定</item>
+        <item>このアプリについて</item>
+    </string-array>
+
     <string-array name="audio_list_sort_labels">
         <item>ファイル名（昇順）</item>
         <item>ファイル名（降順）</item>

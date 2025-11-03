@@ -3,6 +3,7 @@
     <string name="app_name">オーディオテープ</string>
     <string name="loading">取得中</string>
     <string name="back">戻る</string>
+    <string name="settings">設定</string>
     <string name="permission_required">権限要求</string>
     <string name="permission_rationale">音声ファイルを読み込むためにストレージの権限をONにしてください</string>
     <string name="volume_name_unknown">不明</string>
@@ -13,6 +14,7 @@
     <string name="library_unknown">不明</string>
     <string name="no_album_information">アルバム情報なし</string>
     <string name="no_title_information">タイトル情報なし</string>
+    <string name="menu_description">メニュー</string>
     <string name="repeat_description">リピート</string>
     <string name="list_description">オーディオリスト</string>
     <string name="sort_order_description">並び順</string>

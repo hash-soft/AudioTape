@@ -31,8 +31,8 @@ import timber.log.Timber
 
 @Composable
 fun LibrarySheetRoute(
-    onAudioPlayClick: () -> Unit = {},
-    viewModel: LibraryStateViewModel = hiltViewModel()
+    viewModel: LibraryStateViewModel = hiltViewModel(),
+    onAudioPlayClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState
     val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()

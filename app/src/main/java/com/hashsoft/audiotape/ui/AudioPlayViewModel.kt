@@ -110,6 +110,7 @@ class AudioPlayViewModel @Inject constructor(
             val sortOrder = _audioTapeRepository.findSortOrderByPath(state.folderPath).first()
             playListState.updateList(volumes, state.folderPath, sortOrder)
             // MediaItemをlistと合わせる
+            // でも裏でオーディオが変更されても画面表示するまで動かないからあんまり意味ないか
             _controller.replaceMediaItemsWith(playListState.list.value)
             combine(
                 _audioTapeRepository.findByPath(state.folderPath),
