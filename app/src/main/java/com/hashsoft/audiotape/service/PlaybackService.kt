@@ -13,9 +13,11 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.hashsoft.audiotape.MainActivity
+import com.hashsoft.audiotape.core.extensions.playingContentPositionFlow
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.ContentPositionRepository
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.ui.di.entry.PlaybackServiceEntryPoint
@@ -37,6 +39,7 @@ class PlaybackService : MediaSessionService() {
     private val serviceScope = CoroutineScope(Dispatchers.Unconfined)
 
     private lateinit var _playbackRepository: PlaybackRepository
+    private lateinit var _contentPositionRepository: ContentPositionRepository
 
     private lateinit var _audioTapeRepository: AudioTapeRepository
     private lateinit var _audioStoreRepository: AudioStoreRepository
@@ -47,7 +50,7 @@ class PlaybackService : MediaSessionService() {
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
-        Timber.d("**onCreate")
+        Timber.d("onCreate")
         initializeRepository()
         val player = ExoPlayer.Builder(this)
             .setHandleAudioBecomingNoisy(true).build()
@@ -70,7 +73,7 @@ class PlaybackService : MediaSessionService() {
                     )
                     builder.setSessionActivity(intent)
                 }
-        observeState()
+        observeState(player)
     }
 
     private fun initializeRepository() {
@@ -79,12 +82,13 @@ class PlaybackService : MediaSessionService() {
             PlaybackServiceEntryPoint::class.java
         )
         _playbackRepository = entryPoint.playbackRepository()
+        _contentPositionRepository = entryPoint.contentPositionRepository()
         _audioTapeRepository = entryPoint.audioTapeRepository()
         _audioStoreRepository = entryPoint.audioStoreRepository()
         _playingStateRepository = entryPoint.playingStateRepository()
     }
 
-    private fun observeState() {
+    private fun observeState(player: ExoPlayer) {
         serviceScope.launch {
             // UIとサービスからの変更をここで監視してaudioTapeを更新する
             _playbackRepository.data.collect { playback ->
@@ -99,6 +103,11 @@ class PlaybackService : MediaSessionService() {
                     playback.currentName,
                     playback.contentPosition
                 )
+            }
+        }
+        serviceScope.launch {
+            player.playingContentPositionFlow().collect { position ->
+                _contentPositionRepository.update(position)
             }
         }
     }

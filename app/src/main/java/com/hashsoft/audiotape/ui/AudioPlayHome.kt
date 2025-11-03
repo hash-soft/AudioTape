@@ -37,6 +37,7 @@ fun AudioPlayHomeRoute(
 ) {
     val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
     val playList by viewModel.playListState.list.collectAsStateWithLifecycle()
+    val contentPosition by viewModel.contentPosition.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -60,7 +61,7 @@ fun AudioPlayHomeRoute(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayHome(playItem, playList, { argument ->
+            AudioPlayHome(contentPosition = contentPosition, playItem, playList, { argument ->
                 audioPlay(argument = argument, viewModel = viewModel)
             }) { argument ->
                 val tape = playItem?.audioTape ?: return@AudioPlayHome
@@ -80,6 +81,7 @@ fun AudioPlayHomeRoute(
  */
 @Composable
 private fun AudioPlayHome(
+    contentPosition: Long?,
     playItem: PlayAudioDto?,
     playList: List<AudioItemDto>,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
@@ -89,7 +91,13 @@ private fun AudioPlayHome(
     if (playItem == null) {
         NoTapeView()
     } else {
-        AudioPlayView(playItem, playList, onAudioItemClick, onChangeTapeSettings)
+        AudioPlayView(
+            contentPosition = contentPosition,
+            playItem,
+            playList,
+            onAudioItemClick,
+            onChangeTapeSettings
+        )
     }
 }
 
@@ -107,6 +115,10 @@ private fun audioPlay(argument: AudioCallbackArgument, viewModel: AudioPlayViewM
 
         is AudioCallbackArgument.BackIncrement -> {
             viewModel.seekBack()
+        }
+
+        is AudioCallbackArgument.SeekTo -> {
+            viewModel.seekTo(argument.position)
         }
 
         is AudioCallbackArgument.PlayPause -> {

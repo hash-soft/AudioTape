@@ -22,7 +22,11 @@ class PlayItemState(
 ) {
     val item: StateFlow<PlayAudioDto?> = _item.asStateFlow()
 
-    fun updatePlayAudioForExclusive(volumes: List<VolumeItem>, audioTape: AudioTapeDto, playback: PlaybackDto) {
+    fun updatePlayAudioForExclusive(
+        volumes: List<VolumeItem>,
+        audioTape: AudioTapeDto,
+        playback: PlaybackDto
+    ) {
         // audioTapeが存在しない場合だけnullになる
         val playAudio =
             if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
@@ -81,10 +85,7 @@ class PlayItemState(
 
 
     fun updatePlaybackPosition(position: Long) {
-        val value = item.value
-        if (value == null) {
-            return
-        }
+        val value = item.value ?: return
         val file = File(value.path)
         _playbackRepository.updateAll(
             value.isReadyOk,

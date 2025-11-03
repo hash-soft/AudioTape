@@ -6,6 +6,7 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.data.ContentPositionRepository
 import com.hashsoft.audiotape.data.PlaybackDto
 import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -16,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -31,6 +33,7 @@ import kotlinx.coroutines.launch
  * @param storageItemListUseCase ストレージアイテムリストユースケース
  * @param _audioStoreRepository オーディオストアリポジトリ
  * @param _storageVolumeRepository ストレージボリュームリポジトリ
+ * @param _contentPositionRepository コンテンツ位置リポジトリ
  */
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
@@ -40,12 +43,13 @@ class AudioPlayViewModel @Inject constructor(
     private val _playingStateRepository: PlayingStateRepository,
     storageItemListUseCase: StorageItemListUseCase,
     private val _audioStoreRepository: AudioStoreRepository,
-    private val _storageVolumeRepository: StorageVolumeRepository
+    private val _storageVolumeRepository: StorageVolumeRepository,
+    private val _contentPositionRepository: ContentPositionRepository
 ) :
     ViewModel() {
 
     /**
-     * 再生アイテムの状態
+     * 現在再生中のアイテムに関する状態を管理する。
      */
     val playItemState = PlayItemState(
         _playbackRepository,
@@ -54,17 +58,21 @@ class AudioPlayViewModel @Inject constructor(
     )
 
     /**
-     * 再生リストの状態
+     * 再生リストに関する状態を管理する。
      */
     val playListState = PlayListState(
         storageItemListUseCase
     )
 
+    /**
+     * 現在の再生位置をFlowとして公開する。
+     */
+    val contentPosition = _contentPositionRepository.value.asStateFlow()
 
     /**
-     * 初期化時にボリュームの変更監視を開始する。
-     * ボリューム変更、オーディオストア、再生状態の変更を検知し、
-     * 再生アイテムの状態を更新するフローを構築する。
+     * ViewModelの初期化処理。
+     * ストレージボリュームの変更を監視し、変更があった場合にオーディオストアと再生状態を監視するフローを開始する。
+     * これにより、再生アイテムの状態が動的に更新される。
      */
     init {
         viewModelScope.launch {
@@ -78,22 +86,22 @@ class AudioPlayViewModel @Inject constructor(
     }
 
     /**
-     * オーディオストアの変更を監視する
+     * 指定されたボリュームリストに基づいてオーディオストアの変更を監視する。
      *
-     * @param volumes ボリュームリスト
-     * @return ボリュームリスト、オーディオテープ、再生状態のTripleを返すFlow
+     * @param volumes 監視対象のボリュームリスト
+     * @return ボリュームリスト、[AudioTapeDto]、[PlaybackDto]のTripleを含むFlow
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
-        // 待つだけ
+        // updateFlowが更新されるのを待ってから次の処理へ進む
         return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
     }
 
     /**
-     * 再生状態の変更を監視する
+     * 指定されたボリュームリストに基づいて再生状態の変更を監視する。
      *
-     * @param volumes ボリュームリスト
-     * @return ボリュームリスト、オーディオテープ、再生状態のTripleを返すFlow
+     * @param volumes 監視対象のボリュームリスト
+     * @return ボリュームリスト、[AudioTapeDto]、[PlaybackDto]のTripleを含むFlow
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
@@ -112,14 +120,28 @@ class AudioPlayViewModel @Inject constructor(
     }
 
     /**
-     * 再生を開始する
+     * 現在のメディアを再生する。
      */
     fun play() = _controller.play()
 
     /**
-     * 再生を一時停止する
+     * 現在のメディアの再生を一時停止する。
      */
     fun pause() = _controller.pause()
+
+    /**
+     * 指定された位置にシークする。
+     *
+     * @param position シーク先の再生位置（ミリ秒）
+     */
+    fun seekTo(position: Long) {
+        _contentPositionRepository.update(position)
+        if (_controller.isCurrentMediaItem()) {
+            _controller.seekTo(position)
+        } else {
+            playItemState.updatePlaybackPosition(position)
+        }
+    }
 
     /**
      * 次の曲へ移動する

@@ -32,6 +32,7 @@ import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.Button.PlayPauseButton
 import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
+import com.hashsoft.audiotape.ui.item.PlaySliderItem
 import com.hashsoft.audiotape.ui.theme.IconMedium
 
 /**
@@ -86,6 +87,7 @@ private val PlayPitchValues: List<Float> = listOf(
  */
 @Composable
 fun AudioPlayView(
+    contentPosition: Long?,
     playItem: PlayAudioDto,
     playList: List<AudioItemDto>,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
@@ -120,6 +122,16 @@ fun AudioPlayView(
             )
             SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
         }
+
+        PlaySliderItem(
+            playItem.isPlaying,
+            true,
+            contentPosition = contentPosition ?: playItem.contentPosition,
+            playItem.durationMs
+        ) {
+            onAudioItemClick(AudioCallbackArgument.SeekTo(it))
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
