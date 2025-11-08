@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.ThemeMode
 
 
 /**
@@ -63,13 +64,28 @@ fun UserSettingsHomeRoute(
  * @param viewModel ユーザー設定画面のViewModel
  */
 @Composable
-fun UserSettingsRoute(viewModel: UserSettingsViewModel = hiltViewModel()) {
+private fun UserSettingsRoute(viewModel: UserSettingsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
         is UserSettingsUiState.Loading -> {}
         is UserSettingsUiState.Success -> {
-            UserSettingsView(state.userSettings)
+            UserSettingsView(state.userSettings) {
+                userSettings(it, viewModel)
+            }
         }
     }
+}
 
+/**
+ * ユーザー設定のコールバックを処理する
+ *
+ * @param argument ユーザー設定のコールバック引数
+ * @param viewModel ユーザー設定画面のViewModel
+ */
+private fun userSettings(argument: UserSettingsCallbackArgument, viewModel: UserSettingsViewModel) {
+    when (argument) {
+        is UserSettingsCallbackArgument.Theme -> {
+            viewModel.updateThemeMode(ThemeMode.fromInt(argument.theme))
+        }
+    }
 }

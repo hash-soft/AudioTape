@@ -5,7 +5,8 @@
     <string name="back">戻る</string>
     <string name="settings">設定</string>
     <string name="permission_required">権限要求</string>
-    <string name="permission_rationale">音声ファイルを読み込むためにストレージの権限をONにしてください</string>
+    <string name="permission_rationale_legacy">音声ファイルを読み込むためにストレージの権限をONにしてください</string>
+    <string name="permission_rationale_33">音声ファイルを読み込むために音楽とオーディオの権限をONにしてください</string>
     <string name="volume_name_unknown">不明</string>
     <string name="storage_root">ルート</string>
     <string name="storage_home">ホーム</string>
@@ -23,4 +24,5 @@
     <string name="pitch_title">音程</string>
     <string name="sort_order_title">並び順</string>
     <string name="no_tape_warn">テープがありません</string>
+    <string name="theme_title">テーマ</string>
 </resources>

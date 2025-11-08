@@ -10,4 +10,10 @@
         <item>ファイル名（降順）</item>
     </string-array>
 
+    <string-array name="theme_labels">
+        <item>システム</item>
+        <item>ライト</item>
+        <item>ダーク</item>
+    </string-array>
+
 </resources>
