@@ -47,7 +47,7 @@ class AudioController(
         try {
             _controller = _controllerFuture?.await()
         } catch (e: Exception) {
-            Timber.e(e)
+            Timber.w(e, "Failed to connect to MediaController")
             releaseController()
             return
         }

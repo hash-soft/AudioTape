@@ -5,11 +5,14 @@ import android.content.Context
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -21,7 +24,7 @@ import com.hashsoft.audiotape.ui.LibraryHomeRoute
 import com.hashsoft.audiotape.ui.RouteContentViewModel
 import com.hashsoft.audiotape.ui.RouteStateUiState
 import com.hashsoft.audiotape.ui.UserSettingsHomeRoute
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.awaitCancellation
 
 /**
  * アプリケーションのメインコンテンツとなるルートを定義する
@@ -31,18 +34,20 @@ import kotlinx.coroutines.launch
 @Composable
 fun RouteContent(
     context: Context = LocalContext.current,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     viewModel: RouteContentViewModel = hiltViewModel()
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
-    LifecycleStartEffect(Unit) {
-        coroutineScope.launch {
-            viewModel.buildController(context) // suspend関数OK
-        }
-        onStopOrDispose {
-            viewModel.releaseController()
+    LaunchedEffect(Unit) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            try {
+                viewModel.buildController(context)
+                awaitCancellation()
+            } finally {
+                viewModel.releaseController()
+            }
         }
     }
+
 
     when (val uiState = viewModel.uiState.value) {
         is RouteStateUiState.Loading -> {}
