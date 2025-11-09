@@ -24,5 +24,7 @@
     <string name="pitch_title">音程</string>
     <string name="sort_order_title">並び順</string>
     <string name="no_tape_warn">テープがありません</string>
+    <string name="appearance_label">外観</string>
     <string name="theme_title">テーマ</string>
+    <string name="default_settings_label">デフォルト設定</string>
 </resources>

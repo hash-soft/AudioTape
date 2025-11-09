@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ThemeMode
 import com.hashsoft.audiotape.data.UserSettingsDto
 import com.hashsoft.audiotape.data.UserSettingsRepository
@@ -39,6 +40,25 @@ class UserSettingsViewModel @Inject constructor(private val _userSettingsReposit
         _userSettingsRepository.updateThemeMode(DEFAULT_ID, themeMode)
     }
 
+    fun updateDefaultSortOrder(sortOrder: AudioTapeSortOrder) = viewModelScope.launch {
+        _userSettingsRepository.updateDefaultSortOrder(DEFAULT_ID, sortOrder)
+    }
+
+    fun updateDefaultRepeat(repeat: Boolean) = viewModelScope.launch {
+        _userSettingsRepository.updateDefaultRepeat(DEFAULT_ID, repeat)
+    }
+
+    fun updateDefaultVolume(volume: Float) = viewModelScope.launch {
+        _userSettingsRepository.updateDefaultVolume(DEFAULT_ID, volume)
+    }
+
+    fun updateDefaultSpeed(speed: Float) = viewModelScope.launch {
+        _userSettingsRepository.updateDefaultSpeed(DEFAULT_ID, speed)
+    }
+
+    fun updateDefaultPitch(pitch: Float) = viewModelScope.launch {
+        _userSettingsRepository.updateDefaultPitch(DEFAULT_ID, pitch)
+    }
 }
 
 sealed interface UserSettingsUiState {

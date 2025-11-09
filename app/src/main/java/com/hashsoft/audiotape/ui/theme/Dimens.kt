@@ -11,6 +11,10 @@ val SettingItemHorizontalPadding = 16.dp
 
 val SettingItemVerticalPadding = 12.dp
 
+val SettingItemVerticalDistance = 10.dp
+
+val SettingNextLabelVerticalAdd = 4.dp
+
 val DialogCornerRadius = 16.dp
 
 val DialogHorizontalPadding = 20.dp

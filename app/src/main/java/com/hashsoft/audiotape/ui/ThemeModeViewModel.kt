@@ -12,17 +12,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+/**
+ * テーマモードのViewModel
+ *
+ * @param _userSettingsRepository ユーザー設定リポジトリ
+ */
 @HiltViewModel
 class ThemeModeViewModel @Inject constructor(private val _userSettingsRepository: UserSettingsRepository) :
     ViewModel() {
 
+    /**
+     * テーマモードのUI状態
+     */
     val uiState: StateFlow<ThemeModeUiState> =
         _userSettingsRepository.getThemeMode(DEFAULT_ID).map { themeMode ->
-            if (themeMode == null) {
-                ThemeModeUiState.Loading
-            } else {
-                ThemeModeUiState.Success(themeMode)
-            }
+            ThemeModeUiState.Success(themeMode)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -30,8 +34,20 @@ class ThemeModeViewModel @Inject constructor(private val _userSettingsRepository
         )
 }
 
+/**
+ * テーマモードのUI状態
+ */
 sealed interface ThemeModeUiState {
+    /**
+     * 読み込み中
+     */
     data object Loading : ThemeModeUiState
+
+    /**
+     * 成功
+     *
+     * @param themeMode テーマモード
+     */
     data class Success(
         val themeMode: ThemeMode
     ) : ThemeModeUiState

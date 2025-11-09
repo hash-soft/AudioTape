@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ThemeMode
 
 
@@ -90,6 +91,26 @@ private fun userSettings(argument: UserSettingsCallbackArgument, viewModel: User
     when (argument) {
         is UserSettingsCallbackArgument.Theme -> {
             viewModel.updateThemeMode(ThemeMode.fromInt(argument.theme))
+        }
+
+        is UserSettingsCallbackArgument.SortOrder -> {
+            viewModel.updateDefaultSortOrder(AudioTapeSortOrder.fromInt(argument.sortOrder))
+        }
+
+        is UserSettingsCallbackArgument.Repeat -> {
+            viewModel.updateDefaultRepeat(argument.repeat)
+        }
+
+        is UserSettingsCallbackArgument.Volume -> {
+            viewModel.updateDefaultVolume(argument.volume)
+        }
+
+        is UserSettingsCallbackArgument.Speed -> {
+            viewModel.updateDefaultSpeed(argument.speed)
+        }
+
+        is UserSettingsCallbackArgument.Pitch -> {
+            viewModel.updateDefaultPitch(argument.pitch)
         }
     }
 }

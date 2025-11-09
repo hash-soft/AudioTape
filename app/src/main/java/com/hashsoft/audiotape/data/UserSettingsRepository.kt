@@ -27,7 +27,7 @@ class UserSettingsRepository(private val userSettingsDao: UserSettingsDao) {
         }
     }
 
-    fun getThemeMode(id: Int): Flow<ThemeMode?> {
+    fun getThemeMode(id: Int): Flow<ThemeMode> {
         return userSettingsDao.getThemeMode(id)
             .map {
                 stringToThemeMode(it)
@@ -56,7 +56,7 @@ class UserSettingsRepository(private val userSettingsDao: UserSettingsDao) {
     }
 
     suspend fun updateThemeMode(id: Int, themeMode: ThemeMode) =
-        userSettingsDao.updateThemeMode(UidAndUserThemeMode(id, themeMode.name))
+        userSettingsDao.updateThemeMode(UserSettingsEntityThemeMode(id, themeMode.name))
 
     private fun stringToThemeMode(string: String?): ThemeMode {
         return if (string == null) {
@@ -65,11 +65,37 @@ class UserSettingsRepository(private val userSettingsDao: UserSettingsDao) {
             return try {
                 ThemeMode.valueOf(string)
             } catch (e: IllegalArgumentException) {
-                Timber.tag(TAG).e(e, "Invalid theme mode: $string")
+                Timber.tag(TAG).w(e, "Invalid theme mode: $string")
                 ThemeMode.SYSTEM
             }
         }
     }
+
+    suspend fun updateDefaultSortOrder(id: Int, sortOrder: AudioTapeSortOrder) =
+        userSettingsDao.updateDefaultSortOrder(
+            UserSettingsEntityDefaultSortOrder(
+                id,
+                sortOrder.ordinal
+            )
+        )
+
+    suspend fun updateDefaultRepeat(id: Int, repeat: Boolean) =
+        userSettingsDao.updateDefaultRepeat(
+            UserSettingsEntityDefaultRepeat(
+                id,
+                if (repeat) 2 else 0
+            )
+        )
+
+    suspend fun updateDefaultVolume(id: Int, volume: Float) =
+        userSettingsDao.updateDefaultVolume(UserSettingsEntityDefaultVolume(id, volume))
+
+    suspend fun updateDefaultSpeed(id: Int, speed: Float) =
+        userSettingsDao.updateDefaultSpeed(UserSettingsEntityDefaultSpeed(id, speed))
+
+    suspend fun updateDefaultPitch(id: Int, pitch: Float) =
+        userSettingsDao.updateDefaultPitch(UserSettingsEntityDefaultPitch(id, pitch))
+
 
     companion object {
         private const val TAG = "UserSettingsRepository"
