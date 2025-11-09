@@ -21,7 +21,7 @@ class UserSettingsViewModel @Inject constructor(private val _userSettingsReposit
     val uiState: StateFlow<UserSettingsUiState> =
         _userSettingsRepository.findById(DEFAULT_ID).map { userSettings ->
             if (userSettings == null) {
-                UserSettingsUiState.Loading
+                UserSettingsUiState.Creating
             } else {
                 UserSettingsUiState.Success(userSettings)
             }
@@ -31,22 +31,19 @@ class UserSettingsViewModel @Inject constructor(private val _userSettingsReposit
             initialValue = UserSettingsUiState.Loading
         )
 
+    fun insertUserSettings() = viewModelScope.launch {
+        _userSettingsRepository.insertAll(UserSettingsDto(uid = DEFAULT_ID))
+    }
+
     fun updateThemeMode(themeMode: ThemeMode) = viewModelScope.launch {
         _userSettingsRepository.updateThemeMode(DEFAULT_ID, themeMode)
-    }
-
-    fun updateScreenRestore(screenRestore: Boolean) = viewModelScope.launch {
-        _userSettingsRepository.updateScreenRestore(DEFAULT_ID, screenRestore)
-    }
-
-    fun updateRewindingSpeed(rewindingSpeed: Float) = viewModelScope.launch {
-        _userSettingsRepository.updateRewindingSpeed(DEFAULT_ID, rewindingSpeed)
     }
 
 }
 
 sealed interface UserSettingsUiState {
     data object Loading : UserSettingsUiState
+    data object Creating : UserSettingsUiState
     data class Success(
         val userSettings: UserSettingsDto
     ) : UserSettingsUiState

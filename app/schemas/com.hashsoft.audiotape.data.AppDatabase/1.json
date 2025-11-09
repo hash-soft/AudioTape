@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a71dbe38378517cbd272240bf6929957",
+    "identityHash": "7aead0645c9a61791abd0517579dcb46",
     "entities": [
       {
         "tableName": "user_settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER NOT NULL, `theme_mode` TEXT, `screen_restore` INTEGER, `rewinding_speed` REAL, `forwarding_speed` REAL, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER NOT NULL, `theme_mode` TEXT NOT NULL DEFAULT 'SYSTEM', `default_sort_order` INTEGER NOT NULL DEFAULT 0, `default_repeat` INTEGER NOT NULL DEFAULT 2, `default_volume` REAL NOT NULL DEFAULT 1.0, `default_speed` REAL NOT NULL DEFAULT 1.0, `default_pitch` REAL NOT NULL DEFAULT 1.0, `screen_restore` INTEGER NOT NULL DEFAULT true, `rewinding_speed` INTEGER NOT NULL DEFAULT 0, `forwarding_speed` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER NOT NULL, `update_time` INTEGER NOT NULL, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -17,22 +17,77 @@
           {
             "fieldPath": "themeMode",
             "columnName": "theme_mode",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'SYSTEM'"
+          },
+          {
+            "fieldPath": "defaultSortOrder",
+            "columnName": "default_sort_order",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "defaultRepeat",
+            "columnName": "default_repeat",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "2"
+          },
+          {
+            "fieldPath": "defaultVolume",
+            "columnName": "default_volume",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
+          },
+          {
+            "fieldPath": "defaultSpeed",
+            "columnName": "default_speed",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
+          },
+          {
+            "fieldPath": "defaultPitch",
+            "columnName": "default_pitch",
+            "affinity": "REAL",
+            "notNull": true,
+            "defaultValue": "1.0"
           },
           {
             "fieldPath": "screenRestore",
             "columnName": "screen_restore",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "true"
           },
           {
             "fieldPath": "rewindingSpeed",
             "columnName": "rewinding_speed",
-            "affinity": "REAL"
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           },
           {
             "fieldPath": "forwardingSpeed",
             "columnName": "forwarding_speed",
-            "affinity": "REAL"
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "createTime",
+            "columnName": "create_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updateTime",
+            "columnName": "update_time",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -151,7 +206,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a71dbe38378517cbd272240bf6929957')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7aead0645c9a61791abd0517579dcb46')"
     ]
   }
 }

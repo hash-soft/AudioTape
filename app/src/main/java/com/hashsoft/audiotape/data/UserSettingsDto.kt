@@ -20,8 +20,13 @@ enum class ThemeMode {
 
 data class UserSettingsDto(
     val uid: Int,
-    val themeMode: ThemeMode,
-    val screenRestore: Boolean,
-    val rewindingSpeed: Float,
-    val forwardingSpeed: Float
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val defaultSortOrder: AudioTapeSortOrder = AudioTapeSortOrder.NAME_ASC,
+    val defaultRepeat: Boolean = true,
+    val defaultVolume: Float = 1.0f,
+    val defaultSpeed: Float = 1.0f,
+    val defaultPitch: Float = 1.0f,
+    val screenRestore: Boolean = true,
+    val rewindingSpeed: Int = 0,
+    val forwardingSpeed: Int = 0
 )

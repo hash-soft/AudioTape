@@ -68,6 +68,10 @@ private fun UserSettingsRoute(viewModel: UserSettingsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
         is UserSettingsUiState.Loading -> {}
+        is UserSettingsUiState.Creating -> {
+            viewModel.insertUserSettings()
+        }
+
         is UserSettingsUiState.Success -> {
             UserSettingsView(state.userSettings) {
                 userSettings(it, viewModel)
