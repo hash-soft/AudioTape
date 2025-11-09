@@ -5,14 +5,11 @@ import android.content.Context
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,27 +21,28 @@ import com.hashsoft.audiotape.ui.LibraryHomeRoute
 import com.hashsoft.audiotape.ui.RouteContentViewModel
 import com.hashsoft.audiotape.ui.RouteStateUiState
 import com.hashsoft.audiotape.ui.UserSettingsHomeRoute
-import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
 
 /**
  * アプリケーションのメインコンテンツとなるルートを定義する
  *
+ * @param context コンテキスト
  * @param viewModel ルートの状態を管理するViewModel
  */
 @Composable
 fun RouteContent(
     context: Context = LocalContext.current,
-    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     viewModel: RouteContentViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(Unit) {
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            try {
-                viewModel.buildController(context)
-                awaitCancellation()
-            } finally {
-                viewModel.releaseController()
-            }
+    val coroutineScope = rememberCoroutineScope()
+
+    LifecycleStartEffect(Unit) {
+        val job = coroutineScope.launch {
+            viewModel.buildController(context)
+        }
+        onStopOrDispose {
+            job.cancel()
+            viewModel.releaseController()
         }
     }
 
@@ -111,7 +109,7 @@ private fun RouteScreen(
  * ルート名を実際のルートオブジェクトに変換する
  *
  * @param routeName ルート名
- * @return 対応するルートオブジェクト。見つからない場合は[Route.Library]
+ * @return 対応するルートオブジェクト。見つからない場合は[Route.Library]を返す
  */
 private fun stringToRoute(routeName: String): Any {
     return when (routeName) {
