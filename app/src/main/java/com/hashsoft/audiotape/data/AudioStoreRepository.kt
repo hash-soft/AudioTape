@@ -15,7 +15,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -24,12 +26,34 @@ import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
 
+/**
+ * MediaStoreからの音声ファイルの読み込み状態を表す sealed class。
+ */
 sealed class AudioLoadState {
+    /**
+     * 読み込み中。
+     */
     object Loading : AudioLoadState()
+
+    /**
+     * 読み込み成功。
+     * @param audioList 読み込んだ音声ファイルのリスト。
+     */
     data class Success(val audioList: List<AudioItemDto>) : AudioLoadState()
+
+    /**
+     * 読み込みエラー。
+     * @param throwable 発生した例外。
+     */
     data class Error(val throwable: Throwable) : AudioLoadState()
 }
 
+/**
+ * MediaStoreから音声ファイルを取得し、キャッシュするリポジトリ。
+ *
+ * MediaStoreの変更を監視し、変更があった場合はキャッシュを更新する。
+ * @param context コンテキスト。
+ */
 class AudioStoreRepository(
     private val context: Context
 ) {
@@ -41,6 +65,14 @@ class AudioStoreRepository(
          */
         private val notUseData = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
+        /**
+         * ファイルパスを [AudioSearchObject] に変換する。
+         *
+         * @param volumes ボリューム情報のリスト。
+         * @param path ファイルパス。
+         * @param name ファイル名。
+         * @return [AudioSearchObject]。
+         */
         fun pathToSearchObject(
             volumes: List<VolumeItem>,
             path: String,
@@ -60,12 +92,18 @@ class AudioStoreRepository(
 
     private val scope = CoroutineScope(Dispatchers.IO + Job())
 
-    private val _updateFlow = MutableStateFlow(Unit)
-    val updateFlow: StateFlow<Unit> = _updateFlow
+    private val _updateFlow = MutableSharedFlow<Unit>(replay = 1)
+    /**
+     * 音声リストの更新を通知するFlow。
+     */
+    val updateFlow: SharedFlow<Unit> = _updateFlow
 
     private var cache = listOf<AudioItemDto>()
 
     private val _audioLoadState = MutableStateFlow<AudioLoadState>(AudioLoadState.Loading)
+    /**
+     * 音声ファイルの読み込み状態。
+     */
     val audioLoadState: StateFlow<AudioLoadState> = _audioLoadState
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -86,11 +124,20 @@ class AudioStoreRepository(
         scope.launch { changeAudioItemList() }
     }
 
+    /**
+     * リソースを解放する。
+     */
     fun release() {
         context.contentResolver.unregisterContentObserver(observer)
         scope.cancel()
     }
 
+    /**
+     * 指定された検索オブジェクトに一致する音声アイテムを取得する。
+     *
+     * @param searchItem 検索オブジェクト。
+     * @return 見つかった場合は [AudioItemDto]、見つからない場合は null。
+     */
     fun getAudioItem(searchItem: AudioSearchObject): AudioItemDto? {
         return when (searchItem) {
             is AudioSearchObject.Direct -> cache.find { it.absolutePath + File.separator + it.name == searchItem.searchPath }
@@ -102,6 +149,12 @@ class AudioStoreRepository(
         }
     }
 
+    /**
+     * 指定されたパスにある音声アイテムのリストを取得する。
+     *
+     * @param searchItem 検索オブジェクト。
+     * @return 音声アイテムのリスト。
+     */
     fun getListByPath(searchItem: AudioSearchObject): List<AudioItemDto> {
         return when (searchItem) {
             is AudioSearchObject.Direct -> cache.filter { it.absolutePath == searchItem.searchPath }
@@ -109,6 +162,9 @@ class AudioStoreRepository(
         }
     }
 
+    /**
+     * MediaStoreから音声リストを再読み込みし、キャッシュと状態を更新する。
+     */
     private suspend fun changeAudioItemList() {
         _audioLoadState.value = AudioLoadState.Loading
         cache = loadAudioItemList()
@@ -116,6 +172,11 @@ class AudioStoreRepository(
         _updateFlow.emit(Unit) // 更新通知
     }
 
+    /**
+     * MediaStoreから音声アイテムのリストを読み込む。
+     *
+     * @return 音声アイテムのリスト。
+     */
     private fun loadAudioItemList(): List<AudioItemDto> {
         Timber.d("getAudioItemListFromMediaStore start")
 
@@ -175,6 +236,12 @@ class AudioStoreRepository(
         }
     }
 
+    /**
+     * Cursorから音声アイテムのリストを生成する (Android R以降)。
+     *
+     * @param query MediaStoreへのクエリ結果カーソル。
+     * @return 音声アイテムのリスト。
+     */
     private fun audioItemListFromCursor(query: Cursor?): List<AudioItemDto> {
         val audioItemList = mutableListOf<AudioItemDto>()
         query?.use { cursor ->
@@ -218,6 +285,13 @@ class AudioStoreRepository(
         return audioItemList
     }
 
+    /**
+     * Cursorから音声アイテムのリストを生成する (Android Rより前)。
+     * `_data` 列を使用して絶対パスを取得する。
+     *
+     * @param query MediaStoreへのクエリ結果カーソル。
+     * @return 音声アイテムのリスト。
+     */
     private fun audioItemListFromCursorUseData(query: Cursor?): List<AudioItemDto> {
         val audioItemList = mutableListOf<AudioItemDto>()
         query?.use { cursor ->
@@ -258,6 +332,15 @@ class AudioStoreRepository(
         return audioItemList
     }
 
+    /**
+     * 指定されたパスの音声リストをタイムアウト付きで取得する。
+     *
+     * [audioLoadState] が [AudioLoadState.Success] になるまで待機してからリストを返す。
+     *
+     * @param path 取得するディレクトリのパス。
+     * @param timeoutMillis タイムアウト時間 (ミリ秒)。
+     * @return 成功した場合は音声アイテムのリスト、タイムアウトした場合はnull。
+     */
     suspend fun getListByPathOrTimeout(path: String, timeoutMillis: Long): List<AudioItemDto>? {
         return withTimeoutOrNull(timeoutMillis) {
             // 初期値が Success だった場合にも即座に返る
@@ -280,6 +363,12 @@ class AudioStoreRepository(
         }
     }
 
+    /**
+     * MediaStoreのURIをファイルパスに変換する。
+     *
+     * @param uri 変換するURI。
+     * @return ファイルパス文字列。変換に失敗した場合は空文字列。
+     */
     fun uriToPath(uri: Uri): String {
         val projection = if (notUseData) {
             arrayOf(
