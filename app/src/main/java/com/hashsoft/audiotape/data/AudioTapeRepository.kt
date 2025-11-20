@@ -50,11 +50,11 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      * @param path フォルダのパス
      * @return 見つかったソート順、見つからない場合はデフォルト値をFlowで返す
      */
-    fun findSortOrderByPath(path: String): Flow<AudioTapeSortOrder> {
+    fun findSortOrderByPath(path: String): Flow<AudioTapeSortOrder?> {
         return audioTapeDao.findSortOrderByPath(path).map {
             if (it == null) {
                 Timber.i("findByPath is null: $path")
-                AudioTapeSortOrder.DATE_ASC
+                null
             } else {
                 AudioTapeSortOrder.fromInt(it)
             }

@@ -6,9 +6,10 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.PlaybackDto
-import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.ControllerState
+import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -39,7 +40,8 @@ import java.io.File
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
-    private val _playbackRepository: PlaybackRepository,
+    private val _controllerStateRepository: ControllerStateRepository,
+    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     storageItemListUseCase: StorageItemListUseCase,
@@ -53,7 +55,7 @@ class AudioPlayViewModel @Inject constructor(
      * 現在再生中のアイテムに関する状態を管理する。
      */
     val playItemState = PlayItemState(
-        _playbackRepository,
+        _audioTapeStagingRepository,
         _audioTapeRepository,
         _audioStoreRepository
     )
@@ -90,10 +92,10 @@ class AudioPlayViewModel @Inject constructor(
      * 指定されたボリュームリストに基づいてオーディオストアの変更を監視する。
      *
      * @param volumes 監視対象のボリュームリスト
-     * @return ボリュームリスト、[AudioTapeDto]、[PlaybackDto]のTripleを含むFlow
+     * @return ボリュームリスト、[AudioTapeDto]、[ControllerState]のTripleを含むFlow
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
+    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
         // updateFlowが更新されるのを待ってから次の処理へ進む
         return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
     }
@@ -102,10 +104,10 @@ class AudioPlayViewModel @Inject constructor(
      * 指定されたボリュームリストに基づいて再生状態の変更を監視する。
      *
      * @param volumes 監視対象のボリュームリスト
-     * @return ボリュームリスト、[AudioTapeDto]、[PlaybackDto]のTripleを含むFlow
+     * @return ボリュームリスト、[AudioTapeDto]、[ControllerState]のTripleを含むFlow
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
+    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
         return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
             val sortOrder = _audioTapeRepository.findSortOrderByPath(state.folderPath).first()
             playListState.updateList(volumes, state.folderPath, sortOrder)
@@ -114,7 +116,7 @@ class AudioPlayViewModel @Inject constructor(
             _controller.replaceMediaItemsWith(playListState.list.value)
             combine(
                 _audioTapeRepository.findByPath(state.folderPath),
-                _playbackRepository.data
+                _controllerStateRepository.data
             ) { audioTape, playback ->
                 Triple(volumes, audioTape, playback)
             }

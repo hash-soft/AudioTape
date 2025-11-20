@@ -7,23 +7,26 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.data.AudioTapeStagingRepository
+import com.hashsoft.audiotape.data.ControllerStateRepository
+import com.hashsoft.audiotape.data.DisplayFolder
 import com.hashsoft.audiotape.data.FolderStateRepository
-import com.hashsoft.audiotape.data.PlaybackDto
-import com.hashsoft.audiotape.data.PlaybackRepository
-import com.hashsoft.audiotape.data.PlayingStateDto
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
+import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageItemListUseCase
+import com.hashsoft.audiotape.data.StorageItemListUseCase.Companion.sortedAudioList
+import com.hashsoft.audiotape.data.StorageItemListUseCase.Companion.sortedFolderList
 import com.hashsoft.audiotape.data.StorageVolumeRepository
-import com.hashsoft.audiotape.data.VolumeItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -43,59 +46,68 @@ class FolderViewModel @Inject constructor(
     storageItemListUseCase: StorageItemListUseCase,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
-    private val _playbackRepository: PlaybackRepository,
-    private val _storageVolumeRepository: StorageVolumeRepository,
-    private val _audioStoreRepository: AudioStoreRepository
+    private val _controllerStateRepository: ControllerStateRepository,
+    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
+    storageVolumeRepository: StorageVolumeRepository,
+    audioStoreRepository: AudioStoreRepository
 ) :
     ViewModel() {
 
     private val _state = MutableStateFlow(FolderViewState.Start)
     val state: StateFlow<FolderViewState> = _state.asStateFlow()
-    private val _selectedPath = MutableStateFlow("")
-    val selectedPath: StateFlow<String> = _selectedPath.asStateFlow()
 
     val addressBarState = AddressBarState(storageAddressUseCase)
-    val folderListState = FolderListState(storageItemListUseCase)
-    private var _audioTape: AudioTapeDto = AudioTapeDto("", "")
 
 
-    init {
-        viewModelScope.launch {
-            @OptIn(ExperimentalCoroutinesApi::class)
-            _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
-                watchAudioStore(volumes)
-            }.collect { (audioTape, playback, playingState) ->
-                folderListState.updateList(audioTape, playback, playingState.folderPath)
-                _state.update { FolderViewState.Success }
-                _audioTape = audioTape
-            }
+    private val _baseState = combine(
+        storageVolumeRepository.volumeChangeFlow(),
+        audioStoreRepository.updateFlow,
+        _folderStateRepository.folderStateFlow()
+    ) { volumes, _, folderState ->
+        _state.update { FolderViewState.ItemLoading }
+        addressBarState.load(folderState.selectedPath, volumes)
+        val listPair =
+            storageItemListUseCase.pathToStorageItemList(volumes, folderState.selectedPath, null)
+        folderState.selectedPath to listPair
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _listState = _baseState.flatMapLatest { pair ->
+        combine(
+            _audioTapeRepository.findSortOrderByPath(pair.first)
+        ) { (tapeSortOrder) ->
+            val listPair = pair.second
+            val sortOrder = tapeSortOrder ?: AudioTapeSortOrder.NAME_ASC
+            val folderList = sortedFolderList(listPair.first, sortOrder)
+            val audioList = sortedAudioList(listPair.second, sortOrder)
+            val folderSize = listPair.first.size
+            val expandIndexList =
+                folderList.indices.toList() + audioList.indices.map { it + folderSize }
+            pair.first to Pair(folderList + audioList, expandIndexList)
+
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchAudioStore(volume: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
-        // 待つだけ
-        return _audioStoreRepository.updateFlow.flatMapLatest { watchFolderState(volume) }
-    }
-
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchFolderState(volumes: List<VolumeItem>): Flow<Triple<AudioTapeDto, PlaybackDto, PlayingStateDto>> {
-        return _folderStateRepository.folderStateFlow().flatMapLatest { folderState ->
-            addressBarState.load(folderState.selectedPath, volumes)
-            _selectedPath.update { folderState.selectedPath }
-            _state.update { FolderViewState.ItemLoading }
-            // collect後にloadすると同じものを再取得するだけになるのでキャッシュしておく
-            folderListState.loadStorageCache(folderState.selectedPath, volumes)
-            combine(
-                _audioTapeRepository.findByPath(folderState.selectedPath),
-                _playbackRepository.data,
-                _playingStateRepository.playingStateFlow()
-            ) { audioTape, playback, playingState ->
-                Triple(audioTape, playback, playingState)
-            }
+    val displayFolderState = _listState.flatMapLatest { (folderPath, listPair) ->
+        combine(
+            _audioTapeRepository.findByPath(folderPath),
+            _controllerStateRepository.data,
+            _playingStateRepository.playingStateFlow()
+        ) { audioTape, controllerState, playingState ->
+            _state.update { FolderViewState.Success }
+            DisplayFolder(
+                folderPath = folderPath,
+                listPair.first,
+                listPair.second,
+                audioTape,
+                playingState,
+                controllerState
+            )
         }
-    }
+    }.stateIn(
+        viewModelScope, SharingStarted.Eagerly, DisplayFolder("")
+    )
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
@@ -105,45 +117,41 @@ class FolderViewModel @Inject constructor(
         _playingStateRepository.saveFolderPath(path)
     }
 
-    fun setMediaItemsInFolderList(index: Int = 0) {
+    fun setMediaItemsInFolderList(list: List<StorageItem>, index: Int, position: Long) {
         // ファイルを抽出する
-        val audioList = folderListState.list.value.mapNotNull {
-            when (it.base) {
-                is AudioItemDto -> {
-                    it.base
-                }
+        val audioList = list.mapNotNull {
+            when (it) {
+                is AudioItemDto -> it
 
                 else -> return@mapNotNull null
             }
         }
-        val item = folderListState.list.value[index]
-        val audioItem = audioList[item.index]
+        val audioItem = audioList.getOrNull(index) ?: return
         if (_controller.isCurrentById(audioItem.id)) {
             return
         }
-        if (_controller.seekToById(audioItem.id, item.contentPosition)) {
+        if (_controller.seekToById(audioItem.id, position)) {
             return
         }
         if (_controller.isCurrentMediaItem()) {
             // 位置を更新する
-            _playbackRepository.updateContentPosition(_controller.getContentPosition())
+            _audioTapeStagingRepository.updatePosition(_controller.getContentPosition())
         }
-        _controller.setMediaItems(audioList, item.index, item.contentPosition)
+        _controller.setMediaItems(audioList, index, position)
     }
 
-    fun setPlayingParameters() {
-        _controller.setRepeat(_audioTape.repeat)
-        _controller.setPlaybackParameters(_audioTape.speed, _audioTape.pitch)
-        _controller.setVolume(_audioTape.volume)
+    fun setPlayingParameters(audioTape: AudioTapeDto) {
+        _controller.setRepeat(audioTape.repeat)
+        _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
+        _controller.setVolume(audioTape.volume)
     }
 
     fun play() = _controller.play()
 
-    fun createTapeNotExist(folderPath: String, index: Int) {
-        val item = folderListState.list.value[index]
+    fun createTapeNotExist(folderPath: String, currentName: String, position: Long) {
         viewModelScope.launch {
             val result = _audioTapeRepository.insertNew(
-                folderPath, item.base.name, position = item.contentPosition,
+                folderPath, currentName = currentName, position = position,
                 sortOrder = AudioTapeSortOrder.NAME_ASC
             )
             Timber.d("insertNew result: $result folderPath: $folderPath")

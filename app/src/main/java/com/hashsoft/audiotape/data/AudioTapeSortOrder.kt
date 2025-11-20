@@ -14,10 +14,7 @@ enum class AudioTapeSortOrder {
     DATE_ASC,
 
     /** 日付(降順) */
-    DATE_DESC,
-
-    /** そのまま */
-    ASIS;
+    DATE_DESC;
 
     companion object {
         /**

@@ -7,10 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.AudioTapeStagingRepository
+import com.hashsoft.audiotape.data.ControllerState
+import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryStateRepository
-import com.hashsoft.audiotape.data.PlaybackDto
-import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import com.hashsoft.audiotape.data.VolumeItem
@@ -26,7 +27,8 @@ import kotlinx.coroutines.launch
 class LibraryStateViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
-    private val _playbackRepository: PlaybackRepository,
+    private val _controllerStateRepository: ControllerStateRepository,
+    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _audioStoreRepository: AudioStoreRepository,
@@ -38,7 +40,7 @@ class LibraryStateViewModel @Inject constructor(
     val uiState: MutableState<LibraryStateUiState> = mutableStateOf(LibraryStateUiState.Loading)
 
     val playItemState = PlayItemState(
-        _playbackRepository,
+        _audioTapeStagingRepository,
         _audioTapeRepository,
         _audioStoreRepository
     )
@@ -59,18 +61,18 @@ class LibraryStateViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
+    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
         // 待つだけ
         return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
     }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, PlaybackDto>> {
+    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
         return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
             combine(
                 _audioTapeRepository.findByPath(state.folderPath),
-                _playbackRepository.data
+                _controllerStateRepository.data
             ) { audioTape, playback ->
                 Triple(volumes, audioTape, playback)
             }

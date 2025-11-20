@@ -266,7 +266,8 @@ private fun AudioListDropdownSelector(
         targetName = targetName
     ) { index, lastCurrent ->
         if (!lastCurrent) {
-            onItemSelected(AudioCallbackArgument.AudioSelected(index))
+            val audioItem = playList.getOrNull(index) ?: return@AudioDropDown
+            onItemSelected(AudioCallbackArgument.AudioSelected(index, audioItem.name, 0))
         }
     }
 }

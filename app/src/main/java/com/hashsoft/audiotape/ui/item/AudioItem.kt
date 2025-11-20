@@ -20,6 +20,7 @@ import com.hashsoft.audiotape.ui.AudioCallbackResult
 @Composable
 fun AudioItem(
     index: Int,
+    audioIndex: Int,
     name: String,
     size: Long,
     lastModified: Long,
@@ -61,7 +62,9 @@ fun AudioItem(
         modifier = Modifier.clickable {
             audioCallback(
                 AudioCallbackArgument.AudioSelected(
-                    index = index
+                    index = index,
+                    name = name,
+                    position = contentPosition
                 )
             )
         },

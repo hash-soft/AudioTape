@@ -11,7 +11,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.directorytest.ui.view.AddressBar
-import com.hashsoft.audiotape.data.DisplayStorageItem
+import com.hashsoft.audiotape.data.AudioTapeDto
+import com.hashsoft.audiotape.data.ControllerState
+import com.hashsoft.audiotape.data.PlayingStateDto
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageLocationDto
 import com.hashsoft.audiotape.ui.list.FolderList
@@ -22,9 +24,8 @@ fun FolderViewRoute(
     viewModel: FolderViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val selectedPath by viewModel.selectedPath.collectAsStateWithLifecycle()
     val storageLocationList by viewModel.addressBarState.list.collectAsStateWithLifecycle()
-    val storageItemList by viewModel.folderListState.list.collectAsStateWithLifecycle()
+    val displayFolder by viewModel.displayFolderState.collectAsStateWithLifecycle()
 
     Timber.d("state changed: $state")
 
@@ -32,18 +33,31 @@ fun FolderViewRoute(
         FolderViewState.Start -> {}
         else -> {
             FolderView(
-                storageLocationList, storageItemList,
+                addressList = storageLocationList,
+                itemList = displayFolder.list,
+                expandIndexList = displayFolder.expandIndexList,
+                audioTape = displayFolder.audioTape,
+                controllerState = displayFolder.controllerState,
+                playingState = displayFolder.playingState,
                 onFolderClick = viewModel::saveSelectedPath
             ) { argument ->
                 when (argument) {
 
                     is AudioCallbackArgument.AudioSelected -> {
-                        viewModel.updatePlayingFolderPath(selectedPath)
-                        viewModel.setMediaItemsInFolderList(argument.index)
-                        viewModel.setPlayingParameters()
+                        viewModel.updatePlayingFolderPath(displayFolder.folderPath)
+                        viewModel.setMediaItemsInFolderList(
+                            displayFolder.list,
+                            argument.index,
+                            argument.position
+                        )
+                        viewModel.setPlayingParameters(displayFolder.audioTape)
                         viewModel.play()
-                        // テープの新規作成はここかソートをした場合のみ
-                        viewModel.createTapeNotExist(selectedPath, argument.index)
+                        // テープの新規作成はここか長押しの場合のみ
+                        viewModel.createTapeNotExist(
+                            displayFolder.folderPath,
+                            argument.name,
+                            argument.position
+                        )
                     }
 
                     is AudioCallbackArgument.FolderSelected -> {
@@ -64,7 +78,11 @@ fun FolderViewRoute(
 @Composable
 private fun FolderView(
     addressList: List<StorageLocationDto>,
-    itemList: List<DisplayStorageItem<StorageItem>> = listOf(),
+    itemList: List<StorageItem> = listOf(),
+    expandIndexList: List<Int> = listOf(),
+    audioTape: AudioTapeDto = AudioTapeDto("", ""),
+    controllerState: ControllerState = ControllerState(isReadyOk = false, isPlaying = false),
+    playingState: PlayingStateDto = PlayingStateDto(""),
     onFolderClick: (String) -> Unit = {},
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
@@ -77,6 +95,11 @@ private fun FolderView(
             FolderList(
                 modifier = Modifier.padding(innerPadding),
                 storageItemList = itemList,
+                expandIndexList = expandIndexList,
+                isPlaying = controllerState.isPlaying,
+                isCurrent = audioTape.folderPath == playingState.folderPath,
+                targetName = audioTape.currentName,
+                contentPosition = audioTape.position,
                 audioCallback = audioCallback
             )
         }

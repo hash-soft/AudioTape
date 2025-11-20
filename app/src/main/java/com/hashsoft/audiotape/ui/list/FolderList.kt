@@ -4,7 +4,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.hashsoft.audiotape.data.AudioItemDto
-import com.hashsoft.audiotape.data.DisplayStorageItem
 import com.hashsoft.audiotape.data.FolderItemDto
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
@@ -22,35 +21,45 @@ import com.hashsoft.audiotape.ui.item.FolderItem
 @Composable
 fun FolderList(
     modifier: Modifier = Modifier,
-    storageItemList: List<DisplayStorageItem<StorageItem>> = emptyList(),
+    storageItemList: List<StorageItem> = listOf(),
+    expandIndexList: List<Int> = listOf(),
+    isPlaying: Boolean = false,
+    isCurrent: Boolean = false,
+    targetName: String = "",
+    contentPosition: Long = 0,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
 ) {
     LazyColumn(
         modifier = modifier
     ) {
         items(storageItemList.size) {
-            val item = storageItemList[it]
-            val base = item.base
-            when (base) {
+            when (val item = storageItemList[it]) {
                 is AudioItemDto -> {
+                    val isTarget = item.name == targetName
+                    val isResume = !isCurrent && isTarget
                     AudioItem(
                         index = it,
-                        base.name,
-                        base.size,
-                        base.lastModified,
-                        base.metadata,
-                        item.color,
-                        item.icon,
-                        item.isResume,
-                        item.contentPosition,
+                        audioIndex = expandIndexList.getOrElse(it, { 0 }),
+                        item.name,
+                        item.size,
+                        item.lastModified,
+                        item.metadata,
+                        when {
+                            isResume -> 2
+                            isTarget -> 1
+                            else -> 0
+                        },
+                        if (isCurrent && isTarget && isPlaying) 1 else 0,
+                        isResume = isResume,
+                        if (isTarget) contentPosition else 0,
                         audioCallback = audioCallback
                     )
                 }
 
                 is FolderItemDto -> FolderItem(
-                    base.absolutePath,
-                    base.name,
-                    base.lastModified,
+                    item.absolutePath,
+                    item.name,
+                    item.lastModified,
                     audioCallback
                 )
             }

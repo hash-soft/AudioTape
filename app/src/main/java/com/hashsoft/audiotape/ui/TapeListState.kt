@@ -1,8 +1,8 @@
 package com.hashsoft.audiotape.ui
 
 import com.hashsoft.audiotape.data.AudioTapeDto
+import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.DisplayAudioTape
-import com.hashsoft.audiotape.data.PlaybackDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,11 +17,11 @@ class TapeListState(
 
     fun updateList(
         audioTapeList: List<AudioTapeDto>,
-        playback: PlaybackDto,
+        controllerState: ControllerState,
         playingFolderPath: String
     ) {
         val list = audioTapeList.map {
-            makeDisplayAudioTape(it, playback.isPlaying, playingFolderPath)
+            makeDisplayAudioTape(it, controllerState.isPlaying, playingFolderPath)
         }
         _list.update { list }
     }

@@ -33,12 +33,11 @@ class PlayListState(
      * @param path フォルダのパス
      * @param sortOrder ソート順
      */
-    fun updateList(volumes: List<VolumeItem>, path: String, sortOrder: AudioTapeSortOrder) {
+    fun updateList(volumes: List<VolumeItem>, path: String, sortOrder: AudioTapeSortOrder?) {
         val list = _storageItemListUseCase.getAudioItemList(
-            volumes, path, AudioTapeSortOrder.ASIS
+            volumes, path, sortOrder ?: AudioTapeSortOrder.NAME_ASC
         )
-        val sortList = StorageItemListUseCase.sortedAudioList(list, sortOrder)
-        _list.update { sortList }
+        _list.update { list }
     }
 
 

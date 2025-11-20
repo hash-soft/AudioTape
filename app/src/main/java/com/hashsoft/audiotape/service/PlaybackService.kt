@@ -17,8 +17,9 @@ import com.hashsoft.audiotape.core.extensions.playingContentPositionFlow
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.PlaybackRepository
+import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.ui.di.entry.PlaybackServiceEntryPoint
 import dagger.hilt.android.EntryPointAccessors
@@ -38,12 +39,13 @@ class PlaybackService : MediaSessionService() {
 
     private val serviceScope = CoroutineScope(Dispatchers.Unconfined)
 
-    private lateinit var _playbackRepository: PlaybackRepository
     private lateinit var _contentPositionRepository: ContentPositionRepository
 
     private lateinit var _audioTapeRepository: AudioTapeRepository
     private lateinit var _audioStoreRepository: AudioStoreRepository
     private lateinit var _playingStateRepository: PlayingStateRepository
+    private lateinit var _controllerStateRepository: ControllerStateRepository
+    private lateinit var _audioTapeStagingRepository: AudioTapeStagingRepository
 
 
     // Create your player and media session in the onCreate lifecycle event
@@ -81,27 +83,24 @@ class PlaybackService : MediaSessionService() {
             applicationContext,
             PlaybackServiceEntryPoint::class.java
         )
-        _playbackRepository = entryPoint.playbackRepository()
         _contentPositionRepository = entryPoint.contentPositionRepository()
         _audioTapeRepository = entryPoint.audioTapeRepository()
         _audioStoreRepository = entryPoint.audioStoreRepository()
         _playingStateRepository = entryPoint.playingStateRepository()
+        _controllerStateRepository = entryPoint.controllerStateRepository()
+        _audioTapeStagingRepository = entryPoint.audioTapeStagingRepository()
     }
 
     private fun observeState(player: ExoPlayer) {
         serviceScope.launch {
             // UIとサービスからの変更をここで監視してaudioTapeを更新する
-            _playbackRepository.data.collect { playback ->
-                Timber.d("1#observeState playback = $playback")
-                // 再生可能状態になっていないと判断した場合は更新しない
-                if (!playback.isReadyOk) {
-                    return@collect
-                }
+            _audioTapeStagingRepository.data.collect { playback ->
+                Timber.d("#1 observeState playback = $playback")
                 // 何らかの異常がなければキーは存在しているはず
                 _audioTapeRepository.updatePlayingPosition(
                     playback.folderPath,
                     playback.currentName,
-                    playback.contentPosition
+                    playback.position
                 )
             }
         }
@@ -246,7 +245,8 @@ class PlaybackService : MediaSessionService() {
 //                }
                 if (player.currentMediaItem == null) {
                     // 準備完了していないのでReadyOkを落とす
-                    _playbackRepository.updateReadyStateToOff()
+                    _controllerStateRepository.updateReadyStateToOff()
+                    //_playbackRepository.updateReadyStateToOff()
                     return
                 }
                 var uiFlag = 0  // 1:再生状態 2:position 4:current 8:ready
@@ -272,30 +272,25 @@ class PlaybackService : MediaSessionService() {
                 }
 
                 if (uiFlag > 0) {
-                    Timber.d("#1parameter play:${player.isPlaying}, duration:${player.duration}, position:${player.contentPosition}")
+                    Timber.d("#1 parameter play:${player.isPlaying}, duration:${player.duration}, position:${player.contentPosition}")
                     val isReadyOk = player.playbackState == Player.STATE_READY
                     val isPlaying = player.isPlaying
-                    val duration = player.duration
                     val position = player.contentPosition
                     // current変更のときだけcurrentNameも変更する
                     if ((uiFlag and 4) > 0) {
                         val uri = player.currentMediaItem?.localConfiguration?.uri
                         if (uri != null) {
                             val file = File(_audioStoreRepository.uriToPath(uri))
-                            _playbackRepository.updateAll(
-                                isReadyOk,
-                                isPlaying,
-                                file.name,
-                                file.parent ?: "",
-                                duration,
+                            _controllerStateRepository.updateAll(isReadyOk, isPlaying)
+                            _audioTapeStagingRepository.updateAll(
+                                folderPath = file.parent ?: "",
+                                currentName = file.name,
                                 position
                             )
                         }
                     } else {
-                        _playbackRepository.updateWithoutStringItem(
-                            isReadyOk,
-                            isPlaying,
-                            duration,
+                        _controllerStateRepository.updateAll(isReadyOk, isPlaying)
+                        _audioTapeStagingRepository.updatePosition(
                             position
                         )
                     }

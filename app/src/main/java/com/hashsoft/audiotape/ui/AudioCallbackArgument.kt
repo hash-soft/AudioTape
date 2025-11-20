@@ -23,7 +23,9 @@ sealed interface AudioCallbackArgument {
     // フォルダ選択用
 
     data class AudioSelected(
-        val index: Int
+        val index: Int,
+        val name: String,
+        val position: Long,
     ) : AudioCallbackArgument
 
     data class FolderSelected(val path: String) : AudioCallbackArgument

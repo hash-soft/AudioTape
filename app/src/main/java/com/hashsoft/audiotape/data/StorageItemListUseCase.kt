@@ -20,7 +20,7 @@ class StorageItemListUseCase @Inject constructor(
 
         fun sortedFolderList(
             list: List<FolderItemDto>,
-            sortOrder: AudioTapeSortOrder
+            sortOrder: AudioTapeSortOrder?
         ): List<FolderItemDto> {
             return when (sortOrder) {
                 AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
@@ -39,7 +39,7 @@ class StorageItemListUseCase @Inject constructor(
 
         fun sortedAudioList(
             list: List<AudioItemDto>,
-            sortOrder: AudioTapeSortOrder
+            sortOrder: AudioTapeSortOrder?
         ): List<AudioItemDto> {
             return when (sortOrder) {
                 AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
@@ -67,13 +67,21 @@ class StorageItemListUseCase @Inject constructor(
                 else -> list
             }
         }
+
+        fun sortedAndCombinedList(
+            folderList: List<FolderItemDto>,
+            audioList: List<AudioItemDto>,
+            sortOrder: AudioTapeSortOrder
+        ): List<StorageItem> {
+            return sortedFolderList(folderList, sortOrder) + sortedAudioList(audioList, sortOrder)
+        }
     }
 
     fun pathToStorageItemList(
         volumes: List<VolumeItem>,
         path: String,
-        sortOrder: AudioTapeSortOrder
-    ): List<StorageItem> {
+        sortOrder: AudioTapeSortOrder?
+    ): Pair<List<FolderItemDto>, List<AudioItemDto>> {
         // pathが空の場合ルート
         return if (path.isEmpty()) {
             getRootStorageItemList(volumes, sortOrder)
@@ -84,22 +92,22 @@ class StorageItemListUseCase @Inject constructor(
 
     private fun getRootStorageItemList(
         volumes: List<VolumeItem>,
-        sortOrder: AudioTapeSortOrder
-    ): List<FolderItemDto> {
+        sortOrder: AudioTapeSortOrder?
+    ): Pair<List<FolderItemDto>, List<AudioItemDto>> {
         val list = volumes
             .map { FolderItemDto(it.name, it.path, "", it.lastModified, 0) }
-        return sortedFolderList(list, sortOrder)
+        return sortedFolderList(list, sortOrder) to listOf()
     }
 
     private fun getStorageItemList(
         volumes: List<VolumeItem>,
         path: String,
-        sortOrder: AudioTapeSortOrder
-    ): List<StorageItem> {
+        sortOrder: AudioTapeSortOrder?
+    ): Pair<List<FolderItemDto>, List<AudioItemDto>> {
         val folderList = getDirectoryList(path)
         val searchItem = AudioStoreRepository.pathToSearchObject(volumes, path)
         val audioList = _audioStoreRepository.getListByPath(searchItem)
-        return sortedFolderList(folderList, sortOrder) + sortedAudioList(audioList, sortOrder)
+        return sortedFolderList(folderList, sortOrder) to sortedAudioList(audioList, sortOrder)
     }
 
     private fun getDirectoryList(path: String): List<FolderItemDto> {
@@ -118,7 +126,7 @@ class StorageItemListUseCase @Inject constructor(
     fun getAudioItemList(
         volumes: List<VolumeItem>,
         path: String,
-        sortOrder: AudioTapeSortOrder
+        sortOrder: AudioTapeSortOrder?
     ): List<AudioItemDto> {
         val searchItem = AudioStoreRepository.pathToSearchObject(volumes, path)
         val list = _audioStoreRepository.getListByPath(searchItem)

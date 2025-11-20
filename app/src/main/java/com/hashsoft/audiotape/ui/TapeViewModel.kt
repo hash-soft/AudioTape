@@ -5,8 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
+import com.hashsoft.audiotape.data.AudioTapeStagingRepository
+import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
-import com.hashsoft.audiotape.data.PlaybackRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -32,7 +33,8 @@ class TapeViewModel @Inject constructor(
     private val _controller: AudioController,
     audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
-    private val _playbackRepository: PlaybackRepository,
+    private val _controllerStateRepository: ControllerStateRepository,
+    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     private val _folderStateRepository: FolderStateRepository,
     private val _storageItemListUseCase: StorageItemListUseCase,
     private val _audioStoreRepository: AudioStoreRepository,
@@ -56,14 +58,14 @@ class TapeViewModel @Inject constructor(
                     // Todo DBのほうにソートを入れるようにする DBにソートに必要な情報が入っているから可能
                     combine(
                         audioTapeRepository.getAll(),
-                        _playbackRepository.data,
+                        _controllerStateRepository.data,
                         _playingStateRepository.playingStateFlow()
                     ) { list, playback, playingState ->
                         Triple(list, playback, playingState)
                     }
                 }
-            }.collect { (list, playback, playingState) ->
-                tapeListState.updateList(list, playback, playingState.folderPath)
+            }.collect { (list, controllerState, playingState) ->
+                tapeListState.updateList(list, controllerState, playingState.folderPath)
                 _state.update { TapeViewState.Success }
             }
         }
@@ -87,7 +89,7 @@ class TapeViewModel @Inject constructor(
         }
         if (_controller.isCurrentMediaItem()) {
             // 位置を更新する
-            _playbackRepository.updateContentPosition(_controller.getContentPosition())
+            _audioTapeStagingRepository.updatePosition(_controller.getContentPosition())
         }
 
         _controller.setMediaItems(audioList, startIndex, tape.position)

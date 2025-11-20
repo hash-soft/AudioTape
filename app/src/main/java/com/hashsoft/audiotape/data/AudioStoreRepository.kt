@@ -278,8 +278,6 @@ class AudioStoreRepository(
                         )
                     )
                 )
-                Timber.d("getAudioItemListFromMediaStore ${cursor.getString(volumeNameColumn)}")
-
             }
         }
         return audioItemList
