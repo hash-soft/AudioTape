@@ -25,7 +25,7 @@ class ThemeModeViewModel @Inject constructor(private val _userSettingsRepository
      * テーマモードのUI状態
      */
     val uiState: StateFlow<ThemeModeUiState> =
-        _userSettingsRepository.getThemeMode(DEFAULT_ID).map { themeMode ->
+        _userSettingsRepository.findThemeModeById(DEFAULT_ID).map { themeMode ->
             ThemeModeUiState.Success(themeMode)
         }.stateIn(
             scope = viewModelScope,

@@ -18,6 +18,8 @@ import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageItemListUseCase.Companion.sortedAudioList
 import com.hashsoft.audiotape.data.StorageItemListUseCase.Companion.sortedFolderList
 import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.data.UserSettingsDto
+import com.hashsoft.audiotape.data.UserSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +51,8 @@ class FolderViewModel @Inject constructor(
     private val _controllerStateRepository: ControllerStateRepository,
     private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     storageVolumeRepository: StorageVolumeRepository,
-    audioStoreRepository: AudioStoreRepository
+    audioStoreRepository: AudioStoreRepository,
+    userSettingsRepository: UserSettingsRepository
 ) :
     ViewModel() {
 
@@ -74,10 +77,11 @@ class FolderViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _listState = _baseState.flatMapLatest { pair ->
         combine(
-            _audioTapeRepository.findSortOrderByPath(pair.first)
-        ) { (tapeSortOrder) ->
+            _audioTapeRepository.findSortOrderByPath(pair.first),
+            userSettingsRepository.findDefaultSortOrderById(UserSettingsRepository.DEFAULT_ID)
+        ) { (tapeSortOrder, defaultSortOrder) ->
             val listPair = pair.second
-            val sortOrder = tapeSortOrder ?: AudioTapeSortOrder.NAME_ASC
+            val sortOrder = tapeSortOrder ?: defaultSortOrder ?: AudioTapeSortOrder.NAME_ASC
             val folderList = sortedFolderList(listPair.first, sortOrder)
             val audioList = sortedAudioList(listPair.second, sortOrder)
             val folderSize = listPair.first.size
@@ -92,22 +96,40 @@ class FolderViewModel @Inject constructor(
     val displayFolderState = _listState.flatMapLatest { (folderPath, listPair) ->
         combine(
             _audioTapeRepository.findByPath(folderPath),
+            userSettingsRepository.findById(UserSettingsRepository.DEFAULT_ID),
             _controllerStateRepository.data,
             _playingStateRepository.playingStateFlow()
-        ) { audioTape, controllerState, playingState ->
+        ) { audioTape, settings, controllerState, playingState ->
             _state.update { FolderViewState.Success }
             DisplayFolder(
-                folderPath = folderPath,
                 listPair.first,
                 listPair.second,
-                audioTape,
+                audioTape = makeAudioTape(audioTape, settings, folderPath),
                 playingState,
                 controllerState
             )
         }
     }.stateIn(
-        viewModelScope, SharingStarted.Eagerly, DisplayFolder("")
+        viewModelScope, SharingStarted.WhileSubscribed(5000), DisplayFolder()
     )
+
+    private fun makeAudioTape(
+        srcAudioTape: AudioTapeDto?,
+        srcSettings: UserSettingsDto?,
+        srcFolderPath: String,
+    ): AudioTapeDto {
+        if (srcAudioTape != null) return srcAudioTape
+        val settings = srcSettings ?: UserSettingsDto(UserSettingsRepository.DEFAULT_ID)
+        return AudioTapeDto(
+            folderPath = srcFolderPath,
+            currentName = "",
+            sortOrder = settings.defaultSortOrder,
+            repeat = settings.defaultRepeat,
+            volume = settings.defaultVolume,
+            speed = settings.defaultSpeed,
+            pitch = settings.defaultPitch
+        )
+    }
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
@@ -148,13 +170,19 @@ class FolderViewModel @Inject constructor(
 
     fun play() = _controller.play()
 
-    fun createTapeNotExist(folderPath: String, currentName: String, position: Long) {
+    fun createTapeNotExist(audioTape: AudioTapeDto, currentName: String, position: Long) {
         viewModelScope.launch {
             val result = _audioTapeRepository.insertNew(
-                folderPath, currentName = currentName, position = position,
-                sortOrder = AudioTapeSortOrder.NAME_ASC
+                audioTape.folderPath,
+                currentName = currentName,
+                position = position,
+                sortOrder = AudioTapeSortOrder.NAME_ASC,
+                repeat = audioTape.repeat,
+                volume = audioTape.volume,
+                speed = audioTape.speed,
+                pitch = audioTape.pitch
             )
-            Timber.d("insertNew result: $result folderPath: $folderPath")
+            Timber.d("insertNew result: $result folderPath: ${audioTape.folderPath}")
         }
     }
 }

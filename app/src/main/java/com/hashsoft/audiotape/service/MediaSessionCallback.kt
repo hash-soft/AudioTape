@@ -90,8 +90,7 @@ class MediaSessionCallback(
 
     private suspend fun getPlayingAudioTape(): AudioTapeDto? {
         val state = _playingStateRepository.playingStateFlow().first()
-        val tape = _audioTapeRepository.findByPath(state.folderPath).first()
-        return tape
+        return _audioTapeRepository.findByPath(state.folderPath).first()
     }
 
     private suspend fun restorePlaylist(tape: AudioTapeDto): Pair<List<MediaItem>, Int> {

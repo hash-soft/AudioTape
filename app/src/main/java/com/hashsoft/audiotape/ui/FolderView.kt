@@ -44,7 +44,7 @@ fun FolderViewRoute(
                 when (argument) {
 
                     is AudioCallbackArgument.AudioSelected -> {
-                        viewModel.updatePlayingFolderPath(displayFolder.folderPath)
+                        viewModel.updatePlayingFolderPath(displayFolder.audioTape.folderPath)
                         viewModel.setMediaItemsInFolderList(
                             displayFolder.list,
                             argument.index,
@@ -54,7 +54,7 @@ fun FolderViewRoute(
                         viewModel.play()
                         // テープの新規作成はここか長押しの場合のみ
                         viewModel.createTapeNotExist(
-                            displayFolder.folderPath,
+                            displayFolder.audioTape,
                             argument.name,
                             argument.position
                         )

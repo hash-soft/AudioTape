@@ -118,7 +118,7 @@ class AudioPlayViewModel @Inject constructor(
                 _audioTapeRepository.findByPath(state.folderPath),
                 _controllerStateRepository.data
             ) { audioTape, playback ->
-                Triple(volumes, audioTape, playback)
+                Triple(volumes, audioTape ?: AudioTapeDto("", ""), playback)
             }
         }
     }

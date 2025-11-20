@@ -44,7 +44,10 @@ interface UserSettingsDao {
     fun findById(id: Int): Flow<UserSettingsEntity?>
 
     @Query("SELECT theme_mode FROM user_settings WHERE uid = :id")
-    fun getThemeMode(id: Int): Flow<String?>
+    fun findThemeModeById(id: Int): Flow<String?>
+
+    @Query("SELECT default_sort_order FROM user_settings WHERE uid = :id")
+    fun findDefaultSortOrderById(id: Int): Flow<Int?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(userSettings: UserSettingsEntity): Long

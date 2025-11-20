@@ -31,12 +31,12 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      * @param path フォルダのパス
      * @return 見つかったオーディオテープ、見つからない場合は空のDTOをFlowで返す
      */
-    fun findByPath(path: String): Flow<AudioTapeDto> {
+    fun findByPath(path: String): Flow<AudioTapeDto?> {
         return audioTapeDao.findByPath(path).map {
             if (it == null) {
                 // このフォルダはdbにまだ存在していない
                 Timber.i("findByPath is null: $path")
-                AudioTapeDto("", "")
+                null
             } else {
                 Timber.d("audio tape: $it")
                 convertEntityToDto(it)
@@ -53,7 +53,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
     fun findSortOrderByPath(path: String): Flow<AudioTapeSortOrder?> {
         return audioTapeDao.findSortOrderByPath(path).map {
             if (it == null) {
-                Timber.i("findByPath is null: $path")
+                Timber.i("findSortOrderByPath is null: $path")
                 null
             } else {
                 AudioTapeSortOrder.fromInt(it)
@@ -98,7 +98,11 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         folderPath: String,
         currentName: String,
         position: Long,
-        sortOrder: AudioTapeSortOrder
+        sortOrder: AudioTapeSortOrder,
+        repeat: Boolean,
+        volume: Float,
+        speed: Float,
+        pitch: Float
     ): Long {
         val time = SystemTime.currentMillis()
         return audioTapeDao.insertAll(
@@ -107,6 +111,10 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
                 currentName = currentName,
                 position = position,
                 sortOrder = sortOrder.ordinal,
+                repeat = if (repeat) 2 else 0,
+                volume = volume,
+                speed = speed,
+                pitch = pitch,
                 lastPlayedAt = time,
                 createTime = time,
                 updateTime = time

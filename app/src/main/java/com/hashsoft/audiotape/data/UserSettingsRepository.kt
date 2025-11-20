@@ -9,6 +9,7 @@ class UserSettingsRepository(private val userSettingsDao: UserSettingsDao) {
     fun findById(id: Int): Flow<UserSettingsDto?> {
         return userSettingsDao.findById(id).map {
             if (it == null) {
+                Timber.i("findById is null: $id")
                 null
             } else {
                 UserSettingsDto(
@@ -27,11 +28,22 @@ class UserSettingsRepository(private val userSettingsDao: UserSettingsDao) {
         }
     }
 
-    fun getThemeMode(id: Int): Flow<ThemeMode> {
-        return userSettingsDao.getThemeMode(id)
+    fun findThemeModeById(id: Int): Flow<ThemeMode> {
+        return userSettingsDao.findThemeModeById(id)
             .map {
                 stringToThemeMode(it)
             }
+    }
+
+    fun findDefaultSortOrderById(id: Int): Flow<AudioTapeSortOrder?> {
+        return userSettingsDao.findDefaultSortOrderById(id).map {
+            if (it == null) {
+                Timber.i("findDefaultSortOrderById is null: $id")
+                null
+            } else {
+                AudioTapeSortOrder.fromInt(it)
+            }
+        }
     }
 
     suspend fun insertAll(userSettings: UserSettingsDto): Long {
