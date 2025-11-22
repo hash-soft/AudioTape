@@ -27,7 +27,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -77,18 +79,19 @@ class FolderViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _listState = _baseState.flatMapLatest { pair ->
         combine(
-            _audioTapeRepository.findSortOrderByPath(pair.first),
+            _audioTapeRepository.findSortOrderByPath(pair.first).distinctUntilChanged(),
             userSettingsRepository.findDefaultSortOrderById(UserSettingsRepository.DEFAULT_ID)
+                .distinctUntilChanged()
         ) { (tapeSortOrder, defaultSortOrder) ->
+            tapeSortOrder ?: defaultSortOrder ?: AudioTapeSortOrder.NAME_ASC
+        }.distinctUntilChanged().map { sortOrder ->
             val listPair = pair.second
-            val sortOrder = tapeSortOrder ?: defaultSortOrder ?: AudioTapeSortOrder.NAME_ASC
             val folderList = sortedFolderList(listPair.first, sortOrder)
             val audioList = sortedAudioList(listPair.second, sortOrder)
             val folderSize = listPair.first.size
             val expandIndexList =
                 folderList.indices.toList() + audioList.indices.map { it + folderSize }
             pair.first to Pair(folderList + audioList, expandIndexList)
-
         }
     }
 

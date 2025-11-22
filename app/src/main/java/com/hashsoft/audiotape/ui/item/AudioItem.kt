@@ -1,7 +1,7 @@
 package com.hashsoft.audiotape.ui.item
 
 import android.graphics.BitmapFactory
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.PlayArrow
@@ -59,7 +59,7 @@ fun AudioItem(
             } else {
                 null
             },
-        modifier = Modifier.clickable {
+        modifier = Modifier.combinedClickable(onClick = {
             audioCallback(
                 AudioCallbackArgument.AudioSelected(
                     index = index,
@@ -67,7 +67,7 @@ fun AudioItem(
                     position = contentPosition
                 )
             )
-        },
+        }, onLongClick = { }),
         colors = if (color > 0) ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant, // 背景色
             headlineColor = MaterialTheme.colorScheme.onSurfaceVariant         // 見出し文字色
