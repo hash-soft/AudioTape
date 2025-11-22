@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
@@ -24,31 +23,11 @@ class ThemeModeViewModel @Inject constructor(private val _userSettingsRepository
     /**
      * テーマモードのUI状態
      */
-    val uiState: StateFlow<ThemeModeUiState> =
-        _userSettingsRepository.findThemeModeById(DEFAULT_ID).map { themeMode ->
-            ThemeModeUiState.Success(themeMode)
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ThemeModeUiState.Loading
-        )
-}
-
-/**
- * テーマモードのUI状態
- */
-sealed interface ThemeModeUiState {
-    /**
-     * 読み込み中
-     */
-    data object Loading : ThemeModeUiState
-
-    /**
-     * 成功
-     *
-     * @param themeMode テーマモード
-     */
-    data class Success(
-        val themeMode: ThemeMode
-    ) : ThemeModeUiState
+    val themeState: StateFlow<ThemeMode> =
+        _userSettingsRepository.findThemeModeById(DEFAULT_ID)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = ThemeMode.SYSTEM
+            )
 }

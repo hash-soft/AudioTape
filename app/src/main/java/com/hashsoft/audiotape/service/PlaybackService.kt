@@ -21,8 +21,7 @@ import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
 import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
-import com.hashsoft.audiotape.ui.di.entry.PlaybackServiceEntryPoint
-import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -32,20 +31,32 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PlaybackService : MediaSessionService() {
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var mediaSession: MediaSession? = null
 
     private val serviceScope = CoroutineScope(Dispatchers.Unconfined)
 
-    private lateinit var _contentPositionRepository: ContentPositionRepository
+    @Inject
+    lateinit var _contentPositionRepository: ContentPositionRepository
 
-    private lateinit var _audioTapeRepository: AudioTapeRepository
-    private lateinit var _audioStoreRepository: AudioStoreRepository
-    private lateinit var _playingStateRepository: PlayingStateRepository
-    private lateinit var _controllerStateRepository: ControllerStateRepository
-    private lateinit var _audioTapeStagingRepository: AudioTapeStagingRepository
+    @Inject
+    lateinit var _audioTapeRepository: AudioTapeRepository
+
+    @Inject
+    lateinit var _audioStoreRepository: AudioStoreRepository
+
+    @Inject
+    lateinit var _playingStateRepository: PlayingStateRepository
+
+    @Inject
+    lateinit var _controllerStateRepository: ControllerStateRepository
+
+    @Inject
+    lateinit var _audioTapeStagingRepository: AudioTapeStagingRepository
 
 
     // Create your player and media session in the onCreate lifecycle event
@@ -53,7 +64,6 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         Timber.d("onCreate")
-        initializeRepository()
         val player = ExoPlayer.Builder(this)
             .setHandleAudioBecomingNoisy(true).build()
         setPlayerListener(player)
@@ -76,19 +86,6 @@ class PlaybackService : MediaSessionService() {
                     builder.setSessionActivity(intent)
                 }
         observeState(player)
-    }
-
-    private fun initializeRepository() {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            applicationContext,
-            PlaybackServiceEntryPoint::class.java
-        )
-        _contentPositionRepository = entryPoint.contentPositionRepository()
-        _audioTapeRepository = entryPoint.audioTapeRepository()
-        _audioStoreRepository = entryPoint.audioStoreRepository()
-        _playingStateRepository = entryPoint.playingStateRepository()
-        _controllerStateRepository = entryPoint.controllerStateRepository()
-        _audioTapeStagingRepository = entryPoint.audioTapeStagingRepository()
     }
 
     private fun observeState(player: ExoPlayer) {
