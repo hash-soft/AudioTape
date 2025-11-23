@@ -19,15 +19,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
-import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 @Composable
 fun LibrarySheetRoute(
@@ -35,22 +34,23 @@ fun LibrarySheetRoute(
     onAudioPlayClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState
-    val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
+    val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
 
-    val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
-    Timber.d("#LisReady $isReady")
+//    val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
+//    Timber.d("#LisReady $isReady")
+
 
     when (val state = uiState) {
         is LibraryStateUiState.Loading -> {}
         is LibraryStateUiState.Success -> LibrarySheetPager(
             state.libraryState,
-            playItem = playItem,
+            displayPlayingItem = displayPlayingItem,
             audioCallback = { argument ->
                 if (argument is AudioCallbackArgument.TransferAudioPlay) {
                     onAudioPlayClick()
                     return@LibrarySheetPager AudioCallbackResult.None
                 }
-                playItemSelected(viewModel, argument)
+                playItemSelected(viewModel, displayPlayingItem, argument)
             },
             tabs = viewModel.tabs()
         ) {
@@ -61,8 +61,10 @@ fun LibrarySheetRoute(
 
 private fun playItemSelected(
     viewModel: LibraryStateViewModel,
+    displayPlayingItem: DisplayPlayingItem?,
     argument: AudioCallbackArgument
 ): AudioCallbackResult {
+    if (displayPlayingItem == null) return AudioCallbackResult.None
     return when (argument) {
         is AudioCallbackArgument.Position -> {
             return AudioCallbackResult.Position(viewModel.getContentPosition())
@@ -77,7 +79,7 @@ private fun playItemSelected(
             if (argument.isPlaying) {
                 viewModel.pause()
             } else {
-                viewModel.setPlayingParameters()
+                viewModel.setPlayingParameters(displayPlayingItem.audioTape)
                 viewModel.play()
             }
             AudioCallbackResult.None
@@ -102,7 +104,7 @@ private fun playItemSelected(
 private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
-    playItem: PlayAudioDto? = null,
+    displayPlayingItem: DisplayPlayingItem?,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None },
     onTabChange: (index: Int) -> Unit,
 ) {
@@ -120,16 +122,18 @@ private fun LibrarySheetPager(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = if (playItem == null) {
+        bottomBar = if (displayPlayingItem == null) {
             {}
         } else {
             {
+                val audioTape = displayPlayingItem.audioTape
+                val audioItem = displayPlayingItem.audioItem
                 SimpleAudioPlayItem(
-                    path = playItem.path,
-                    isReadyOk = playItem.isReadyOk,
-                    isPlaying = playItem.isPlaying,
-                    durationMs = playItem.durationMs,
-                    contentPosition = playItem.contentPosition,
+                    path = audioTape.folderPath + File.separator + audioTape.currentName,
+                    isReadyOk = displayPlayingItem.controllerState.isReadyOk,
+                    isPlaying = displayPlayingItem.controllerState.isPlaying,
+                    durationMs = audioItem?.metadata?.duration ?: 0,
+                    contentPosition = audioTape.position,
                     audioCallback = audioCallback
                 )
             }
@@ -164,11 +168,4 @@ private fun LibrarySheetPager(
             }
         }
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun LibrarySheetPagerPreview() {
-    //LibraryView()
 }

@@ -52,38 +52,6 @@ class PlayItemState(
         _item.update { playAudio }
     }
 
-    // ここを改修する
-    // 高速で読み出せるのでリストごと取得してしまう
-    fun updatePlayAudioForSimple(
-        volumes: List<VolumeItem>,
-        audioTape: AudioTapeDto,
-        playback: ControllerState
-    ) {
-        val playAudio =
-            if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
-                val searchObject = AudioStoreRepository.pathToSearchObject(
-                    volumes,
-                    audioTape.folderPath,
-                    audioTape.currentName
-                )
-                val item = _audioStoreRepository.getAudioItem(searchObject)
-                val durationMs = item?.metadata?.duration ?: 0
-                PlayAudioDto(
-                    exist = item != null,
-                    playback.isReadyOk,
-                    playback.isPlaying,
-                    audioTape.folderPath + File.separator + audioTape.currentName,
-                    durationMs,
-                    audioTape.position,
-                    audioTape = audioTape
-                )
-            } else {
-                null
-            }
-        _item.update { playAudio }
-    }
-
-
     fun updatePlaybackPosition(position: Long) {
         _audioTapeStagingRepository.updatePosition(position)
     }

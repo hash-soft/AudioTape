@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
@@ -14,68 +15,66 @@ import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
-import com.hashsoft.audiotape.data.VolumeItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LibraryStateViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
-    private val _controllerStateRepository: ControllerStateRepository,
+    controllerStateRepository: ControllerStateRepository,
     private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     private val _audioTapeRepository: AudioTapeRepository,
-    private val _playingStateRepository: PlayingStateRepository,
+    playingStateRepository: PlayingStateRepository,
     private val _audioStoreRepository: AudioStoreRepository,
-    private val _storageVolumeRepository: StorageVolumeRepository
+    storageVolumeRepository: StorageVolumeRepository
 ) :
     ViewModel() {
 
     val controllerOk = _controller.isReady
     val uiState: MutableState<LibraryStateUiState> = mutableStateOf(LibraryStateUiState.Loading)
 
-    val playItemState = PlayItemState(
-        _audioTapeStagingRepository,
-        _audioTapeRepository,
-        _audioStoreRepository
-    )
+    private val _basePlayingState = combine(
+        storageVolumeRepository.volumeChangeFlow(),
+        _audioStoreRepository.updateFlow,
+        playingStateRepository.playingStateFlow()
+    ) { volumes, _, playingState ->
+        volumes to playingState.folderPath
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _itemPlayingState = _basePlayingState.flatMapLatest { pair ->
+        _audioTapeRepository.findByPath(pair.second).map { audioTape ->
+            if (audioTape == null) null to null else {
+                val searchObject = AudioStoreRepository.pathToSearchObject(
+                    pair.first,
+                    audioTape.folderPath,
+                    audioTape.currentName
+                )
+                audioTape to _audioStoreRepository.getAudioItem(searchObject)
+            }
+        }
+    }
+
+    val displayPlayingState =
+        combine(_itemPlayingState, controllerStateRepository.data) { audio, controllerState ->
+            val audioTape = audio.first
+            if (audioTape == null) null else {
+                DisplayPlayingItem(audioTape, audio.second, controllerState)
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
         viewModelScope.launch {
             val state = _libraryStateRepository.getLibraryState()
             uiState.value = LibraryStateUiState.Success(state)
-            viewModelScope.launch {
-                @OptIn(ExperimentalCoroutinesApi::class)
-                _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
-                    watchAudioStore(volumes)
-                }.collect { (volumes, audioTape, playback) ->
-                    playItemState.updatePlayAudioForSimple(volumes, audioTape, playback)
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
-        // 待つだけ
-        return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
-    }
-
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
-        return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
-            combine(
-                _audioTapeRepository.findByPath(state.folderPath),
-                _controllerStateRepository.data
-            ) { audioTape, playback ->
-                Triple(volumes, audioTape ?: AudioTapeDto("", ""), playback)
-            }
         }
     }
 
@@ -85,12 +84,10 @@ class LibraryStateViewModel @Inject constructor(
         _libraryStateRepository.saveSelectedTabName(index)
     }
 
-    fun setPlayingParameters() {
-        playItemState.item.value?.audioTape?.let {
-            _controller.setRepeat(it.repeat)
-            _controller.setVolume(it.volume)
-            _controller.setPlaybackParameters(it.speed, it.pitch)
-        }
+    fun setPlayingParameters(audioTape: AudioTapeDto) {
+        _controller.setRepeat(audioTape.repeat)
+        _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
+        _controller.setVolume(audioTape.volume)
     }
 
     fun play() = _controller.play()
@@ -103,7 +100,7 @@ class LibraryStateViewModel @Inject constructor(
         if (_controller.isCurrentMediaItem()) {
             _controller.seekTo(position)
         } else {
-            playItemState.updatePlaybackPosition(position)
+            _audioTapeStagingRepository.updatePosition(position)
         }
     }
 
@@ -112,6 +109,13 @@ class LibraryStateViewModel @Inject constructor(
     fun seekToPrevious() = _controller.seekToPrevious()
 
 }
+
+data class DisplayPlayingItem(
+    val audioTape: AudioTapeDto = AudioTapeDto("", ""),
+    val audioItem: AudioItemDto?,
+    val controllerState: ControllerState = ControllerState(false, false)
+)
+
 
 sealed interface LibraryStateUiState {
     data object Loading : LibraryStateUiState
