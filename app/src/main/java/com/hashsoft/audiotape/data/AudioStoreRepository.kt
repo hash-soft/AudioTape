@@ -88,11 +88,18 @@ class AudioStoreRepository(
                 AudioSearchObject.Relative(volume.mediaStorageVolumeName, relativePath, name)
             } ?: AudioSearchObject.Relative("", "", name)
         }
+
+        fun pathToTreeList(volumes: List<VolumeItem>, path: String): List<String>? {
+            return StorageHelper.findVolumeByPath(volumes, path)?.let {
+                (it.name + path.removePrefix(it.path)).split(File.separator)
+            }
+        }
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + Job())
 
     private val _updateFlow = MutableSharedFlow<Unit>(replay = 1)
+
     /**
      * 音声リストの更新を通知するFlow。
      */
@@ -101,6 +108,7 @@ class AudioStoreRepository(
     private var cache = listOf<AudioItemDto>()
 
     private val _audioLoadState = MutableStateFlow<AudioLoadState>(AudioLoadState.Loading)
+
     /**
      * 音声ファイルの読み込み状態。
      */

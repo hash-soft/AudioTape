@@ -3,6 +3,7 @@
     <string name="loading">loading…</string>
     <string name="back">back</string>
     <string name="ok" translatable="false">OK</string>
+    <string name="path_separator" translatable="false">\u0020&gt;\u0020</string>
     <string name="settings">Settings</string>
     <string name="permission_required">Permission Required</string>
     <string name="permission_rationale_legacy">Please turn on storage permissions to load audio files.</string>

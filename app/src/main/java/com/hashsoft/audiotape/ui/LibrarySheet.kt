@@ -19,14 +19,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
+import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 
 @Composable
 fun LibrarySheetRoute(
@@ -35,6 +37,7 @@ fun LibrarySheetRoute(
 ) {
     val uiState by viewModel.uiState
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
+    val playingPosition by viewModel.playingPosition.collectAsStateWithLifecycle()
 
 //    val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
 //    Timber.d("#LisReady $isReady")
@@ -45,6 +48,7 @@ fun LibrarySheetRoute(
         is LibraryStateUiState.Success -> LibrarySheetPager(
             state.libraryState,
             displayPlayingItem = displayPlayingItem,
+            playingPosition = playingPosition,
             audioCallback = { argument ->
                 if (argument is AudioCallbackArgument.TransferAudioPlay) {
                     onAudioPlayClick()
@@ -105,6 +109,7 @@ private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
     displayPlayingItem: DisplayPlayingItem?,
+    playingPosition: Long,
     audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None },
     onTabChange: (index: Int) -> Unit,
 ) {
@@ -128,12 +133,19 @@ private fun LibrarySheetPager(
             {
                 val audioTape = displayPlayingItem.audioTape
                 val audioItem = displayPlayingItem.audioItem
+                val isPlaying = displayPlayingItem.controllerState.isPlaying
+                val contentPosition = if (isPlaying) playingPosition else audioTape.position
                 SimpleAudioPlayItem(
-                    path = audioTape.folderPath + File.separator + audioTape.currentName,
+                    directory = StorageHelper.treeListToString(
+                        displayPlayingItem.treeList,
+                        stringResource(R.string.path_separator),
+                        default = audioTape.folderPath
+                    ),
+                    name = audioTape.currentName,
                     isReadyOk = displayPlayingItem.controllerState.isReadyOk,
-                    isPlaying = displayPlayingItem.controllerState.isPlaying,
+                    isPlaying = isPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
-                    contentPosition = audioTape.position,
+                    contentPosition = contentPosition,
                     audioCallback = audioCallback
                 )
             }

@@ -8,6 +8,7 @@ import androidx.annotation.RequiresApi
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.VolumeItem
 import timber.log.Timber
+import java.io.File
 
 class StorageHelper {
     companion object {
@@ -19,6 +20,19 @@ class StorageHelper {
         fun findVolumeByPath(list: List<VolumeItem>, path: String): VolumeItem? {
             return list.find { path.startsWith(it.path) }
         }
+
+        fun treeListToString(
+            list: List<String>?,
+            separator: String = " > ",
+            default: String = ""
+        ): String {
+            return list?.joinToString(separator = separator) ?: default.removePrefix(File.separator)
+                .replace(
+                    File.separator,
+                    separator
+                )
+        }
+
 
         @RequiresApi(Build.VERSION_CODES.R)
         fun getVolumesR(context: Context, storageManager: StorageManager): List<VolumeItem> {

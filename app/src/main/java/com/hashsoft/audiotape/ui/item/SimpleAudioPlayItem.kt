@@ -8,8 +8,9 @@ import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 @Composable
 fun SimpleAudioPlayItem(
-    path: String,
-    isReadyOk: Boolean = true,
+    directory: String,
+    name: String,
+    isReadyOk: Boolean = false,
     isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
@@ -18,7 +19,8 @@ fun SimpleAudioPlayItem(
     val configuration = LocalConfiguration.current
     if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
         SimpleAudioPlayItemPortrait(
-            path,
+            directory,
+            name,
             isReadyOk,
             isPlaying,
             durationMs,
@@ -28,7 +30,8 @@ fun SimpleAudioPlayItem(
     } else {
         // Todo 横向き用に変更
         SimpleAudioPlayItemPortrait(
-            path,
+            directory,
+            name,
             isReadyOk,
             isPlaying,
             durationMs,
