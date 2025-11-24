@@ -67,7 +67,16 @@ fun AudioItem(
                     position = contentPosition
                 )
             )
-        }, onLongClick = { }),
+        }, onLongClick = {
+            audioCallback(
+                AudioCallbackArgument.AudioSelected(
+                    index = audioIndex,
+                    name = name,
+                    position = contentPosition,
+                    transfer = true
+                )
+            )
+        }),
         colors = if (color > 0) ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant, // 背景色
             headlineColor = MaterialTheme.colorScheme.onSurfaceVariant         // 見出し文字色

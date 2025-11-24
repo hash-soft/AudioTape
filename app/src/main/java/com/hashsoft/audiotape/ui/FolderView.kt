@@ -21,7 +21,8 @@ import timber.log.Timber
 
 @Composable
 fun FolderViewRoute(
-    viewModel: FolderViewModel = hiltViewModel()
+    viewModel: FolderViewModel = hiltViewModel(),
+    onAudioTransfer: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val storageLocationList by viewModel.addressBarState.list.collectAsStateWithLifecycle()
@@ -50,14 +51,18 @@ fun FolderViewRoute(
                             argument.index,
                             argument.position
                         )
-                        viewModel.setPlayingParameters(displayFolder.audioTape)
-                        viewModel.play()
-                        // テープの新規作成はここか長押しの場合のみ
+                        // テープの新規作成はこの場合のみ
                         viewModel.createTapeNotExist(
                             displayFolder.audioTape,
                             argument.name,
                             argument.position
                         )
+                        if (argument.transfer) {
+                            onAudioTransfer()
+                        } else {
+                            viewModel.setPlayingParameters(displayFolder.audioTape)
+                            viewModel.play()
+                        }
                     }
 
                     is AudioCallbackArgument.FolderSelected -> {

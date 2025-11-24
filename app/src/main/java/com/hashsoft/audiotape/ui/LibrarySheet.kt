@@ -170,7 +170,10 @@ private fun LibrarySheetPager(
                 flingBehavior = PagerDefaults.flingBehavior(state, snapPositionalThreshold = 0.3f)
             ) {
                 when (it) {
-                    0 -> FolderViewRoute()
+                    0 -> FolderViewRoute {
+                        audioCallback(AudioCallbackArgument.TransferAudioPlay)
+                    }
+
                     1 -> TapeView {
                         scope.launch {
                             state.animateScrollToPage(0)

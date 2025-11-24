@@ -105,7 +105,6 @@ class PlaybackService : MediaSessionService() {
         serviceScope.launch {
             // Todo バックグラウンドでも動いてしまうのでModelViewに移動したい
             player.playingContentPositionFlow(_controllerStateRepository.data).collect { position ->
-                Timber.d("position1 = $position")
                 _contentPositionRepository.update(position)
             }
         }

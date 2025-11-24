@@ -26,6 +26,7 @@ sealed interface AudioCallbackArgument {
         val index: Int,
         val name: String,
         val position: Long,
+        val transfer: Boolean = false
     ) : AudioCallbackArgument
 
     data class FolderSelected(val path: String) : AudioCallbackArgument
