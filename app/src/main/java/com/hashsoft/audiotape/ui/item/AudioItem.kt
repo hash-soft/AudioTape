@@ -62,7 +62,7 @@ fun AudioItem(
         modifier = Modifier.combinedClickable(onClick = {
             audioCallback(
                 AudioCallbackArgument.AudioSelected(
-                    index = index,
+                    index = audioIndex,
                     name = name,
                     position = contentPosition
                 )

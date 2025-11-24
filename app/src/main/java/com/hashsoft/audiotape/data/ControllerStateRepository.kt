@@ -17,10 +17,13 @@ class ControllerStateRepository {
         data.value = ControllerState(isReady, isPlaying)
     }
 
-    fun updateReadyStateToOff() {
-        if (data.value.isReadyOk) {
-            data.value = data.value.copy(isReadyOk = false)
-        }
+    fun updateIsReadyOk(isReadyOk: Boolean) {
+        data.value = data.value.copy(isReadyOk = isReadyOk)
     }
+
+    fun updateIsPlaying(isPlaying: Boolean) {
+        data.value = data.value.copy(isPlaying = isPlaying)
+    }
+
 
 }

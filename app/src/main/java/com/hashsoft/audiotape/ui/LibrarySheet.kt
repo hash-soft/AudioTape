@@ -133,8 +133,8 @@ private fun LibrarySheetPager(
             {
                 val audioTape = displayPlayingItem.audioTape
                 val audioItem = displayPlayingItem.audioItem
-                val isPlaying = displayPlayingItem.controllerState.isPlaying
-                val contentPosition = if (isPlaying) playingPosition else audioTape.position
+                val contentPosition =
+                    if (playingPosition >= 0) playingPosition else audioTape.position
                 SimpleAudioPlayItem(
                     directory = StorageHelper.treeListToString(
                         displayPlayingItem.treeList,
@@ -143,7 +143,7 @@ private fun LibrarySheetPager(
                     ),
                     name = audioTape.currentName,
                     isReadyOk = displayPlayingItem.controllerState.isReadyOk,
-                    isPlaying = isPlaying,
+                    isPlaying = displayPlayingItem.controllerState.isPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
                     audioCallback = audioCallback

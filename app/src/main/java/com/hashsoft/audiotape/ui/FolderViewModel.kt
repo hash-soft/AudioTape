@@ -88,9 +88,8 @@ class FolderViewModel @Inject constructor(
             val listPair = pair.second
             val folderList = sortedFolderList(listPair.first, sortOrder)
             val audioList = sortedAudioList(listPair.second, sortOrder)
-            val folderSize = listPair.first.size
             val expandIndexList =
-                folderList.indices.toList() + audioList.indices.map { it + folderSize }
+                folderList.indices.toList() + audioList.indices.toList()
             pair.first to Pair(folderList + audioList, expandIndexList)
         }
     }
