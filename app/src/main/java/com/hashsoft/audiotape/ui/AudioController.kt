@@ -1,17 +1,14 @@
 package com.hashsoft.audiotape.ui
 
 import android.content.ComponentName
-import android.content.ContentUris
 import android.content.Context
-import android.provider.MediaStore
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.hashsoft.audiotape.core.extensions.await
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.logic.MediaItemHelper
 import com.hashsoft.audiotape.service.PlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,19 +75,22 @@ class AudioController(
         return _controller?.currentMediaItem != null
     }
 
+    fun playWhenReady(playWhenReady: Boolean) = _controller?.playWhenReady = playWhenReady
+
+
+    fun prepare() = _controller?.prepare()
+
     /**
      * 再生
      */
-    fun play() {
-        _controller?.play()
-    }
+    fun play() = _controller?.play()
+
 
     /**
      * 一時停止
      */
-    fun pause() {
-        _controller?.pause()
-    }
+    fun pause() = _controller?.pause()
+
 
     /**
      * 再生パラメータを設定する
@@ -222,6 +222,14 @@ class AudioController(
         }
     }
 
+    fun getMediaItemCount() = _controller?.mediaItemCount ?: -1
+
+    fun setMediaItems(list: List<AudioItemDto>, indexName: String, positionMs: Long = 0) {
+        val startIndex = list.indexOfFirst { it.name == indexName }
+        setMediaItems(list, if (startIndex < 0) 0 else startIndex, positionMs)
+    }
+
+
     /**
      * メディアアイテムのリストを設定する
      *
@@ -237,25 +245,12 @@ class AudioController(
         if (audioList.isEmpty()) {
             return
         }
-        val mediaItems = audioList.map { audio ->
-            val uri =
-                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audio.id)
-            val builder = MediaItem.Builder().setUri(uri).setMediaId(audio.id.toString())
-            val metadata = audio.metadata
-            val mediaMetadata = MediaMetadata.Builder()
-                .setArtist(metadata.artist)
-                .setTitle(audio.name)
-                .setDurationMs(metadata.duration)
-                .setAlbumTitle(metadata.album)
-                .build()
-            builder.setMediaMetadata(mediaMetadata)
-            builder.build()
-        }
+        val mediaItems = audioList.map { audio -> MediaItemHelper.audioItemToMediaItem(audio) }
 
         // 初期位置も合わせて設定する
         _controller?.run {
             setMediaItems(mediaItems, mediaItemIndex, positionMs)
-            prepare()
+            //prepare()
         }
     }
 
@@ -293,54 +288,6 @@ class AudioController(
     }
 
     /**
-     * 現在のメディアアイテムリストを、指定されたリストの内容に合わせて置換・挿入する
-     *
-     * @param list 新しいオーディオリスト
-     */
-    fun replaceMediaItemsWith(list: List<AudioItemDto>) {
-        if (list.isEmpty()) {
-            return
-        }
-        if ((_controller?.mediaItemCount ?: 0) == 0) {
-            return
-        }
-        _controller?.run {
-            list.forEachIndexed { index, audioItem ->
-                for (i in index until mediaItemCount) {
-                    val item = getMediaItemAt(i)
-                    if (item.mediaId == audioItem.id.toString()) {
-                        for (j in index until i) {
-                            addMediaItem(j, audioItemToMediaItem(audioItem))
-                        }
-                        return@forEachIndexed
-                    }
-                    addMediaItem(i, audioItemToMediaItem(audioItem))
-                }
-            }
-        }
-    }
-
-    /**
-     * AudioItemDtoをMediaItemに変換する
-     *
-     * @param audioItem 変換するAudioItemDto
-     * @return 変換されたMediaItem
-     */
-    private fun audioItemToMediaItem(audioItem: AudioItemDto): MediaItem {
-        val uri =
-            ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, audioItem.id)
-        val builder = MediaItem.Builder().setUri(uri).setMediaId(audioItem.id.toString())
-        val metadata = audioItem.metadata
-        val mediaMetadata = MediaMetadata.Builder()
-            .setArtist(metadata.artist)
-            .setTitle(audioItem.name)
-            .setDurationMs(metadata.duration)
-            .setAlbumTitle(metadata.album)
-            .build()
-        return builder.setMediaMetadata(mediaMetadata).build()
-    }
-
-    /**
      * メディアアイテムのリストを並べ替える
      *
      * @param list 並べ替え後のオーディオリスト
@@ -363,4 +310,51 @@ class AudioController(
             }
         }
     }
+
+    fun clearMediaItems() = _controller?.clearMediaItems()
+
+    fun replaceMediaItemsWith(list: List<AudioItemDto>) {
+        val player = _controller ?: return
+        if (list.isEmpty()) {
+            player.clearMediaItems()
+            return
+        }
+        if (player.mediaItemCount == 0) {
+            return
+        }
+
+        // 追加
+        list.forEach {
+            for (i in 0 until player.mediaItemCount) {
+                val item = player.getMediaItemAt(i)
+                if (item.mediaId == it.id.toString()) {
+                    return@forEach
+                }
+            }
+            player.addMediaItem(player.mediaItemCount, MediaItemHelper.audioItemToMediaItem(it))
+        }
+        // 削除
+        for (i in player.mediaItemCount - 1 downTo 0) {
+            val item = player.getMediaItemAt(i)
+            list.find { it.id.toString() == item.mediaId } ?: player.removeMediaItem(i)
+        }
+        // ソート
+        for (i in 0 until player.mediaItemCount) {
+            val item = player.getMediaItemAt(i)
+            // audioItemsから同じidのitemのindexを探す
+            list.indexOfFirst { audioItem ->
+                audioItem.id.toString() == item.mediaId
+            }.let { index ->
+                if (index == -1) {
+                    continue
+                }
+                // indexが違ってたらその場所に移動
+                if (index != i) {
+                    player.moveMediaItem(i, index)
+                }
+            }
+
+        }
+    }
+
 }

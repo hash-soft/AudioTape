@@ -45,22 +45,28 @@ fun FolderViewRoute(
                 when (argument) {
 
                     is AudioCallbackArgument.AudioSelected -> {
-                        viewModel.updatePlayingFolderPath(displayFolder.audioTape.folderPath)
-                        viewModel.setMediaItemsInFolderList(
-                            displayFolder.list,
-                            argument.index,
-                            argument.position
-                        )
-                        // テープの新規作成はこの場合のみ
-                        viewModel.createTapeNotExist(
-                            displayFolder.audioTape,
-                            argument.name,
-                            argument.position
-                        )
+
+                        if (viewModel.setMediaItemsInFolderList(
+                                displayFolder.list,
+                                argument.index,
+                                argument.position
+                            )
+                        ) {
+                            // テープの新規作成はこの場合のみ
+                            viewModel.createTapeNotExist(
+                                displayFolder.audioTape,
+                                argument.name,
+                                argument.position
+                            )
+                            viewModel.updatePlayingFolderPath(displayFolder.audioTape.folderPath)
+                        }
+
                         if (argument.transfer) {
                             onAudioTransfer()
                         } else {
                             viewModel.setPlayingParameters(displayFolder.audioTape)
+                            // Todo updatePlayingFolderPathがlaunchでplayより遅いので事前にmediaItemを設定していないとうまくいかない
+                            viewModel.prepare()
                             viewModel.play()
                         }
                     }

@@ -26,6 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -42,23 +43,22 @@ class PlaybackService : MediaSessionService() {
     private val serviceScope = CoroutineScope(Dispatchers.Unconfined)
 
     @Inject
-    lateinit var _contentPositionRepository: ContentPositionRepository
+    lateinit var contentPositionRepository: ContentPositionRepository
 
     @Inject
-    lateinit var _audioTapeRepository: AudioTapeRepository
+    lateinit var audioTapeRepository: AudioTapeRepository
 
     @Inject
-    lateinit var _audioStoreRepository: AudioStoreRepository
+    lateinit var audioStoreRepository: AudioStoreRepository
 
     @Inject
-    lateinit var _playingStateRepository: PlayingStateRepository
+    lateinit var playingStateRepository: PlayingStateRepository
 
     @Inject
-    lateinit var _controllerStateRepository: ControllerStateRepository
+    lateinit var controllerStateRepository: ControllerStateRepository
 
     @Inject
-    lateinit var _audioTapeStagingRepository: AudioTapeStagingRepository
-
+    lateinit var audioTapeStagingRepository: AudioTapeStagingRepository
 
     // Create your player and media session in the onCreate lifecycle event
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -72,9 +72,9 @@ class PlaybackService : MediaSessionService() {
             MediaSession.Builder(this, player)
                 .setCallback(
                     MediaSessionCallback(
-                        _audioStoreRepository,
-                        _playingStateRepository,
-                        _audioTapeRepository
+                        audioStoreRepository,
+                        playingStateRepository,
+                        audioTapeRepository
                     )
                 ).build()
                 .also { builder ->
@@ -90,12 +90,13 @@ class PlaybackService : MediaSessionService() {
     }
 
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeState(player: ExoPlayer) {
         serviceScope.launch {
             // UIとサービスからの変更をここで監視してaudioTapeを更新する
-            _audioTapeStagingRepository.data.collect { staging ->
+            audioTapeStagingRepository.data.collect { staging ->
                 // 何らかの異常がなければキーは存在しているはず
-                _audioTapeRepository.updatePlayingPosition(
+                audioTapeRepository.updatePlayingPosition(
                     staging.folderPath,
                     staging.currentName,
                     staging.position
@@ -104,8 +105,8 @@ class PlaybackService : MediaSessionService() {
         }
         serviceScope.launch {
             // Todo バックグラウンドでも動いてしまうのでModelViewに移動したい
-            player.playingContentPositionFlow(_controllerStateRepository.data).collect { position ->
-                _contentPositionRepository.update(position)
+            player.playingContentPositionFlow(controllerStateRepository.data).collect { position ->
+                contentPositionRepository.update(position)
             }
         }
     }
@@ -127,7 +128,7 @@ class PlaybackService : MediaSessionService() {
             if (player.isPlaying) {
                 val audioTape = playerToAudioTape(player)
                 runBlocking {
-                    _audioTapeRepository.updatePlayingPosition(
+                    audioTapeRepository.updatePlayingPosition(
                         audioTape.folderPath,
                         audioTape.currentName,
                         audioTape.position
@@ -145,7 +146,7 @@ class PlaybackService : MediaSessionService() {
         val position = player.contentPosition
         val uri = player.currentMediaItem?.localConfiguration?.uri
         return if (uri != null) {
-            val file = File(_audioStoreRepository.uriToPath(uri))
+            val file = File(audioStoreRepository.uriToPath(uri))
             AudioTapeDto(file.parent ?: "", file.name, position)
         } else {
             AudioTapeDto("", "", 0)
@@ -157,8 +158,8 @@ class PlaybackService : MediaSessionService() {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-                _controllerStateRepository.updateIsPlaying(isPlaying)
-                _audioTapeStagingRepository.updatePosition(player.contentPosition)
+                controllerStateRepository.updateIsPlaying(isPlaying)
+                audioTapeStagingRepository.updatePosition(player.contentPosition)
 
                 // 停止中のseekは停止のままなのでここにはこない
                 // 再生中のseekは一度停止して再生になる
@@ -180,13 +181,13 @@ class PlaybackService : MediaSessionService() {
                         // Todo stopはしないがエラーは発生するのでどこでprepareをすべきか
                         // MediaItemがあったらprepareを試してみる
                         Timber.d("#2 state idle")
-                        _controllerStateRepository.updateIsReadyOk(false)
+                        controllerStateRepository.updateIsReadyOk(false)
                     }
 
                     Player.STATE_BUFFERING -> {
                         Timber.d("#2 state buffering position = ${player.contentPosition}")
                         // 再生可能にする準備中
-                        _controllerStateRepository.updateIsReadyOk(false)
+                        controllerStateRepository.updateIsReadyOk(false)
                     }
 
                     Player.STATE_READY -> {
@@ -195,8 +196,8 @@ class PlaybackService : MediaSessionService() {
                         // playWhenReady:trueなら再生中 falseなら停止中
                         // seek操作を反映するために必要
                         Timber.d("#2 state ready position = ${player.contentPosition}")
-                        _controllerStateRepository.updateIsReadyOk(true)
-                        _audioTapeStagingRepository.updatePosition(player.contentPosition)
+                        controllerStateRepository.updateIsReadyOk(true)
+                        audioTapeStagingRepository.updatePosition(player.contentPosition)
                     }
 
 
@@ -206,13 +207,15 @@ class PlaybackService : MediaSessionService() {
                         // stopしたとき？
                         // 要素が0のときもくる
                         // 要素が0のときにフォアグラウンドサービスを止めるのがいいか
-                        _controllerStateRepository.updateIsReadyOk(false)
+                        controllerStateRepository.updateIsReadyOk(false)
                     }
                 }
             }
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 super.onTimelineChanged(timeline, reason)
+                // Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED = 0
+                // Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE = 1
                 Timber.d("#2 listener timelineChanged reason = $reason")
             }
 
@@ -232,7 +235,7 @@ class PlaybackService : MediaSessionService() {
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                Timber.d("#2 MediaItemTransition = ${mediaItem?.mediaId} reason = $reason position = ${player.contentPosition}")
+                Timber.d("#2 MediaItemTransition = ${mediaItem?.mediaId} reason = $reason title=${mediaItem?.mediaMetadata?.title} position = ${player.contentPosition}")
                 super.onMediaItemTransition(mediaItem, reason)
 
                 when (reason) {
@@ -249,15 +252,15 @@ class PlaybackService : MediaSessionService() {
             }
 
             private fun changeMediaItem() {
-                val uri = player.currentMediaItem?.localConfiguration?.uri
-                if (uri != null) {
-                    val file = File(_audioStoreRepository.uriToPath(uri))
-                    _audioTapeStagingRepository.updateAll(
+                player.currentMediaItem?.localConfiguration?.uri?.let { uri ->
+                    val file = File(audioStoreRepository.uriToPath(uri))
+                    audioTapeStagingRepository.updateAll(
                         folderPath = file.parent ?: "",
                         currentName = file.name,
                         player.contentPosition
                     )
                 }
+
             }
 
         })

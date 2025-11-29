@@ -18,12 +18,8 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -43,35 +39,21 @@ class LibraryStateViewModel @Inject constructor(
 
     val uiState: MutableState<LibraryStateUiState> = mutableStateOf(LibraryStateUiState.Loading)
 
-    private val _basePlayingState = combine(
-        storageVolumeRepository.volumeChangeFlow(),
-        _audioStoreRepository.updateFlow,
-        playingStateRepository.playingStateFlow()
-    ) { volumes, _, playingState ->
-        volumes to playingState.folderPath
-    }
+    private val _playItemState = PlayItemState(
+        controller = _controller,
+        _audioTapeStagingRepository,
+        _audioTapeRepository,
+        _audioStoreRepository,
+        storageVolumeRepository,
+        playingStateRepository,
+        controllerStateRepository,
+    )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val _itemPlayingState = _basePlayingState.flatMapLatest { pair ->
-        _audioTapeRepository.findByPath(pair.second).map { audioTape ->
-            if (audioTape == null) null else {
-                val treeList = AudioStoreRepository.pathToTreeList(pair.first, audioTape.folderPath)
-                val searchObject = AudioStoreRepository.pathToSearchObject(
-                    pair.first,
-                    audioTape.folderPath,
-                    audioTape.currentName
-                )
-                Triple(audioTape, _audioStoreRepository.getAudioItem(searchObject), treeList)
-            }
-        }
-    }
-
-    val displayPlayingState =
-        combine(_itemPlayingState, controllerStateRepository.data) { audio, controllerState ->
-            if (audio == null) null else {
-                DisplayPlayingItem(audio.first, audio.second, audio.third, controllerState)
-            }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val displayPlayingState = _playItemState.displayPlayingState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        null
+    )
 
     val playingPosition = contentPositionRepository.value.asStateFlow()
 
@@ -116,8 +98,8 @@ class LibraryStateViewModel @Inject constructor(
 
 data class DisplayPlayingItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", ""),
-    val audioItem: AudioItemDto?,
-    val treeList: List<String>?,
+    val audioList: List<AudioItemDto> = listOf(),
+    val treeList: List<String>? = null,
     val controllerState: ControllerState = ControllerState(isReadyOk = false, isPlaying = false)
 )
 

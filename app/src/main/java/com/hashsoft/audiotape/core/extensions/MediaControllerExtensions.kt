@@ -45,11 +45,11 @@ fun <T> T.contentPositionFlow(intervalMs: Long = 1000L): Flow<Long> where T : Pl
  * @param intervalMs 再生位置を放出する間隔（ミリ秒）
  * @return 再生位置を放出するFlow
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> T.playingContentPositionFlow(
     flow: Flow<ControllerState>,
     intervalMs: Long = 1000L
 ): Flow<Long> where T : Player =
-    @OptIn(ExperimentalCoroutinesApi::class)
     (flow.flatMapLatest { state ->
         if (state.isPlaying) contentPositionFlow(intervalMs) else {
             val position = if (state.isReadyOk) contentPosition else -1L

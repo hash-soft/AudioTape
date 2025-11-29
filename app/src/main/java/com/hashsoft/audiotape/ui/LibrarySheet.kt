@@ -38,7 +38,6 @@ fun LibrarySheetRoute(
     val uiState by viewModel.uiState
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val playingPosition by viewModel.playingPosition.collectAsStateWithLifecycle()
-
 //    val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
 //    Timber.d("#LisReady $isReady")
 
@@ -132,7 +131,8 @@ private fun LibrarySheetPager(
         } else {
             {
                 val audioTape = displayPlayingItem.audioTape
-                val audioItem = displayPlayingItem.audioItem
+                val audioItem =
+                    displayPlayingItem.audioList.find { it.name == audioTape.currentName }
                 val contentPosition =
                     if (playingPosition >= 0) playingPosition else audioTape.position
                 SimpleAudioPlayItem(

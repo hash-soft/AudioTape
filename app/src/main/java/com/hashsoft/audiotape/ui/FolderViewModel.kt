@@ -138,10 +138,12 @@ class FolderViewModel @Inject constructor(
     }
 
     fun updatePlayingFolderPath(path: String) = viewModelScope.launch {
-        _playingStateRepository.saveFolderPath(path)
+        if (path != displayFolderState.value.playingState.folderPath) {
+            _playingStateRepository.saveFolderPath(path)
+        }
     }
 
-    fun setMediaItemsInFolderList(list: List<StorageItem>, index: Int, position: Long) {
+    fun setMediaItemsInFolderList(list: List<StorageItem>, index: Int, position: Long): Boolean {
         // ファイルを抽出する
         val audioList = list.mapNotNull {
             when (it) {
@@ -150,18 +152,20 @@ class FolderViewModel @Inject constructor(
                 else -> return@mapNotNull null
             }
         }
-        val audioItem = audioList.getOrNull(index) ?: return
+        val audioItem = audioList.getOrNull(index) ?: return false
         if (_controller.isCurrentById(audioItem.id)) {
-            return
+            return false
         }
         if (_controller.seekToById(audioItem.id, position)) {
-            return
+            return false
         }
         if (_controller.isCurrentMediaItem()) {
-            // 位置を更新する
+            // 切り替え前にcontrollerが持っている位置を保存する
             _audioTapeStagingRepository.updatePosition(_controller.getContentPosition())
         }
+        Timber.d("setMediaItemsInFolderList index: $index position: $position")
         _controller.setMediaItems(audioList, index, position)
+        return true
     }
 
     fun setPlayingParameters(audioTape: AudioTapeDto) {
@@ -170,7 +174,14 @@ class FolderViewModel @Inject constructor(
         _controller.setVolume(audioTape.volume)
     }
 
+    fun prepare() = _controller.prepare()
+
     fun play() = _controller.play()
+
+    fun playWhenReady(playWhenReady: Boolean) = _controller.playWhenReady(playWhenReady)
+
+    fun clearMediaItems() = _controller.clearMediaItems()
+
 
     fun createTapeNotExist(audioTape: AudioTapeDto, currentName: String, position: Long) {
         viewModelScope.launch {
