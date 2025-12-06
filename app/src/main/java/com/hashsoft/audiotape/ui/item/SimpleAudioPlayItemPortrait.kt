@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 @Composable
 fun SimpleAudioPlayItemPortrait(
@@ -33,7 +32,7 @@ fun SimpleAudioPlayItemPortrait(
     isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     Row(
         Modifier

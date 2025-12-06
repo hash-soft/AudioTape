@@ -30,8 +30,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.PlayAudioDto
+import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
 import com.hashsoft.audiotape.data.PlayVolumeValues
@@ -52,8 +53,9 @@ import com.hashsoft.audiotape.ui.theme.IconMedium
 @Composable
 fun AudioPlayView(
     contentPosition: Long,
-    playItem: PlayAudioDto,
+    tape: AudioTapeDto,
     playList: List<AudioItemDto>,
+    controllerState: ControllerState,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
@@ -63,7 +65,6 @@ fun AudioPlayView(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val tape = playItem.audioTape
             VolumeDropdownSelector(tape.volume, onChangeTapeSettings)
             SpeedDropdownSelector(tape.speed, onChangeTapeSettings)
             PitchDropdownSelector(tape.pitch, onChangeTapeSettings)
@@ -89,23 +90,23 @@ fun AudioPlayView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = playItem.audioTape.currentName,
+                text = tape.currentName,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
             AudioListDropdownSelector(
                 playList,
-                playItem.audioTape.currentName,
+                tape.currentName,
                 onItemSelected = onAudioItemClick
             )
         }
 
         PlaySliderItem(
-            playItem.isPlaying,
+            controllerState.isPlaying,
             true,
-            contentPosition = if (contentPosition >= 0) contentPosition else playItem.contentPosition,
-            playItem.durationMs
+            contentPosition = if (contentPosition >= 0) contentPosition else tape.position,
+            playList.find { it.name == tape.currentName }?.metadata?.duration ?: 0,
         ) {
             onAudioItemClick(AudioCallbackArgument.SeekTo(it))
         }
@@ -127,7 +128,7 @@ fun AudioPlayView(
                     contentDescription = null,
                 )
             }
-            PlayPauseButton(playItem.isPlaying, true, Modifier.size(IconMedium)) {
+            PlayPauseButton(controllerState.isPlaying, true, Modifier.size(IconMedium)) {
                 onAudioItemClick(AudioCallbackArgument.PlayPause(it))
             }
             IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.ForwardIncrement) }) {

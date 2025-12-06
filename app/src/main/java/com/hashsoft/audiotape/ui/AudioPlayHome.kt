@@ -18,9 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
-import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeDto
-import com.hashsoft.audiotape.data.PlayAudioDto
+import com.hashsoft.audiotape.logic.StorageHelper
 
 
 /**
@@ -35,8 +34,7 @@ fun AudioPlayHomeRoute(
     viewModel: AudioPlayViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
-    val playItem by viewModel.playItemState.item.collectAsStateWithLifecycle()
-    val playList by viewModel.playListState.list.collectAsStateWithLifecycle()
+    val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val contentPosition by viewModel.contentPosition.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -44,8 +42,15 @@ fun AudioPlayHomeRoute(
         topBar = {
             TopAppBar(
                 title = {
+                    val item = displayPlayingItem
                     Text(
-                        playItem?.audioTape?.folderPath ?: stringResource(R.string.loading)
+                        text = if (item == null) "" else {
+                            StorageHelper.treeListToString(
+                                item.treeList,
+                                stringResource(R.string.path_separator),
+                                default = item.audioTape.folderPath
+                            )
+                        }
                     )
                 },
                 navigationIcon = {
@@ -61,10 +66,10 @@ fun AudioPlayHomeRoute(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayHome(contentPosition = contentPosition, playItem, playList, { argument ->
-                audioPlay(argument = argument, viewModel = viewModel)
+            AudioPlayHome(contentPosition = contentPosition, displayPlayingItem, { argument ->
+                audioPlay(argument = argument, displayPlayingItem, viewModel = viewModel)
             }) { argument ->
-                val tape = playItem?.audioTape ?: return@AudioPlayHome
+                val tape = displayPlayingItem?.audioTape ?: return@AudioPlayHome
                 tapeSettings(argument, tape, viewModel)
             }
         }
@@ -74,27 +79,25 @@ fun AudioPlayHomeRoute(
 /**
  * オーディオ再生画面のホーム
  *
- * @param playItem 再生アイテム
- * @param playList 再生リスト
  * @param onAudioItemClick オーディオ項目クリック時のコールバック
  * @param onChangeTapeSettings テープ設定変更時のコールバック
  */
 @Composable
 private fun AudioPlayHome(
     contentPosition: Long,
-    playItem: PlayAudioDto?,
-    playList: List<AudioItemDto>,
+    displayPlayingItem: DisplayPlayingItem?,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
-    // Todo 再生画面でテープがありませんが一瞬表示されるが見せたくない nullだけではだめ
-    if (playItem == null) {
+
+    if (displayPlayingItem == null) {
         NoTapeView()
     } else {
         AudioPlayView(
             contentPosition = contentPosition,
-            playItem,
-            playList,
+            displayPlayingItem.audioTape,
+            displayPlayingItem.audioList,
+            displayPlayingItem.controllerState,
             onAudioItemClick,
             onChangeTapeSettings
         )
@@ -107,10 +110,19 @@ private fun AudioPlayHome(
  * @param argument オーディオコールバックの引数
  * @param viewModel ViewModel
  */
-private fun audioPlay(argument: AudioCallbackArgument, viewModel: AudioPlayViewModel) {
+private fun audioPlay(
+    argument: AudioCallbackArgument,
+    displayPlayingItem: DisplayPlayingItem?,
+    viewModel: AudioPlayViewModel
+) {
+    if (displayPlayingItem == null) return
     when (argument) {
         is AudioCallbackArgument.AudioSelected -> {
-            viewModel.setMediaItemsInAudioList(argument.index)
+            viewModel.setMediaItemsInAudioList(
+                displayPlayingItem.audioList,
+                argument.index,
+                argument.position
+            )
         }
 
         is AudioCallbackArgument.SkipPrevious -> {
@@ -129,9 +141,8 @@ private fun audioPlay(argument: AudioCallbackArgument, viewModel: AudioPlayViewM
             if (argument.isPlaying) {
                 viewModel.pause()
             } else {
-                viewModel.setPlayingParameters()
+                viewModel.setPlayingParameters(displayPlayingItem.audioTape)
                 viewModel.play()
-                // 最終再生更新
             }
         }
 
@@ -182,7 +193,6 @@ private fun tapeSettings(
 
         is TapeSettingsCallbackArgument.SortOrder -> {
             viewModel.updateSortOrder(tape.folderPath, argument.sortOrder)
-            viewModel.sortList(argument.sortOrder)
         }
     }
 }

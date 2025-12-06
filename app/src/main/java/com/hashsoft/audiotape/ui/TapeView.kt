@@ -39,25 +39,25 @@ private fun tapeItemSelected(
     audioTapeList: List<DisplayAudioTape>,
     argument: AudioCallbackArgument,
     onFolderOpen: () -> Unit = {}
-): AudioCallbackResult {
-    return when (argument) {
+) {
+    when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
             val tape = audioTapeList[argument.index].base
             viewModel.updatePlayingFolderPath(tape.folderPath)
-            viewModel.setMediaItemsByTape(tape)
+            if (!viewModel.setCurrentMediaItemsPosition(tape)) {
+                viewModel.switchPlayingFolder(tape)
+            }
             viewModel.setPlayingParameters(tape)
-            viewModel.play()
-            AudioCallbackResult.None
+            viewModel.playWhenReady(true)
         }
 
         is AudioCallbackArgument.TapeFolderOpen -> {
             // 選択フォルダパスを変更してから上位のページャー切り替えをコールバックする
             viewModel.saveSelectedPath(argument.path)
             onFolderOpen()
-            AudioCallbackResult.None
         }
 
-        else -> AudioCallbackResult.None
+        else -> {}
     }
 }
 

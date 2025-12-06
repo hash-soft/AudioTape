@@ -2,7 +2,6 @@ package com.hashsoft.audiotape.ui.di.module
 
 import android.content.Context
 import com.hashsoft.audiotape.data.AudioStoreRepository
-import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
 import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
@@ -59,11 +58,5 @@ object AppModule {
     @Singleton
     fun providerControllerStateRepository(): ControllerStateRepository {
         return ControllerStateRepository()
-    }
-
-    @Provides
-    @Singleton
-    fun providerAudioTapeStagingRepository(): AudioTapeStagingRepository {
-        return AudioTapeStagingRepository()
     }
 }

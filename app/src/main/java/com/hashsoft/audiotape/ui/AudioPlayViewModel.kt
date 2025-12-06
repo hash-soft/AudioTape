@@ -2,28 +2,22 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
-import com.hashsoft.audiotape.data.VolumeItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File
 
 /**
  * オーディオ再生画面のViewModel
@@ -41,7 +35,6 @@ import java.io.File
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _controllerStateRepository: ControllerStateRepository,
-    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     storageItemListUseCase: StorageItemListUseCase,
@@ -51,24 +44,19 @@ class AudioPlayViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    /**
-     * 現在再生中のアイテムに関する状態を管理する。
-     */
-    val playItemState = PlayItemState(
+    private val _playItemState = PlayItemState(
         controller = _controller,
-        _audioTapeStagingRepository,
         _audioTapeRepository,
         _audioStoreRepository,
         _storageVolumeRepository,
         _playingStateRepository,
-        _controllerStateRepository
+        _controllerStateRepository,
     )
 
-    /**
-     * 再生リストに関する状態を管理する。
-     */
-    val playListState = PlayListState(
-        storageItemListUseCase
+    val displayPlayingState = _playItemState.displayPlayingState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        null
     )
 
     /**
@@ -77,85 +65,29 @@ class AudioPlayViewModel @Inject constructor(
     val contentPosition = _contentPositionRepository.value.asStateFlow()
 
     /**
-     * ViewModelの初期化処理。
-     * ストレージボリュームの変更を監視し、変更があった場合にオーディオストアと再生状態を監視するフローを開始する。
-     * これにより、再生アイテムの状態が動的に更新される。
-     */
-    init {
-        viewModelScope.launch {
-            @OptIn(ExperimentalCoroutinesApi::class)
-            _storageVolumeRepository.volumeChangeFlow().flatMapLatest { volumes ->
-                watchAudioStore(volumes)
-            }.collect { (volumes, audioTape, playback) ->
-                playItemState.updatePlayAudioForExclusive(volumes, audioTape, playback)
-            }
-        }
-    }
-
-    /**
-     * 指定されたボリュームリストに基づいてオーディオストアの変更を監視する。
-     *
-     * @param volumes 監視対象のボリュームリスト
-     * @return ボリュームリスト、[AudioTapeDto]、[ControllerState]のTripleを含むFlow
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchAudioStore(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
-        // updateFlowが更新されるのを待ってから次の処理へ進む
-        return _audioStoreRepository.updateFlow.flatMapLatest { watchPlayingState(volumes) }
-    }
-
-    /**
-     * 指定されたボリュームリストに基づいて再生状態の変更を監視する。
-     *
-     * @param volumes 監視対象のボリュームリスト
-     * @return ボリュームリスト、[AudioTapeDto]、[ControllerState]のTripleを含むFlow
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun watchPlayingState(volumes: List<VolumeItem>): Flow<Triple<List<VolumeItem>, AudioTapeDto, ControllerState>> {
-        return _playingStateRepository.playingStateFlow().flatMapLatest { state ->
-            val sortOrder = _audioTapeRepository.findSortOrderByPath(state.folderPath).first()
-            playListState.updateList(volumes, state.folderPath, sortOrder)
-            // MediaItemをlistと合わせる
-            _controller.replaceMediaItemsWith(playListState.list.value)
-            combine(
-                _audioTapeRepository.findByPath(state.folderPath),
-                _controllerStateRepository.data
-            ) { audioTape, playback ->
-                Triple(volumes, audioTape ?: AudioTapeDto("", ""), playback)
-            }
-        }
-    }
-
-    /**
      * オーディオリスト内のメディアアイテムを設定する。
      * 指定されたインデックスのアイテムが現在再生中でなければ、コントローラーにメディアアイテムリストを設定する。
      *
      * @param index 再生を開始するアイテムのインデックス
      */
-    fun setMediaItemsInAudioList(index: Int = 0) {
-        val audioList = playListState.list.value
-        val audioItem = audioList[index]
+    fun setMediaItemsInAudioList(list: List<AudioItemDto>, index: Int, position: Long) {
+        val audioItem = list.getOrNull(index) ?: return
         if (_controller.isCurrentById(audioItem.id)) {
             return
         }
-        val playAudio = playItemState.item.value ?: return
-        val file = File(playAudio.path)
-        val position = if (audioItem.name == file.name) playAudio.contentPosition else 0
         if (_controller.seekToById(audioItem.id, position)) {
             return
         }
-        _controller.setMediaItems(audioList, index, position)
+        //_controller.setMediaItems(list, index, position)
     }
 
     /**
      * 現在の再生アイテムのパラメータ（リピート、音量、再生速度、ピッチ）をコントローラーに設定する。
      */
-    fun setPlayingParameters() {
-        playItemState.item.value?.audioTape?.let {
-            _controller.setRepeat(it.repeat)
-            _controller.setVolume(it.volume)
-            _controller.setPlaybackParameters(it.speed, it.pitch)
-        }
+    fun setPlayingParameters(audioTape: AudioTapeDto) {
+        _controller.setRepeat(audioTape.repeat)
+        _controller.setVolume(audioTape.volume)
+        _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
     }
 
     /**
@@ -175,11 +107,7 @@ class AudioPlayViewModel @Inject constructor(
      */
     fun seekTo(position: Long) {
         _contentPositionRepository.update(position)
-        if (_controller.isCurrentMediaItem()) {
-            _controller.seekTo(position)
-        } else {
-            playItemState.updatePlaybackPosition(position)
-        }
+        _controller.seekTo(position)
     }
 
     /**
@@ -201,17 +129,6 @@ class AudioPlayViewModel @Inject constructor(
      * 巻き戻しする
      */
     fun seekBack() = _controller.seekBack()
-
-
-    /**
-     * リストをソートする
-     *
-     * @param sortOrder ソート順
-     */
-    fun sortList(sortOrder: AudioTapeSortOrder) {
-        playListState.sortList(sortOrder)
-        _controller.sortMediaItems(playListState.list.value)
-    }
 
     /**
      * ソート順を更新する

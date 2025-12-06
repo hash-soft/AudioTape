@@ -143,6 +143,8 @@ class AudioController(
             if (repeat) MediaController.REPEAT_MODE_ALL else MediaController.REPEAT_MODE_OFF
     }
 
+    fun getCurrentMediaItemUri() = _controller?.currentMediaItem?.localConfiguration?.uri
+
     /**
      * 現在の再生位置を取得する
      *
@@ -250,7 +252,6 @@ class AudioController(
         // 初期位置も合わせて設定する
         _controller?.run {
             setMediaItems(mediaItems, mediaItemIndex, positionMs)
-            //prepare()
         }
     }
 
@@ -339,22 +340,8 @@ class AudioController(
             list.find { it.id.toString() == item.mediaId } ?: player.removeMediaItem(i)
         }
         // ソート
-        for (i in 0 until player.mediaItemCount) {
-            val item = player.getMediaItemAt(i)
-            // audioItemsから同じidのitemのindexを探す
-            list.indexOfFirst { audioItem ->
-                audioItem.id.toString() == item.mediaId
-            }.let { index ->
-                if (index == -1) {
-                    continue
-                }
-                // indexが違ってたらその場所に移動
-                if (index != i) {
-                    player.moveMediaItem(i, index)
-                }
-            }
+        sortMediaItems(list)
 
-        }
     }
 
 }

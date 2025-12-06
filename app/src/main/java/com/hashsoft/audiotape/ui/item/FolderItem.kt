@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.hashsoft.audiotape.logic.TimeFormat
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 
 @Composable
@@ -21,7 +20,7 @@ fun FolderItem(
     path: String,
     name: String,
     lastModified: Long,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     ListItem(
         leadingContent = {

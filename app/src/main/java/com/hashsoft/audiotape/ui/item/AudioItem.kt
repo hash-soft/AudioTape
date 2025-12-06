@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 @Composable
 fun AudioItem(
@@ -29,7 +28,7 @@ fun AudioItem(
     icon: Int = 0,
     isResume: Boolean = false,
     contentPosition: Long = 0,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     ListItem(
         leadingContent = {

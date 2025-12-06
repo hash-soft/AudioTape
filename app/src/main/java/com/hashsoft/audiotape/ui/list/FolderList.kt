@@ -7,7 +7,6 @@ import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.FolderItemDto
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 import com.hashsoft.audiotape.ui.item.AudioItem
 import com.hashsoft.audiotape.ui.item.FolderItem
 
@@ -27,7 +26,7 @@ fun FolderList(
     isCurrent: Boolean = false,
     targetName: String = "",
     contentPosition: Long = 0,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     LazyColumn(
         modifier = modifier
@@ -39,7 +38,7 @@ fun FolderList(
                     val isResume = !isCurrent && isTarget
                     AudioItem(
                         index = it,
-                        audioIndex = expandIndexList.getOrElse(it, { 0 }),
+                        audioIndex = expandIndexList.getOrElse(it) { 0 },
                         item.name,
                         item.size,
                         item.lastModified,

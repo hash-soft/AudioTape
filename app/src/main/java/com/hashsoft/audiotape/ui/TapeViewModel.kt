@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 enum class TapeViewState {
@@ -34,7 +34,7 @@ class TapeViewModel @Inject constructor(
     audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _controllerStateRepository: ControllerStateRepository,
-    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
+    private val _audioTapeRepository: AudioTapeRepository,
     private val _folderStateRepository: FolderStateRepository,
     private val _storageItemListUseCase: StorageItemListUseCase,
     private val _audioStoreRepository: AudioStoreRepository,
@@ -75,25 +75,43 @@ class TapeViewModel @Inject constructor(
         _playingStateRepository.saveFolderPath(path)
     }
 
-    fun setMediaItemsByTape(tape: AudioTapeDto) {
+    fun setCurrentMediaItemsPosition(tape: AudioTapeDto): Boolean {
         // folderPathからオーディオファイルを取得する
         val audioList =
             _storageItemListUseCase.getAudioItemList(_volumes, tape.folderPath, tape.sortOrder)
         val startIndex = audioList.indexOfFirst { it.name == tape.currentName }
         val id = audioList.getOrNull(startIndex)?.id ?: 0
         if (_controller.isCurrentById(id)) {
-            return
+            return true
         }
         if (_controller.seekToById(id, tape.position)) {
-            return
+            return true
         }
-        if (_controller.isCurrentMediaItem()) {
-            // 位置を更新する
-            _audioTapeStagingRepository.updatePosition(_controller.getContentPosition())
-        }
-
-        _controller.setMediaItems(audioList, startIndex, tape.position)
+        return false
     }
+
+    fun switchPlayingFolder(audioTape: AudioTapeDto) {
+        // MediaItemの変更前に通知がこないので前のcurrentの位置を更新する
+        updatePrevPlayingPosition()
+        _controller.clearMediaItems()
+        updatePlaying(audioTape)
+    }
+
+    private fun updatePrevPlayingPosition() {
+        val position = _controller.getContentPosition()
+        _controller.getCurrentMediaItemUri()?.let { uri ->
+            viewModelScope.launch {
+                val file = File(_audioStoreRepository.uriToPath(uri))
+                _audioTapeRepository.updatePlayingPosition(file.parent ?: "", file.name, position)
+            }
+        }
+    }
+
+    private fun updatePlaying(audioTape: AudioTapeDto) = viewModelScope.launch {
+        _playingStateRepository.saveFolderPath(audioTape.folderPath)
+    }
+
+    fun playWhenReady(playWhenReady: Boolean) = _controller.playWhenReady(playWhenReady)
 
     fun setPlayingParameters(audioTape: AudioTapeDto) {
         _controller.setRepeat(audioTape.repeat)

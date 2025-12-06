@@ -15,7 +15,6 @@ import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.logic.TimeFormat.Companion.formatDateTimeHm
 import com.hashsoft.audiotape.logic.TimeFormat.Companion.formatMillis
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 
 /**
@@ -49,7 +48,7 @@ fun TapeItem(
     createTime: Long,
     updateTime: Long,
     color: Int,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     ListItem(
         headlineContent = { Text(folderPath) },

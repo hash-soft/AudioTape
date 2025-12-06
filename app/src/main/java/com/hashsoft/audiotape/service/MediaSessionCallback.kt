@@ -65,6 +65,7 @@ class MediaSessionCallback(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo
     ): ListenableFuture<MediaItemsWithStartPosition> {
+        Timber.d("onPlaybackResumption")
         val settable = SettableFuture.create<MediaItemsWithStartPosition>()
 
         CoroutineScope(Dispatchers.Unconfined).future {

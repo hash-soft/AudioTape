@@ -6,13 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.hashsoft.audiotape.data.DisplayAudioTape
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 import com.hashsoft.audiotape.ui.item.TapeItem
 
 @Composable
 fun TapeList(
     audioTapeList: List<DisplayAudioTape>,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None },
+    audioCallback: (AudioCallbackArgument) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier

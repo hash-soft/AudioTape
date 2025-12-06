@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.AudioCallbackResult
 
 @Composable
 fun SimpleAudioPlayItem(
@@ -14,7 +13,7 @@ fun SimpleAudioPlayItem(
     isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val configuration = LocalConfiguration.current
     if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {

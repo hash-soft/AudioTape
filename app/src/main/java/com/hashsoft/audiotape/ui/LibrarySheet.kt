@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui
 
+import android.R.id.tabs
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,9 +39,6 @@ fun LibrarySheetRoute(
     val uiState by viewModel.uiState
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val playingPosition by viewModel.playingPosition.collectAsStateWithLifecycle()
-//    val isReady by viewModel.controllerOk.collectAsStateWithLifecycle()
-//    Timber.d("#LisReady $isReady")
-
 
     when (val state = uiState) {
         is LibraryStateUiState.Loading -> {}
@@ -51,7 +49,7 @@ fun LibrarySheetRoute(
             audioCallback = { argument ->
                 if (argument is AudioCallbackArgument.TransferAudioPlay) {
                     onAudioPlayClick()
-                    return@LibrarySheetPager AudioCallbackResult.None
+                    return@LibrarySheetPager
                 }
                 playItemSelected(viewModel, displayPlayingItem, argument)
             },
@@ -66,16 +64,12 @@ private fun playItemSelected(
     viewModel: LibraryStateViewModel,
     displayPlayingItem: DisplayPlayingItem?,
     argument: AudioCallbackArgument
-): AudioCallbackResult {
-    if (displayPlayingItem == null) return AudioCallbackResult.None
-    return when (argument) {
-        is AudioCallbackArgument.Position -> {
-            return AudioCallbackResult.Position(viewModel.getContentPosition())
-        }
+) {
+    if (displayPlayingItem == null) return
+    when (argument) {
 
         is AudioCallbackArgument.SeekTo -> {
             viewModel.seekTo(argument.position)
-            AudioCallbackResult.None
         }
 
         is AudioCallbackArgument.PlayPause -> {
@@ -85,20 +79,17 @@ private fun playItemSelected(
                 viewModel.setPlayingParameters(displayPlayingItem.audioTape)
                 viewModel.play()
             }
-            AudioCallbackResult.None
         }
 
         is AudioCallbackArgument.SkipNext -> {
             viewModel.seekToNext()
-            AudioCallbackResult.None
         }
 
         is AudioCallbackArgument.SkipPrevious -> {
             viewModel.seekToPrevious()
-            AudioCallbackResult.None
         }
 
-        else -> AudioCallbackResult.None
+        else -> {}
     }
 }
 
@@ -109,7 +100,7 @@ private fun LibrarySheetPager(
     tabs: List<LibraryTab>,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None },
+    audioCallback: (AudioCallbackArgument) -> Unit,
     onTabChange: (index: Int) -> Unit,
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }

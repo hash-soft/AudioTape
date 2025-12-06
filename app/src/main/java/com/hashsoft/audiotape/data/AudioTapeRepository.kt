@@ -2,7 +2,11 @@ package com.hashsoft.audiotape.data
 
 import com.hashsoft.audiotape.logic.SystemTime
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import timber.log.Timber
 
 /**
@@ -11,6 +15,9 @@ import timber.log.Timber
  * @param audioTapeDao オーディオテープのDAO
  */
 class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
+
+    val ramAudioTapeFlow = MutableSharedFlow<Map<String, AudioTapeDto?>>()
+    val ramSortOrderFlow = MutableSharedFlow<Map<String, AudioTapeSortOrder?>>()
 
     /**
      * すべてのオーディオテープを取得する
@@ -32,7 +39,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      * @return 見つかったオーディオテープ、見つからない場合は空のDTOをFlowで返す
      */
     fun findByPath(path: String): Flow<AudioTapeDto?> {
-        return audioTapeDao.findByPath(path).map {
+        return merge(ramAudioTapeFlow.map { it[path] }, audioTapeDao.findByPath(path).map {
             if (it == null) {
                 // このフォルダはdbにまだ存在していない
                 Timber.i("findByPath is null: $path")
@@ -41,8 +48,11 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
                 Timber.d("audio tape: $it")
                 convertEntityToDto(it)
             }
-        }
+        }).distinctUntilChanged()
     }
+
+    suspend fun getByPath(path: String): AudioTapeDto? = findByPath(path).first()
+
 
     /**
      * パスを指定してソート順を検索する
@@ -51,14 +61,14 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      * @return 見つかったソート順、見つからない場合はデフォルト値をFlowで返す
      */
     fun findSortOrderByPath(path: String): Flow<AudioTapeSortOrder?> {
-        return audioTapeDao.findSortOrderByPath(path).map {
+        return merge(ramSortOrderFlow.map { it[path] }, audioTapeDao.findSortOrderByPath(path).map {
             if (it == null) {
                 Timber.i("findSortOrderByPath is null: $path")
                 null
             } else {
                 AudioTapeSortOrder.fromInt(it)
             }
-        }
+        }).distinctUntilChanged()
     }
 
     /**
@@ -85,36 +95,22 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
     }
 
-    /**
-     * 新しいオーディオテープを挿入する
-     *
-     * @param folderPath フォルダのパス
-     * @param currentName 現在のアイテム名
-     * @param position 再生位置
-     * @param sortOrder ソート順
-     * @return 挿入した行のID
-     */
-    suspend fun insertNew(
-        folderPath: String,
-        currentName: String,
-        position: Long,
-        sortOrder: AudioTapeSortOrder,
-        repeat: Boolean,
-        volume: Float,
-        speed: Float,
-        pitch: Float
-    ): Long {
+
+    suspend fun insertNew(audioTape: AudioTapeDto): Long {
         val time = SystemTime.currentMillis()
         return audioTapeDao.insertAll(
             AudioTapeEntity(
-                folderPath = folderPath,
-                currentName = currentName,
-                position = position,
-                sortOrder = sortOrder.ordinal,
-                repeat = if (repeat) 2 else 0,
-                volume = volume,
-                speed = speed,
-                pitch = pitch,
+                folderPath = audioTape.folderPath,
+                currentName = audioTape.currentName,
+                position = audioTape.position,
+                tapeName = audioTape.tapeName,
+                sortOrder = audioTape.sortOrder.ordinal,
+                repeat = if (audioTape.repeat) 2 else 0,
+                volume = audioTape.volume,
+                speed = audioTape.speed,
+                pitch = audioTape.pitch,
+                itemCount = audioTape.itemCount,
+                totalTime = audioTape.totalTime,
                 lastPlayedAt = time,
                 createTime = time,
                 updateTime = time
@@ -210,15 +206,12 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         )
     )
 
+    fun memoryAudioTape(audioTape: AudioTapeDto) {
+        ramAudioTapeFlow.tryEmit(mapOf(audioTape.folderPath to audioTape))
+    }
 
-    /**
-     * [AudioTapeDto]が有効かどうかを判定する
-     *
-     * @param dto 判定対象のDTO
-     * @return 有効な場合はtrue
-     */
-    fun validAudioTapeDto(dto: AudioTapeDto): Boolean {
-        return dto.folderPath.isNotEmpty() && dto.currentName.isNotEmpty()
+    fun memorySortOrder(path: String, sortOrder: AudioTapeSortOrder) {
+        ramSortOrderFlow.tryEmit(mapOf(path to sortOrder))
     }
 
 }

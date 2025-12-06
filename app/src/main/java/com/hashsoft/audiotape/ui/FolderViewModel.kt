@@ -7,7 +7,6 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ControllerStateRepository
 import com.hashsoft.audiotape.data.DisplayFolder
 import com.hashsoft.audiotape.data.FolderStateRepository
@@ -34,6 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 enum class FolderViewState {
@@ -51,9 +51,8 @@ class FolderViewModel @Inject constructor(
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     private val _controllerStateRepository: ControllerStateRepository,
-    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     storageVolumeRepository: StorageVolumeRepository,
-    audioStoreRepository: AudioStoreRepository,
+    private val _audioStoreRepository: AudioStoreRepository,
     userSettingsRepository: UserSettingsRepository
 ) :
     ViewModel() {
@@ -66,7 +65,7 @@ class FolderViewModel @Inject constructor(
 
     private val _baseState = combine(
         storageVolumeRepository.volumeChangeFlow(),
-        audioStoreRepository.updateFlow,
+        _audioStoreRepository.updateFlow,
         _folderStateRepository.folderStateFlow()
     ) { volumes, _, folderState ->
         _state.update { FolderViewState.ItemLoading }
@@ -104,10 +103,12 @@ class FolderViewModel @Inject constructor(
         ) { audioTape, settings, controllerState, playingState ->
             _state.update { FolderViewState.Success }
             DisplayFolder(
+                folderPath = folderPath,
                 listPair.first,
                 listPair.second,
-                audioTape = makeAudioTape(audioTape, settings, folderPath),
+                audioTape = audioTape,
                 playingState,
+                settings ?: UserSettingsDto(UserSettingsRepository.DEFAULT_ID),
                 controllerState
             )
         }
@@ -115,35 +116,11 @@ class FolderViewModel @Inject constructor(
         viewModelScope, SharingStarted.WhileSubscribed(5000), DisplayFolder()
     )
 
-    private fun makeAudioTape(
-        srcAudioTape: AudioTapeDto?,
-        srcSettings: UserSettingsDto?,
-        srcFolderPath: String,
-    ): AudioTapeDto {
-        if (srcAudioTape != null) return srcAudioTape
-        val settings = srcSettings ?: UserSettingsDto(UserSettingsRepository.DEFAULT_ID)
-        return AudioTapeDto(
-            folderPath = srcFolderPath,
-            currentName = "",
-            sortOrder = settings.defaultSortOrder,
-            repeat = settings.defaultRepeat,
-            volume = settings.defaultVolume,
-            speed = settings.defaultSpeed,
-            pitch = settings.defaultPitch
-        )
-    }
-
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
     }
 
-    fun updatePlayingFolderPath(path: String) = viewModelScope.launch {
-        if (path != displayFolderState.value.playingState.folderPath) {
-            _playingStateRepository.saveFolderPath(path)
-        }
-    }
-
-    fun setMediaItemsInFolderList(list: List<StorageItem>, index: Int, position: Long): Boolean {
+    fun setCurrentMediaItemsPosition(list: List<StorageItem>, index: Int, position: Long): Boolean {
         // ファイルを抽出する
         val audioList = list.mapNotNull {
             when (it) {
@@ -152,20 +129,47 @@ class FolderViewModel @Inject constructor(
                 else -> return@mapNotNull null
             }
         }
-        val audioItem = audioList.getOrNull(index) ?: return false
+        val audioItem = audioList.getOrNull(index) ?: return true
         if (_controller.isCurrentById(audioItem.id)) {
-            return false
+            return true
         }
         if (_controller.seekToById(audioItem.id, position)) {
-            return false
+            return true
         }
-        if (_controller.isCurrentMediaItem()) {
-            // 切り替え前にcontrollerが持っている位置を保存する
-            _audioTapeStagingRepository.updatePosition(_controller.getContentPosition())
+
+        return false
+    }
+
+    fun switchPlayingFolder(audioTape: AudioTapeDto, create: Boolean) {
+        // MediaItemの変更前に通知がこないので前のcurrentの位置を更新する
+        updatePrevPlayingPosition()
+        _controller.clearMediaItems()
+        updatePlaying(audioTape, create)
+    }
+
+    private fun updatePrevPlayingPosition() {
+        val position = _controller.getContentPosition()
+        _controller.getCurrentMediaItemUri()?.let { uri ->
+            viewModelScope.launch {
+                val file = File(_audioStoreRepository.uriToPath(uri))
+                _audioTapeRepository.updatePlayingPosition(file.parent ?: "", file.name, position)
+            }
         }
-        Timber.d("setMediaItemsInFolderList index: $index position: $position")
-        _controller.setMediaItems(audioList, index, position)
-        return true
+    }
+
+    private fun updatePlaying(audioTape: AudioTapeDto, create: Boolean) {
+        viewModelScope.launch {
+            _audioTapeRepository.updatePlayingPosition(
+                audioTape.folderPath,
+                audioTape.currentName,
+                audioTape.position
+            )
+            if (create) {
+                val result = _audioTapeRepository.insertNew(audioTape)
+                Timber.d("insertNew result: $result folderPath: ${audioTape.folderPath}")
+            }
+            _playingStateRepository.saveFolderPath(audioTape.folderPath)
+        }
     }
 
     fun setPlayingParameters(audioTape: AudioTapeDto) {
@@ -174,28 +178,30 @@ class FolderViewModel @Inject constructor(
         _controller.setVolume(audioTape.volume)
     }
 
-    fun prepare() = _controller.prepare()
-
-    fun play() = _controller.play()
-
     fun playWhenReady(playWhenReady: Boolean) = _controller.playWhenReady(playWhenReady)
 
-    fun clearMediaItems() = _controller.clearMediaItems()
-
-
-    fun createTapeNotExist(audioTape: AudioTapeDto, currentName: String, position: Long) {
-        viewModelScope.launch {
-            val result = _audioTapeRepository.insertNew(
-                audioTape.folderPath,
+    fun makeAudioTape(
+        srcAudioTape: AudioTapeDto?,
+        settings: UserSettingsDto,
+        folderPath: String,
+        currentName: String,
+    ): AudioTapeDto {
+        return if (srcAudioTape == null) {
+            AudioTapeDto(
+                folderPath = folderPath,
                 currentName = currentName,
-                position = position,
-                sortOrder = AudioTapeSortOrder.NAME_ASC,
-                repeat = audioTape.repeat,
-                volume = audioTape.volume,
-                speed = audioTape.speed,
-                pitch = audioTape.pitch
+                sortOrder = settings.defaultSortOrder,
+                repeat = settings.defaultRepeat,
+                volume = settings.defaultVolume,
+                speed = settings.defaultSpeed,
+                pitch = settings.defaultPitch
             )
-            Timber.d("insertNew result: $result folderPath: ${audioTape.folderPath}")
+        } else {
+            return if (srcAudioTape.currentName == currentName) {
+                srcAudioTape
+            } else {
+                srcAudioTape.copy(currentName = currentName, position = 0)
+            }
         }
     }
 }

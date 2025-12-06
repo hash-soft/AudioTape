@@ -8,7 +8,6 @@ import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.AudioTapeStagingRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
 import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.ControllerStateRepository
@@ -28,10 +27,9 @@ class LibraryStateViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
     controllerStateRepository: ControllerStateRepository,
-    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
-    private val _audioTapeRepository: AudioTapeRepository,
+    audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
-    private val _audioStoreRepository: AudioStoreRepository,
+    audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
     contentPositionRepository: ContentPositionRepository
 ) :
@@ -41,9 +39,8 @@ class LibraryStateViewModel @Inject constructor(
 
     private val _playItemState = PlayItemState(
         controller = _controller,
-        _audioTapeStagingRepository,
-        _audioTapeRepository,
-        _audioStoreRepository,
+        audioTapeRepository,
+        audioStoreRepository,
         storageVolumeRepository,
         playingStateRepository,
         controllerStateRepository,
@@ -86,7 +83,7 @@ class LibraryStateViewModel @Inject constructor(
         if (_controller.isCurrentMediaItem()) {
             _controller.seekTo(position)
         } else {
-            _audioTapeStagingRepository.updatePosition(position)
+            //_audioTapeStagingRepository.updatePosition(position)
         }
     }
 

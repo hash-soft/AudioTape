@@ -45,29 +45,27 @@ fun FolderViewRoute(
                 when (argument) {
 
                     is AudioCallbackArgument.AudioSelected -> {
+                        val tape = viewModel.makeAudioTape(
+                            displayFolder.audioTape,
+                            displayFolder.settings,
+                            displayFolder.folderPath,
+                            argument.name
+                        )
 
-                        if (viewModel.setMediaItemsInFolderList(
+                        if (!viewModel.setCurrentMediaItemsPosition(
                                 displayFolder.list,
                                 argument.index,
                                 argument.position
                             )
                         ) {
-                            // テープの新規作成はこの場合のみ
-                            viewModel.createTapeNotExist(
-                                displayFolder.audioTape,
-                                argument.name,
-                                argument.position
-                            )
-                            viewModel.updatePlayingFolderPath(displayFolder.audioTape.folderPath)
+                            viewModel.switchPlayingFolder(tape, displayFolder.audioTape == null)
                         }
 
+                        viewModel.setPlayingParameters(tape)
                         if (argument.transfer) {
                             onAudioTransfer()
                         } else {
-                            viewModel.setPlayingParameters(displayFolder.audioTape)
-                            // Todo updatePlayingFolderPathがlaunchでplayより遅いので事前にmediaItemを設定していないとうまくいかない
-                            viewModel.prepare()
-                            viewModel.play()
+                            viewModel.playWhenReady(true)
                         }
                     }
 
@@ -78,7 +76,6 @@ fun FolderViewRoute(
                     else -> {}
 
                 }
-                AudioCallbackResult.None
             }
         }
     }
@@ -91,11 +88,11 @@ private fun FolderView(
     addressList: List<StorageLocationDto>,
     itemList: List<StorageItem> = listOf(),
     expandIndexList: List<Int> = listOf(),
-    audioTape: AudioTapeDto = AudioTapeDto("", ""),
+    audioTape: AudioTapeDto? = null,
     controllerState: ControllerState = ControllerState(isReadyOk = false, isPlaying = false),
     playingState: PlayingStateDto = PlayingStateDto(""),
     onFolderClick: (String) -> Unit = {},
-    audioCallback: (AudioCallbackArgument) -> AudioCallbackResult = { AudioCallbackResult.None }
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     Scaffold(
         // パディング不要なので消去
@@ -108,9 +105,9 @@ private fun FolderView(
                 storageItemList = itemList,
                 expandIndexList = expandIndexList,
                 isPlaying = controllerState.isPlaying,
-                isCurrent = audioTape.folderPath == playingState.folderPath,
-                targetName = audioTape.currentName,
-                contentPosition = audioTape.position,
+                isCurrent = audioTape?.folderPath == playingState.folderPath,
+                targetName = audioTape?.currentName ?: "",
+                contentPosition = audioTape?.position ?: 0,
                 audioCallback = audioCallback
             )
         }

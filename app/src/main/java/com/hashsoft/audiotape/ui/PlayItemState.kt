@@ -1,37 +1,26 @@
 package com.hashsoft.audiotape.ui
 
 import com.hashsoft.audiotape.data.AudioStoreRepository
-import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.AudioTapeStagingRepository
-import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.ControllerStateRepository
-import com.hashsoft.audiotape.data.PlayAudioDto
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
-import com.hashsoft.audiotape.data.VolumeItem
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
-import java.io.File
+import timber.log.Timber
 
 
 class PlayItemState(
     controller: AudioController,
-    private val _audioTapeStagingRepository: AudioTapeStagingRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
     playingStateRepository: PlayingStateRepository,
     controllerStateRepository: ControllerStateRepository,
-    private val _item: MutableStateFlow<PlayAudioDto?> = MutableStateFlow(null)
 ) {
 
     private val _baseState = combine(
@@ -39,92 +28,61 @@ class PlayItemState(
         _audioStoreRepository.updateFlow,
         playingStateRepository.playingStateFlow()
     ) { volumes, _, playingState ->
-        volumes to playingState.folderPath
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val _refreshAudioState = _baseState.flatMapLatest { pair ->
-        val searchObject = AudioStoreRepository.pathToSearchObject(
-            pair.first,
-            pair.second,
-        )
-        val list = _audioStoreRepository.getListByPath(searchObject)
-        _audioTapeRepository.findSortOrderByPath(pair.second).distinctUntilChanged()
-            .map { sortOrder ->
-                val sortedList =
-                    if (sortOrder == null) list else StorageItemListUseCase.sortedAudioList(
-                        list,
-                        sortOrder
-                    )
-                // ソートした時点でcontrollerのプレイリストと合わせる
+        Timber.d("#5 playingState = $playingState")
+        val audioTape = _audioTapeRepository.getByPath(playingState.folderPath)
+        if (audioTape != null) {
+            val treeList =
+                AudioStoreRepository.pathToTreeList(volumes, audioTape.folderPath)
+            val searchObject = AudioStoreRepository.pathToSearchObject(
+                volumes,
+                audioTape.folderPath,
+            )
+            val list = _audioStoreRepository.getListByPath(searchObject)
+            val sortedList = StorageItemListUseCase.sortedAudioList(list, audioTape.sortOrder)
+            if (controller.getMediaItemCount() == 0) {
+                controller.setMediaItems(sortedList, audioTape.currentName, audioTape.position)
+                controller.prepare()
+            } else {
                 controller.replaceMediaItemsWith(sortedList)
-                Triple(pair.first, pair.second, sortedList)
             }
+            Triple(audioTape, sortedList, treeList)
+        } else null
     }
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _refreshItemState = _refreshAudioState.flatMapLatest { triple ->
-        _audioTapeRepository.findByPath(triple.second).map { audioTape ->
-            if (audioTape == null) null else {
-                val treeList =
-                    AudioStoreRepository.pathToTreeList(triple.first, audioTape.folderPath)
-                Triple(audioTape, triple.third, treeList)
+    private val _refreshAudioState = _baseState.flatMapLatest { triple ->
+        Timber.d("#5 audioState = $triple")
+        if (triple != null) {
+            var prevSortOrder = triple.first.sortOrder
+            _audioTapeRepository.findByPath(triple.first.folderPath).map { audioTape ->
+                Timber.d("#5 tape changed = $audioTape")
+                if (audioTape == null) null else {
+                    // ソートが変更されていた場合更新を行う
+                    val sortedList = if (audioTape.sortOrder != prevSortOrder) {
+                        val result = StorageItemListUseCase.sortedAudioList(
+                            triple.second,
+                            audioTape.sortOrder
+                        )
+                        controller.sortMediaItems(result)
+                        prevSortOrder = audioTape.sortOrder
+                        result
+                    } else {
+                        triple.second
+                    }
+                    Triple(audioTape, sortedList, triple.third)
+                }
             }
-        }
+        } else flowOf(null)
+
     }
 
     val displayPlayingState =
-        combine(_refreshItemState, controllerStateRepository.data) { audio, controllerState ->
+        combine(_refreshAudioState, controllerStateRepository.data) { audio, controllerState ->
+            Timber.d("#5 displayPlayingState = $audio")
             if (audio == null) null else {
-                val audioTape = audio.first
-                if (controller.getMediaItemCount() == 0) {
-                    controller.setMediaItems(
-                        audio.second,
-                        audioTape.currentName,
-                        audioTape.position
-                    )
-                }
-                DisplayPlayingItem(audioTape, audio.second, audio.third, controllerState)
+                DisplayPlayingItem(audio.first, audio.second, audio.third, controllerState)
             }
         }
-
-
-    val item: StateFlow<PlayAudioDto?> = _item.asStateFlow()
-
-    fun updatePlayAudioForExclusive(
-        volumes: List<VolumeItem>,
-        audioTape: AudioTapeDto,
-        playback: ControllerState
-    ) {
-        // audioTapeが存在しない場合だけnullになる
-        val playAudio =
-            if (_audioTapeRepository.validAudioTapeDto(audioTape)) {
-                val searchObject = AudioStoreRepository.pathToSearchObject(
-                    volumes,
-                    audioTape.folderPath,
-                    audioTape.currentName
-                )
-                val item = _audioStoreRepository.getAudioItem(searchObject)
-                val durationMs = item?.metadata?.duration ?: 0
-                PlayAudioDto(
-                    exist = item != null,
-                    playback.isReadyOk,
-                    playback.isPlaying,
-                    audioTape.folderPath + File.separator + audioTape.currentName,
-                    durationMs,
-                    audioTape.position,
-                    audioTape = audioTape
-                )
-            } else {
-                null
-            }
-        _item.update { playAudio }
-    }
-
-    fun updatePlaybackPosition(position: Long) {
-        _audioTapeStagingRepository.updatePosition(position)
-    }
 
 }
 
