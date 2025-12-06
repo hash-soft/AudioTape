@@ -111,7 +111,7 @@ class PlaybackService : MediaSessionService() {
             // 再生中の場合だけ再生情報の保存をする
             if (player.isPlaying) {
                 runBlocking {
-                    updateTapeCurrentPosition(player)
+                    updateTapeCurrentPosition(player, false)
                 }
             }
             release()
@@ -120,13 +120,14 @@ class PlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
-    private suspend fun updateTapeCurrentPosition(player: Player) {
+    private suspend fun updateTapeCurrentPosition(player: Player, isLastPlayedAt: Boolean) {
         player.currentMediaItem?.localConfiguration?.uri?.let { uri ->
             val file = File(audioStoreRepository.uriToPath(uri))
             audioTapeRepository.updatePlayingPosition(
                 folderPath = file.parent ?: "",
                 currentName = file.name,
-                position = player.contentPosition
+                position = player.contentPosition,
+                isLastPlayedAt = isLastPlayedAt
             )
         }
     }
@@ -137,7 +138,7 @@ class PlaybackService : MediaSessionService() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 controllerStateRepository.updateIsPlaying(isPlaying)
-                updateTapePosition()
+                updateTapePosition(isPlaying)
 
                 // 停止中のseekは停止のままなのでここにはこない
                 // 再生中のseekは一度停止して再生になる
@@ -175,7 +176,6 @@ class PlaybackService : MediaSessionService() {
                         // seek操作を反映するために必要
                         Timber.d("#2 state ready position = ${player.contentPosition}")
                         controllerStateRepository.updateIsReadyOk(true)
-                        updateTapePosition()
                     }
 
 
@@ -220,7 +220,7 @@ class PlaybackService : MediaSessionService() {
                     Player.MEDIA_ITEM_TRANSITION_REASON_SEEK,// Seekで曲が変わったとき
                         //  Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED // プレイリストが変わったとき
                         -> {
-                        updateTapePosition()
+                        updateTapePosition(false)
                     }
 
                     else -> {}
@@ -228,9 +228,9 @@ class PlaybackService : MediaSessionService() {
                 }
             }
 
-            private fun updateTapePosition() {
+            private fun updateTapePosition(isLastPlayedAt: Boolean) {
                 serviceScope.launch {
-                    updateTapeCurrentPosition(player)
+                    updateTapeCurrentPosition(player, isLastPlayedAt)
                 }
             }
 

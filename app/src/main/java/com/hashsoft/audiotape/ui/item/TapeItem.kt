@@ -1,6 +1,6 @@
 package com.hashsoft.audiotape.ui.item
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.Icon
@@ -71,9 +71,11 @@ fun TapeItem(
                 )
             }
         },
-        modifier = Modifier.clickable {
+        modifier = Modifier.combinedClickable(onClick = {
             audioCallback(AudioCallbackArgument.TapeSelected(index))
-        },
+        }, onLongClick = {
+            audioCallback(AudioCallbackArgument.TapeSelected(index, true))
+        }),
         colors = if (color > 0) ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant, // 背景色
             headlineColor = MaterialTheme.colorScheme.onSurfaceVariant         // 見出し文字色

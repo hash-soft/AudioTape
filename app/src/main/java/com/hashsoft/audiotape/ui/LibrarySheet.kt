@@ -1,6 +1,5 @@
 package com.hashsoft.audiotape.ui
 
-import android.R.id.tabs
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -165,7 +164,7 @@ private fun LibrarySheetPager(
                         audioCallback(AudioCallbackArgument.TransferAudioPlay)
                     }
 
-                    1 -> TapeView {
+                    1 -> TapeView(onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) }) {
                         scope.launch {
                             state.animateScrollToPage(0)
                         }

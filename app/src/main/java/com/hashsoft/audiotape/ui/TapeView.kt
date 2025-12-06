@@ -11,6 +11,7 @@ import com.hashsoft.audiotape.ui.list.TapeList
 @Composable
 fun TapeView(
     viewModel: TapeViewModel = hiltViewModel(),
+    onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -26,6 +27,7 @@ fun TapeView(
                         viewModel,
                         tapeListState,
                         argument,
+                        onAudioTransfer = onAudioTransfer,
                         onFolderOpen
                     )
                 }
@@ -38,6 +40,7 @@ private fun tapeItemSelected(
     viewModel: TapeViewModel,
     audioTapeList: List<DisplayAudioTape>,
     argument: AudioCallbackArgument,
+    onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     when (argument) {
@@ -48,7 +51,11 @@ private fun tapeItemSelected(
                 viewModel.switchPlayingFolder(tape)
             }
             viewModel.setPlayingParameters(tape)
-            viewModel.playWhenReady(true)
+            if (argument.transfer) {
+                onAudioTransfer()
+            } else {
+                viewModel.playWhenReady(true)
+            }
         }
 
         is AudioCallbackArgument.TapeFolderOpen -> {

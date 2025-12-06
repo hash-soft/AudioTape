@@ -125,15 +125,34 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      * @param currentName 現在のアイテム名
      * @param position 再生位置
      */
-    suspend fun updatePlayingPosition(folderPath: String, currentName: String, position: Long) =
-        audioTapeDao.updatePlayingPosition(
-            AudioTapePlayingPosition(
-                folderPath = folderPath,
-                currentName = currentName,
-                position = position,
-                updateTime = SystemTime.currentMillis()
+    suspend fun updatePlayingPosition(
+        folderPath: String,
+        currentName: String,
+        position: Long,
+        isLastPlayedAt: Boolean
+    ) {
+        val time = SystemTime.currentMillis()
+        if (isLastPlayedAt) {
+            audioTapeDao.updatePlayingPositionWithLastPlayedAt(
+                AudioTapePlayingPositionWithLastPlayedAt(
+                    folderPath = folderPath,
+                    currentName = currentName,
+                    position = position,
+                    lastPlayedAt = time,
+                    updateTime = time,
+                )
             )
-        )
+        } else {
+            audioTapeDao.updatePlayingPosition(
+                AudioTapePlayingPosition(
+                    folderPath = folderPath,
+                    currentName = currentName,
+                    position = position,
+                    updateTime = time,
+                )
+            )
+        }
+    }
 
     /**
      * ソート順を更新する

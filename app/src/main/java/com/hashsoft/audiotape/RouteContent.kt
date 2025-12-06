@@ -46,7 +46,6 @@ fun RouteContent(
         }
     }
 
-
     when (val uiState = viewModel.uiState.value) {
         is RouteStateUiState.Loading -> {}
         is RouteStateUiState.Success -> {

@@ -23,6 +23,14 @@ data class AudioTapePlayingPosition(
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
 
+data class AudioTapePlayingPositionWithLastPlayedAt(
+    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "current_name") val currentName: String,
+    @ColumnInfo(name = "position") val position: Long,
+    @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long,
+    @ColumnInfo(name = "update_time") val updateTime: Long
+)
+
 data class AudioTapeSortOrderSubEntity(
     @ColumnInfo(name = "folder_path") val folderPath: String,
     @ColumnInfo(name = "sort_order") val sortOrder: Int,
@@ -128,6 +136,9 @@ interface AudioTapeDao {
      */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePlayingPosition(entity: AudioTapePlayingPosition)
+
+    @Update(entity = AudioTapeEntity::class)
+    suspend fun updatePlayingPositionWithLastPlayedAt(entity: AudioTapePlayingPositionWithLastPlayedAt)
 
 
     @Update(entity = AudioTapeEntity::class)

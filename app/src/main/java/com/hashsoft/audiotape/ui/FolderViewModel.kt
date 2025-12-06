@@ -152,7 +152,12 @@ class FolderViewModel @Inject constructor(
         _controller.getCurrentMediaItemUri()?.let { uri ->
             viewModelScope.launch {
                 val file = File(_audioStoreRepository.uriToPath(uri))
-                _audioTapeRepository.updatePlayingPosition(file.parent ?: "", file.name, position)
+                _audioTapeRepository.updatePlayingPosition(
+                    file.parent ?: "",
+                    file.name,
+                    position,
+                    false
+                )
             }
         }
     }
@@ -162,7 +167,8 @@ class FolderViewModel @Inject constructor(
             _audioTapeRepository.updatePlayingPosition(
                 audioTape.folderPath,
                 audioTape.currentName,
-                audioTape.position
+                audioTape.position,
+                false
             )
             if (create) {
                 val result = _audioTapeRepository.insertNew(audioTape)
