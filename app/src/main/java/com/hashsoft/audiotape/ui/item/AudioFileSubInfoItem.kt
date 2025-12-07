@@ -57,7 +57,7 @@ private fun AudioFileSubInfoItemOneRow(
     style: TextStyle = LocalTextStyle.current
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        AudioDurationText(duration, modifier = Modifier.weight(1f), style)
+        AudioDurationText(duration, modifier = Modifier.weight(1f), style = style)
         SizeAndLastModifiedText(size, lastModified, style = style)
     }
 }
@@ -81,7 +81,7 @@ private fun AudioFileSubInfoItemTwoRow(
 ) {
     Column {
         Row(modifier = Modifier.fillMaxWidth()) {
-            AudioDurationText(duration, modifier = Modifier.weight(1f), style)
+            AudioDurationText(duration, modifier = Modifier.weight(1f), style = style)
             SizeAndLastModifiedText(size, lastModified, style = style)
         }
         Row(

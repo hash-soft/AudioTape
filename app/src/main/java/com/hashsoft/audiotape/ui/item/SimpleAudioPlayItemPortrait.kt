@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
+import com.hashsoft.audiotape.ui.text.AudioDurationText
 
 @Composable
 fun SimpleAudioPlayItemPortrait(
@@ -51,12 +52,19 @@ fun SimpleAudioPlayItemPortrait(
 
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                directory,
-                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                maxLines = 1,
-                overflow = TextOverflow.StartEllipsis,
-            )
+            Row {
+                Text(
+                    directory,
+                    modifier = Modifier.weight(1f),
+                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                    maxLines = 1,
+                    overflow = TextOverflow.StartEllipsis
+                )
+                AudioDurationText(
+                    duration = contentPosition,
+                    fontSize = MaterialTheme.typography.bodySmall.fontSize
+                )
+            }
             Text(
                 text = name,
                 fontSize = MaterialTheme.typography.bodyMedium.fontSize,
