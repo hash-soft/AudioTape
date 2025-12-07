@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hashsoft.audiotape.data.DisplayAudioTape
 import com.hashsoft.audiotape.ui.list.TapeList
 
 @Composable
@@ -14,42 +13,36 @@ fun TapeView(
     onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val tapeListState by viewModel.tapeListState.list.collectAsStateWithLifecycle()
+    //val state by viewModel.state.collectAsStateWithLifecycle()
+    //val tapeListState by viewModel.tapeListState.list.collectAsStateWithLifecycle()
+    val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
 
-    when (state) {
-        TapeViewState.Start -> {}
-        else -> {
-            TapeList(
-                tapeListState,
-                audioCallback = { argument ->
-                    tapeItemSelected(
-                        viewModel,
-                        tapeListState,
-                        argument,
-                        onAudioTransfer = onAudioTransfer,
-                        onFolderOpen
-                    )
-                }
+    TapeList(
+        displayTapeList = displayTapeList,
+        audioCallback = { argument ->
+            tapeItemSelected(
+                viewModel,
+                displayTapeList,
+                argument,
+                onAudioTransfer = onAudioTransfer,
+                onFolderOpen
             )
         }
-    }
+    )
 }
 
 private fun tapeItemSelected(
     viewModel: TapeViewModel,
-    audioTapeList: List<DisplayAudioTape>,
+    displayTapeList: List<DisplayTapeItem>,
     argument: AudioCallbackArgument,
     onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
-            val tape = audioTapeList[argument.index].base
-            viewModel.updatePlayingFolderPath(tape.folderPath)
-            if (!viewModel.setCurrentMediaItemsPosition(tape)) {
-                viewModel.switchPlayingFolder(tape)
-            }
+            val displayTape = displayTapeList.getOrNull(argument.index) ?: return
+            val tape = displayTape.audioTape
+            viewModel.switchPlayingFolder(tape)
             viewModel.setPlayingParameters(tape)
             if (argument.transfer) {
                 onAudioTransfer()

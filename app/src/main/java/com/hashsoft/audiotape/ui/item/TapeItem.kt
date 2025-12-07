@@ -37,6 +37,7 @@ import com.hashsoft.audiotape.ui.AudioCallbackArgument
 @Composable
 fun TapeItem(
     index: Int,
+    title:String,
     folderPath: String,
     currentName: String,
     position: Long,
@@ -51,7 +52,7 @@ fun TapeItem(
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     ListItem(
-        headlineContent = { Text(folderPath) },
+        headlineContent = { Text(title) },
         supportingContent = {
             Text(
                 text = "${currentName}, position:${formatMillis(position)}, $sortOrder r:${repeat} v:${volume} p:${pitch} s:${speed}, create:${

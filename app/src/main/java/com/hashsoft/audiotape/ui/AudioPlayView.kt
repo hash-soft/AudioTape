@@ -46,7 +46,6 @@ import com.hashsoft.audiotape.ui.theme.IconMedium
 /**
  * オーディオ再生ビュー
  *
- * @param playItem 再生アイテム
  * @param playList 再生リスト
  * @param onChangeTapeSettings テープ設定変更時のコールバック
  */
@@ -117,28 +116,44 @@ fun AudioPlayView(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.SkipPrevious) }) {
+            IconButton(
+                onClick = { onAudioItemClick(AudioCallbackArgument.SkipPrevious) },
+                enabled = isAvailable
+            ) {
                 Icon(
                     imageVector = Icons.Default.SkipPrevious,
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.BackIncrement) }) {
+            IconButton(
+                onClick = { onAudioItemClick(AudioCallbackArgument.BackIncrement) },
+                enabled = isAvailable
+            ) {
                 Icon(
                     imageVector = Icons.Default.FastRewind,
                     contentDescription = null,
                 )
             }
-            PlayPauseButton(controllerState.isPlaying, true, Modifier.size(IconMedium)) {
+            PlayPauseButton(
+                controllerState.isPlaying,
+                enabled = isAvailable,
+                Modifier.size(IconMedium)
+            ) {
                 onAudioItemClick(AudioCallbackArgument.PlayPause(it))
             }
-            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.ForwardIncrement) }) {
+            IconButton(
+                onClick = { onAudioItemClick(AudioCallbackArgument.ForwardIncrement) },
+                enabled = isAvailable
+            ) {
                 Icon(
                     imageVector = Icons.Default.FastForward,
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = { onAudioItemClick(AudioCallbackArgument.SkipNext) }) {
+            IconButton(
+                onClick = { onAudioItemClick(AudioCallbackArgument.SkipNext) },
+                enabled = isAvailable
+            ) {
                 Icon(
                     imageVector = Icons.Default.SkipNext,
                     contentDescription = null,

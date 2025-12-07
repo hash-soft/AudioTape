@@ -23,7 +23,6 @@ import kotlinx.coroutines.launch
  * オーディオ再生画面のViewModel
  *
  * @param _controller オーディオコントローラー
- * @param _playbackRepository 再生リポジトリ
  * @param _audioTapeRepository オーディオテープレポジトリ
  * @param _playingStateRepository 再生状態リポジトリ
  * @param storageItemListUseCase ストレージアイテムリストユースケース
@@ -96,10 +95,7 @@ class AudioPlayViewModel @Inject constructor(
         _controller.setPlaybackParameters(audioTape.speed, audioTape.pitch)
     }
 
-    /**
-     * 現在のメディアを再生する。
-     */
-    fun play() = _controller.play()
+    fun playWhenReady(playWhenReady: Boolean) = _controller.playWhenReady(playWhenReady)
 
     /**
      * 現在のメディアの再生を一時停止する。
