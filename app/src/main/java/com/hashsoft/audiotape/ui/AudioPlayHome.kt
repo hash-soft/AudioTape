@@ -37,6 +37,7 @@ fun AudioPlayHomeRoute(
 ) {
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val contentPosition by viewModel.contentPosition.collectAsStateWithLifecycle()
+    val available by viewModel.availableState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -69,9 +70,13 @@ fun AudioPlayHomeRoute(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayHome(contentPosition = contentPosition, displayPlayingItem, { argument ->
-                audioPlay(argument = argument, displayPlayingItem, viewModel = viewModel)
-            }) { argument ->
+            AudioPlayHome(
+                isAvailable = available,
+                contentPosition = contentPosition,
+                displayPlayingItem,
+                { argument ->
+                    audioPlay(argument = argument, displayPlayingItem, viewModel = viewModel)
+                }) { argument ->
                 val tape = displayPlayingItem?.audioTape ?: return@AudioPlayHome
                 tapeSettings(argument, tape, viewModel)
             }
@@ -87,6 +92,7 @@ fun AudioPlayHomeRoute(
  */
 @Composable
 private fun AudioPlayHome(
+    isAvailable: Boolean,
     contentPosition: Long,
     displayPlayingItem: DisplayPlayingItem?,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
@@ -96,6 +102,7 @@ private fun AudioPlayHome(
         NoTapeView()
     } else {
         AudioPlayView(
+            isAvailable = isAvailable,
             contentPosition = contentPosition,
             displayPlayingItem.audioTape,
             displayPlayingItem.audioList,

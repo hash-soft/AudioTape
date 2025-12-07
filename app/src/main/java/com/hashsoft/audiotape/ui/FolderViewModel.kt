@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioItemDto
@@ -116,6 +117,13 @@ class FolderViewModel @Inject constructor(
         viewModelScope, SharingStarted.WhileSubscribed(5000), DisplayFolder()
     )
 
+    val availableState = _controller.availableStateFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+
+
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
     }
@@ -142,27 +150,18 @@ class FolderViewModel @Inject constructor(
 
     fun switchPlayingFolder(audioTape: AudioTapeDto, create: Boolean) {
         // MediaItemの変更前に通知がこないので前のcurrentの位置を更新する
-        updatePrevPlayingPosition()
+        val prevPosition = _controller.getContentPosition()
+        val prevUri = _controller.getCurrentMediaItemUri()
         _controller.clearMediaItems()
-        updatePlaying(audioTape, create)
+        updatePlaying(audioTape, create, prevUri, prevPosition)
     }
 
-    private fun updatePrevPlayingPosition() {
-        val position = _controller.getContentPosition()
-        _controller.getCurrentMediaItemUri()?.let { uri ->
-            viewModelScope.launch {
-                val file = File(_audioStoreRepository.uriToPath(uri))
-                _audioTapeRepository.updatePlayingPosition(
-                    file.parent ?: "",
-                    file.name,
-                    position,
-                    false
-                )
-            }
-        }
-    }
-
-    private fun updatePlaying(audioTape: AudioTapeDto, create: Boolean) {
+    private fun updatePlaying(
+        audioTape: AudioTapeDto,
+        create: Boolean,
+        prevUri: Uri?,
+        prevPosition: Long
+    ) {
         viewModelScope.launch {
             _audioTapeRepository.updatePlayingPosition(
                 audioTape.folderPath,
@@ -175,6 +174,15 @@ class FolderViewModel @Inject constructor(
                 Timber.d("insertNew result: $result folderPath: ${audioTape.folderPath}")
             }
             _playingStateRepository.saveFolderPath(audioTape.folderPath)
+            prevUri?.let { uri ->
+                val file = File(_audioStoreRepository.uriToPath(uri))
+                _audioTapeRepository.updatePlayingPosition(
+                    file.parent ?: "",
+                    file.name,
+                    prevPosition,
+                    false
+                )
+            }
         }
     }
 

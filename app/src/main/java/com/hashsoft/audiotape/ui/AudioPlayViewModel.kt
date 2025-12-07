@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
-    private val _controllerStateRepository: ControllerStateRepository,
+    controllerStateRepository: ControllerStateRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     storageItemListUseCase: StorageItemListUseCase,
@@ -50,13 +50,19 @@ class AudioPlayViewModel @Inject constructor(
         _audioStoreRepository,
         _storageVolumeRepository,
         _playingStateRepository,
-        _controllerStateRepository,
+        controllerStateRepository,
     )
 
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         null
+    )
+
+    val availableState = _playItemState.availableState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
     )
 
     /**

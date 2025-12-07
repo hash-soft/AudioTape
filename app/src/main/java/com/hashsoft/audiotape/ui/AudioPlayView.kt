@@ -52,6 +52,7 @@ import com.hashsoft.audiotape.ui.theme.IconMedium
  */
 @Composable
 fun AudioPlayView(
+    isAvailable: Boolean,
     contentPosition: Long,
     tape: AudioTapeDto,
     playList: List<AudioItemDto>,

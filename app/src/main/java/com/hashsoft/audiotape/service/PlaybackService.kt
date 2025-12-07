@@ -62,6 +62,7 @@ class PlaybackService : MediaSessionService() {
         Timber.d("onCreate")
         val player = ExoPlayer.Builder(this)
             .setHandleAudioBecomingNoisy(true).build()
+        Timber.d("#2 onCreate: player = ${player.playbackState}")
         setPlayerListener(player)
         mediaSession =
             MediaSession.Builder(this, player)
@@ -137,7 +138,8 @@ class PlaybackService : MediaSessionService() {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-                controllerStateRepository.updateIsPlaying(isPlaying)
+                // Readyになったら再生される場合も再生扱いにする
+                controllerStateRepository.updateIsPlaying(isPlaying || player.playWhenReady)
                 updateTapePosition(isPlaying)
 
                 // 停止中のseekは停止のままなのでここにはこない
@@ -153,20 +155,17 @@ class PlaybackService : MediaSessionService() {
                 super.onPlaybackStateChanged(playbackState)
                 when (playbackState) {
                     Player.STATE_IDLE -> {
-                        // prepare前
-                        // 1度prepareしないとこのコールバック来ない
-                        // stopやエラーで停止後に来る
+                        // prepare前の状態
+                        // 初期状態だがlistener設定時にコールバックは来ない
                         // ここに来たらprepareが必要
                         // Todo stopはしないがエラーは発生するのでどこでprepareをすべきか
                         // MediaItemがあったらprepareを試してみる
                         Timber.d("#2 state idle")
-                        controllerStateRepository.updateIsReadyOk(false)
                     }
 
                     Player.STATE_BUFFERING -> {
                         Timber.d("#2 state buffering position = ${player.contentPosition}")
                         // 再生可能にする準備中
-                        controllerStateRepository.updateIsReadyOk(false)
                     }
 
                     Player.STATE_READY -> {
@@ -175,26 +174,23 @@ class PlaybackService : MediaSessionService() {
                         // playWhenReady:trueなら再生中 falseなら停止中
                         // seek操作を反映するために必要
                         Timber.d("#2 state ready position = ${player.contentPosition}")
-                        controllerStateRepository.updateIsReadyOk(true)
                     }
 
 
                     Player.STATE_ENDED -> {
                         Timber.d("#2 state ended")
                         // 終了だが条件がわかっていない
-                        // stopしたとき？
-                        // 要素が0のときもくる
-                        // 要素が0のときにフォアグラウンドサービスを止めるのがいいか
-                        controllerStateRepository.updateIsReadyOk(false)
+                        // stopしたときや要素0のとき
                     }
                 }
+                controllerStateRepository.updatePlaybackState(playbackState)
             }
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 super.onTimelineChanged(timeline, reason)
                 // Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED = 0
                 // Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE = 1
-                Timber.d("#2 listener timelineChanged reason = $reason, mediaItem = ${player.currentMediaItem}")
+                Timber.d("#2 listener timelineChanged reason = $reason")
             }
 
             override fun onPlayerError(error: PlaybackException) {

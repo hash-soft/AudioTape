@@ -9,7 +9,8 @@ import com.hashsoft.audiotape.ui.AudioCallbackArgument
 fun SimpleAudioPlayItem(
     directory: String,
     name: String,
-    isReadyOk: Boolean = false,
+    isAvailable:Boolean = false,
+    isBuffering: Boolean = false,
     isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
@@ -20,7 +21,8 @@ fun SimpleAudioPlayItem(
         SimpleAudioPlayItemPortrait(
             directory,
             name,
-            isReadyOk,
+            isAvailable,
+            isBuffering,
             isPlaying,
             durationMs,
             contentPosition,
@@ -31,7 +33,8 @@ fun SimpleAudioPlayItem(
         SimpleAudioPlayItemPortrait(
             directory,
             name,
-            isReadyOk,
+            isAvailable,
+            isBuffering,
             isPlaying,
             durationMs,
             contentPosition,

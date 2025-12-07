@@ -1,15 +1,11 @@
 package com.hashsoft.audiotape
 
 
-import android.content.Context
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -21,7 +17,6 @@ import com.hashsoft.audiotape.ui.LibraryHomeRoute
 import com.hashsoft.audiotape.ui.RouteContentViewModel
 import com.hashsoft.audiotape.ui.RouteStateUiState
 import com.hashsoft.audiotape.ui.UserSettingsHomeRoute
-import kotlinx.coroutines.launch
 
 /**
  * アプリケーションのメインコンテンツとなるルートを定義する
@@ -30,22 +25,7 @@ import kotlinx.coroutines.launch
  * @param viewModel ルートの状態を管理するViewModel
  */
 @Composable
-fun RouteContent(
-    context: Context = LocalContext.current,
-    viewModel: RouteContentViewModel = hiltViewModel()
-) {
-    val coroutineScope = rememberCoroutineScope()
-
-    LifecycleStartEffect(Unit) {
-        val job = coroutineScope.launch {
-            viewModel.buildController(context)
-        }
-        onStopOrDispose {
-            job.cancel()
-            viewModel.releaseController()
-        }
-    }
-
+fun RouteContent(viewModel: RouteContentViewModel = hiltViewModel()) {
     when (val uiState = viewModel.uiState.value) {
         is RouteStateUiState.Loading -> {}
         is RouteStateUiState.Success -> {

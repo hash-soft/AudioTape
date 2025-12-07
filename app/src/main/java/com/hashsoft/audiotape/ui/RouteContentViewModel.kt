@@ -1,6 +1,5 @@
 package com.hashsoft.audiotape.ui
 
-import android.content.Context
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -19,10 +18,7 @@ import javax.inject.Inject
  * @param _routeStateRepository ルート状態リポジトリ
  */
 @HiltViewModel
-class RouteContentViewModel @Inject constructor(
-    private val _controller: AudioController,
-    private val _routeStateRepository: RouteStateRepository,
-) :
+class RouteContentViewModel @Inject constructor(private val _routeStateRepository: RouteStateRepository) :
     ViewModel() {
 
     /**
@@ -39,18 +35,6 @@ class RouteContentViewModel @Inject constructor(
             uiState.value = RouteStateUiState.Success(state)
         }
     }
-
-    /**
-     * オーディオコントローラーをビルドする
-     *
-     * @param context コンテキスト
-     */
-    suspend fun buildController(context: Context) = _controller.buildController(context)
-
-    /**
-     * オーディオコントローラーを解放する
-     */
-    fun releaseController() = _controller.releaseController()
 
     /**
      * 開始画面を保存する

@@ -10,6 +10,9 @@ import com.hashsoft.audiotape.core.extensions.await
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.logic.MediaItemHelper
 import com.hashsoft.audiotape.service.PlaybackService
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 
 
@@ -17,10 +20,16 @@ import timber.log.Timber
  * オーディオ再生を制御するコントローラー
  * Media3 MediaControllerのラッパー
  */
-class AudioController() {
+class AudioController(
+    private val _availableStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(
+        false
+    )
+) {
 
     private var _controllerFuture: ListenableFuture<MediaController>? = null
     private var _controller: MediaController? = null
+
+    val availableStateFlow = _availableStateFlow.asStateFlow()
 
     /**
      * コントローラーをビルドする
@@ -34,8 +43,9 @@ class AudioController() {
         try {
             _controller = _controllerFuture?.await()
             Timber.d("#1 Controller connected")
+            _availableStateFlow.update { true }
         } catch (e: Exception) {
-            Timber.w(e, "Failed to connect to MediaController")
+            Timber.w(e, "#1 Failed to connect to MediaController")
             releaseController()
         }
     }
@@ -44,6 +54,8 @@ class AudioController() {
      * コントローラーを解放する
      */
     fun releaseController() {
+        Timber.d("#1 Controller disconnected")
+        _availableStateFlow.update { false }
         _controller?.let {
             it.release()
             _controller = null

@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
@@ -52,6 +53,13 @@ class LibraryStateViewModel @Inject constructor(
         null
     )
 
+    val availableState = _playItemState.availableState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+
+
     val playingPosition = contentPositionRepository.value.asStateFlow()
 
     init {
@@ -97,7 +105,10 @@ data class DisplayPlayingItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", ""),
     val audioList: List<AudioItemDto> = listOf(),
     val treeList: List<String>? = null,
-    val controllerState: ControllerState = ControllerState(isReadyOk = false, isPlaying = false)
+    val controllerState: ControllerState = ControllerState(
+        playbackState = Player.STATE_IDLE,
+        isPlaying = false
+    )
 )
 
 

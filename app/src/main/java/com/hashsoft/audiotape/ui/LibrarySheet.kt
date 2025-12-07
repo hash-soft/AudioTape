@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.Player
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
@@ -38,11 +39,14 @@ fun LibrarySheetRoute(
     val uiState by viewModel.uiState
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val playingPosition by viewModel.playingPosition.collectAsStateWithLifecycle()
+    val available by viewModel.availableState.collectAsStateWithLifecycle()
+
 
     when (val state = uiState) {
         is LibraryStateUiState.Loading -> {}
         is LibraryStateUiState.Success -> LibrarySheetPager(
             state.libraryState,
+            isAvailable = available,
             displayPlayingItem = displayPlayingItem,
             playingPosition = playingPosition,
             audioCallback = { argument ->
@@ -97,6 +101,7 @@ private fun playItemSelected(
 private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
+    isAvailable: Boolean,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
     audioCallback: (AudioCallbackArgument) -> Unit,
@@ -132,7 +137,8 @@ private fun LibrarySheetPager(
                         default = audioTape.folderPath
                     ),
                     name = audioTape.currentName,
-                    isReadyOk = displayPlayingItem.controllerState.isReadyOk,
+                    isAvailable = isAvailable,
+                    isBuffering = displayPlayingItem.controllerState.playbackState == Player.STATE_BUFFERING,
                     isPlaying = displayPlayingItem.controllerState.isPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,

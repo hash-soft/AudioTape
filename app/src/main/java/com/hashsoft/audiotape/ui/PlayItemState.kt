@@ -39,19 +39,13 @@ class PlayItemState(
             )
             val list = _audioStoreRepository.getListByPath(searchObject)
             val sortedList = StorageItemListUseCase.sortedAudioList(list, audioTape.sortOrder)
-            if (controller.getMediaItemCount() == 0) {
-                controller.setMediaItems(sortedList, audioTape.currentName, audioTape.position)
-                controller.prepare()
-            } else {
-                controller.replaceMediaItemsWith(sortedList)
-            }
             Triple(audioTape, sortedList, treeList)
         } else null
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _refreshAudioState = _baseState.flatMapLatest { triple ->
-        Timber.d("#5 audioState = $triple")
+        Timber.d("#5 audioState")
         if (triple != null) {
             var prevSortOrder = triple.first.sortOrder
             _audioTapeRepository.findByPath(triple.first.folderPath).map { audioTape ->
@@ -78,12 +72,30 @@ class PlayItemState(
 
     val displayPlayingState =
         combine(_refreshAudioState, controllerStateRepository.data) { audio, controllerState ->
-            Timber.d("#5 displayPlayingState = $audio")
+            Timber.d("#5 displayPlayingState state=$controllerState")
             if (audio == null) null else {
                 DisplayPlayingItem(audio.first, audio.second, audio.third, controllerState)
             }
         }
 
+    val availableState =
+        combine(_baseState, controller.availableStateFlow) { audio, available ->
+            Timber.d("#5 availableState = $available")
+            if (audio != null) {
+                if (controller.getMediaItemCount() == 0) {
+                    val audioTape = audio.first
+                    controller.setMediaItems(
+                        audio.second,
+                        audioTape.currentName,
+                        audioTape.position
+                    )
+                    controller.prepare()
+                } else {
+                    controller.replaceMediaItemsWith(audio.second)
+                }
+            }
+            available
+        }
 }
 
 

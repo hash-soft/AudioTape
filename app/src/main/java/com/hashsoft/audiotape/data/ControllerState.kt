@@ -1,6 +1,6 @@
 package com.hashsoft.audiotape.data
 
 data class ControllerState(
-    val isReadyOk: Boolean,
+    val playbackState: Int,
     val isPlaying: Boolean,
 )

@@ -52,7 +52,7 @@ fun <T> T.playingContentPositionFlow(
 ): Flow<Long> where T : Player =
     (flow.flatMapLatest { state ->
         if (state.isPlaying) contentPositionFlow(intervalMs) else {
-            val position = if (state.isReadyOk) contentPosition else -1L
+            val position = if (state.playbackState == Player.STATE_READY) contentPosition else -1L
             flowOf(position)
         }
     })

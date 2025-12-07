@@ -27,9 +27,8 @@ object AppModule {
     @Provides
     fun provideStorageAddressUseCase(
         @ApplicationContext context: Context
-    ): StorageAddressUseCase {
-        return StorageAddressUseCase(context)
-    }
+    ): StorageAddressUseCase = StorageAddressUseCase(context)
+
 
     @Provides
     @Singleton
@@ -37,26 +36,23 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAudioStoreRepository(@ApplicationContext context: Context): AudioStoreRepository {
-        return AudioStoreRepository(context)
-    }
+    fun provideAudioStoreRepository(@ApplicationContext context: Context): AudioStoreRepository =
+        AudioStoreRepository(context)
 
     @Provides
     fun provideStorageItemListUseCase(
         audioStoreRepository: AudioStoreRepository,
-    ): StorageItemListUseCase {
-        return StorageItemListUseCase(audioStoreRepository)
-    }
+    ): StorageItemListUseCase = StorageItemListUseCase(audioStoreRepository)
+
 
     @Provides
     @Singleton
-    fun providerStorageVolumeRepository(@ApplicationContext context: Context): StorageVolumeRepository {
-        return StorageVolumeRepository(context)
-    }
+    fun providerStorageVolumeRepository(@ApplicationContext context: Context): StorageVolumeRepository =
+        StorageVolumeRepository(context)
+
 
     @Provides
     @Singleton
-    fun providerControllerStateRepository(): ControllerStateRepository {
-        return ControllerStateRepository()
-    }
+    fun providerControllerStateRepository(): ControllerStateRepository = ControllerStateRepository()
+
 }

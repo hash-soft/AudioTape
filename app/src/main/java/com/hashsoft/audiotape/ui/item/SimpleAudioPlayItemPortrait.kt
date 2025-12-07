@@ -28,7 +28,8 @@ import com.hashsoft.audiotape.ui.AudioCallbackArgument
 fun SimpleAudioPlayItemPortrait(
     directory: String,
     name: String,
-    isReadyOk: Boolean = false,
+    isAvailable: Boolean = false,
+    isBuffering: Boolean = false,
     isPlaying: Boolean = false,
     durationMs: Long = 0,
     contentPosition: Long = 0,
@@ -41,12 +42,8 @@ fun SimpleAudioPlayItemPortrait(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = {
-            audioCallback(
-                AudioCallbackArgument.PlayPause(
-                    isPlaying,
-                )
-            )
-        }) {
+            audioCallback(AudioCallbackArgument.PlayPause(isPlaying))
+        }, enabled = isAvailable) {
             Icon(
                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                 null
@@ -78,11 +75,11 @@ fun SimpleAudioPlayItemPortrait(
         }
         IconButton(
             onClick = { audioCallback(AudioCallbackArgument.SkipPrevious) },
-            enabled = isReadyOk,
+            enabled = isAvailable,
         ) { Icon(Icons.Default.SkipPrevious, null) }
         IconButton(
             onClick = { audioCallback(AudioCallbackArgument.SkipNext) },
-            enabled = isReadyOk,
+            enabled = isAvailable,
         ) {
             Icon(Icons.Default.SkipNext, null)
         }
