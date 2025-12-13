@@ -2,7 +2,7 @@ package com.hashsoft.audiotape.ui
 
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.ControllerStateRepository
+import com.hashsoft.audiotape.data.ControllerPlayingRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -20,7 +20,7 @@ class PlayItemState(
     private val _audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
     playingStateRepository: PlayingStateRepository,
-    controllerStateRepository: ControllerStateRepository,
+    controllerPlayingRepository: ControllerPlayingRepository,
 ) {
 
     private val _baseState = combine(
@@ -71,10 +71,9 @@ class PlayItemState(
     }
 
     val displayPlayingState =
-        combine(_refreshAudioState, controllerStateRepository.data) { audio, controllerState ->
-            Timber.d("#5 displayPlayingState state=$controllerState")
+        combine(_refreshAudioState, controllerPlayingRepository.data) { audio, isPlaying ->
             if (audio == null) null else {
-                DisplayPlayingItem(audio.first, audio.second, audio.third, controllerState)
+                DisplayPlayingItem(audio.first, audio.second, audio.third, isPlaying)
             }
         }
 
@@ -90,6 +89,9 @@ class PlayItemState(
                         audioTape.position
                     )
                     controller.prepare()
+                    controller.setSpeed(audioTape.speed)
+                    controller.setPitch(audioTape.pitch)
+                    controller.setRepeat(audioTape.repeat)
                 } else {
                     controller.replaceMediaItemsWith(audio.second)
                 }

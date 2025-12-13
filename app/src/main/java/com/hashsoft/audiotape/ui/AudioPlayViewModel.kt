@@ -8,7 +8,7 @@ import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerStateRepository
+import com.hashsoft.audiotape.data.ControllerPlayingRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class AudioPlayViewModel @Inject constructor(
     private val _controller: AudioController,
-    controllerStateRepository: ControllerStateRepository,
+    controllerPlayingRepository: ControllerPlayingRepository,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
     storageItemListUseCase: StorageItemListUseCase,
@@ -49,7 +49,7 @@ class AudioPlayViewModel @Inject constructor(
         _audioStoreRepository,
         _storageVolumeRepository,
         _playingStateRepository,
-        controllerStateRepository,
+        controllerPlayingRepository,
     )
 
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(

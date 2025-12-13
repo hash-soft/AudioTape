@@ -18,7 +18,7 @@ import com.hashsoft.audiotape.core.extensions.playingContentPositionFlow
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerStateRepository
+import com.hashsoft.audiotape.data.ControllerPlayingRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -53,7 +53,7 @@ class PlaybackService : MediaSessionService() {
     lateinit var playingStateRepository: PlayingStateRepository
 
     @Inject
-    lateinit var controllerStateRepository: ControllerStateRepository
+    lateinit var controllerPlayingRepository: ControllerPlayingRepository
 
     // Create your player and media session in the onCreate lifecycle event
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -89,8 +89,7 @@ class PlaybackService : MediaSessionService() {
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeState(player: ExoPlayer) {
         serviceScope.launch {
-            // Todo バックグラウンドでも動いてしまうのでModelViewに移動したい
-            player.playingContentPositionFlow(controllerStateRepository.data).collect { position ->
+            player.playingContentPositionFlow(controllerPlayingRepository.data).collect { position ->
                 contentPositionRepository.update(position)
             }
         }
@@ -139,7 +138,7 @@ class PlaybackService : MediaSessionService() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 // Readyになったら再生される場合も再生扱いにする
-                controllerStateRepository.updateIsPlaying(isPlaying || player.playWhenReady)
+                controllerPlayingRepository.update(isPlaying || player.playWhenReady)
                 updateTapePosition(isPlaying)
 
                 // 停止中のseekは停止のままなのでここにはこない
@@ -183,7 +182,7 @@ class PlaybackService : MediaSessionService() {
                         // stopしたときや要素0のとき
                     }
                 }
-                controllerStateRepository.updatePlaybackState(playbackState)
+                //controllerStateRepository.updatePlaybackState(playbackState)
             }
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {

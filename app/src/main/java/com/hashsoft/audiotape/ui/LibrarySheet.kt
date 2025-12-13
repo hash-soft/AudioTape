@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.Player
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
@@ -138,8 +137,8 @@ private fun LibrarySheetPager(
                     ),
                     name = audioTape.currentName,
                     isAvailable = isAvailable,
-                    isBuffering = displayPlayingItem.controllerState.playbackState == Player.STATE_BUFFERING,
-                    isPlaying = displayPlayingItem.controllerState.isPlaying,
+                    isBuffering = false,
+                    isPlaying = displayPlayingItem.isPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
                     audioCallback = audioCallback

@@ -8,7 +8,7 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.ControllerStateRepository
+import com.hashsoft.audiotape.data.ControllerPlayingRepository
 import com.hashsoft.audiotape.data.DisplayFolder
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -51,7 +51,7 @@ class FolderViewModel @Inject constructor(
     storageItemListUseCase: StorageItemListUseCase,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
-    private val _controllerStateRepository: ControllerStateRepository,
+    private val _controllerPlayingRepository: ControllerPlayingRepository,
     storageVolumeRepository: StorageVolumeRepository,
     private val _audioStoreRepository: AudioStoreRepository,
     userSettingsRepository: UserSettingsRepository
@@ -99,9 +99,9 @@ class FolderViewModel @Inject constructor(
         combine(
             _audioTapeRepository.findByPath(folderPath),
             userSettingsRepository.findById(UserSettingsRepository.DEFAULT_ID),
-            _controllerStateRepository.data,
+            _controllerPlayingRepository.data,
             _playingStateRepository.playingStateFlow()
-        ) { audioTape, settings, controllerState, playingState ->
+        ) { audioTape, settings, isPlaying, playingState ->
             _state.update { FolderViewState.Success }
             DisplayFolder(
                 folderPath = folderPath,
@@ -110,7 +110,7 @@ class FolderViewModel @Inject constructor(
                 audioTape = audioTape,
                 playingState,
                 settings ?: UserSettingsDto(UserSettingsRepository.DEFAULT_ID),
-                controllerState
+                isPlaying
             )
         }
     }.stateIn(

@@ -4,14 +4,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.Player
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerState
-import com.hashsoft.audiotape.data.ControllerStateRepository
+import com.hashsoft.audiotape.data.ControllerPlayingRepository
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -27,7 +25,7 @@ import kotlinx.coroutines.launch
 class LibraryStateViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
-    controllerStateRepository: ControllerStateRepository,
+    controllerPlayingRepository: ControllerPlayingRepository,
     audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     audioStoreRepository: AudioStoreRepository,
@@ -44,7 +42,7 @@ class LibraryStateViewModel @Inject constructor(
         audioStoreRepository,
         storageVolumeRepository,
         playingStateRepository,
-        controllerStateRepository,
+        controllerPlayingRepository,
     )
 
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(
@@ -105,10 +103,7 @@ data class DisplayPlayingItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", ""),
     val audioList: List<AudioItemDto> = listOf(),
     val treeList: List<String>? = null,
-    val controllerState: ControllerState = ControllerState(
-        playbackState = Player.STATE_IDLE,
-        isPlaying = false
-    )
+    val isPlaying: Boolean = false
 )
 
 

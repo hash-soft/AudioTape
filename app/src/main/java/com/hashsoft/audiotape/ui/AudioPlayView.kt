@@ -32,7 +32,6 @@ import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
 import com.hashsoft.audiotape.data.PlayVolumeValues
@@ -55,7 +54,7 @@ fun AudioPlayView(
     contentPosition: Long,
     tape: AudioTapeDto,
     playList: List<AudioItemDto>,
-    controllerState: ControllerState,
+    isPlaying: Boolean,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
@@ -103,7 +102,7 @@ fun AudioPlayView(
         }
 
         PlaySliderItem(
-            controllerState.isPlaying,
+            isPlaying,
             true,
             contentPosition = if (contentPosition >= 0) contentPosition else tape.position,
             playList.find { it.name == tape.currentName }?.metadata?.duration ?: 0,
@@ -135,7 +134,7 @@ fun AudioPlayView(
                 )
             }
             PlayPauseButton(
-                controllerState.isPlaying,
+                isPlaying,
                 enabled = isAvailable,
                 Modifier.size(IconMedium)
             ) {

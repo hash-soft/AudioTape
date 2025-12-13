@@ -10,10 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.Player
 import com.example.directorytest.ui.view.AddressBar
 import com.hashsoft.audiotape.data.AudioTapeDto
-import com.hashsoft.audiotape.data.ControllerState
 import com.hashsoft.audiotape.data.PlayingStateDto
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageLocationDto
@@ -40,14 +38,14 @@ fun FolderViewRoute(
                 itemList = displayFolder.list,
                 expandIndexList = displayFolder.expandIndexList,
                 audioTape = displayFolder.audioTape,
-                controllerState = displayFolder.controllerState,
+                isPlaying = displayFolder.isPlaying,
                 playingState = displayFolder.playingState,
                 onFolderClick = viewModel::saveSelectedPath
             ) { argument ->
                 when (argument) {
 
                     is AudioCallbackArgument.AudioSelected -> {
-                        if(!available && !argument.transfer){
+                        if (!available && !argument.transfer) {
                             // Todo トーストを出したい
                             return@FolderView
                         }
@@ -95,10 +93,7 @@ private fun FolderView(
     itemList: List<StorageItem> = listOf(),
     expandIndexList: List<Int> = listOf(),
     audioTape: AudioTapeDto? = null,
-    controllerState: ControllerState = ControllerState(
-        playbackState = Player.STATE_IDLE,
-        isPlaying = false
-    ),
+    isPlaying: Boolean = false,
     playingState: PlayingStateDto = PlayingStateDto(""),
     onFolderClick: (String) -> Unit = {},
     audioCallback: (AudioCallbackArgument) -> Unit
@@ -113,7 +108,7 @@ private fun FolderView(
                 modifier = Modifier.padding(innerPadding),
                 storageItemList = itemList,
                 expandIndexList = expandIndexList,
-                isPlaying = controllerState.isPlaying,
+                isPlaying = isPlaying,
                 isCurrent = audioTape?.folderPath == playingState.folderPath,
                 targetName = audioTape?.currentName ?: "",
                 contentPosition = audioTape?.position ?: 0,

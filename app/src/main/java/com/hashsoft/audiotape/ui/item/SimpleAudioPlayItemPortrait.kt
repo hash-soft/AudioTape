@@ -52,7 +52,7 @@ fun SimpleAudioPlayItemPortrait(
 
         }
         Column(modifier = Modifier.weight(1f)) {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     directory,
                     modifier = Modifier.weight(1f),

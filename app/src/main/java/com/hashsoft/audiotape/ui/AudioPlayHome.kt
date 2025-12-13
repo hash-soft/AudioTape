@@ -39,6 +39,8 @@ fun AudioPlayHomeRoute(
     val contentPosition by viewModel.contentPosition.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
 
+    //Timber.d("#3 position = $contentPosition")
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -106,7 +108,7 @@ private fun AudioPlayHome(
             contentPosition = contentPosition,
             displayPlayingItem.audioTape,
             displayPlayingItem.audioList,
-            displayPlayingItem.controllerState,
+            displayPlayingItem.isPlaying,
             onAudioItemClick,
             onChangeTapeSettings
         )

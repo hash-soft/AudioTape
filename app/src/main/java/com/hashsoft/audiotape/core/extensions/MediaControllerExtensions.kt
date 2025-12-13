@@ -3,7 +3,6 @@ package com.hashsoft.audiotape.core.extensions
 import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.Player
-import com.hashsoft.audiotape.data.ControllerState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +23,7 @@ fun <T> T.contentPositionFlow(intervalMs: Long = 1000L): Flow<Long> where T : Pl
         val runnable = object : Runnable {
             override fun run() {
                 try {
+                    Timber.d("#3 contentPosition = $contentPosition count = $mediaItemCount")
                     trySend(contentPosition)
                 } catch (e: IllegalStateException) {
                     Timber.w(e)
@@ -47,12 +47,15 @@ fun <T> T.contentPositionFlow(intervalMs: Long = 1000L): Flow<Long> where T : Pl
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T> T.playingContentPositionFlow(
-    flow: Flow<ControllerState>,
+    flow: Flow<Boolean>,
     intervalMs: Long = 1000L
 ): Flow<Long> where T : Player =
-    (flow.flatMapLatest { state ->
-        if (state.isPlaying) contentPositionFlow(intervalMs) else {
-            val position = if (state.playbackState == Player.STATE_READY) contentPosition else -1L
+    (flow.flatMapLatest { isPlaying ->
+        if (isPlaying) contentPositionFlow(intervalMs) else {
+            // Todo ここ怪しい 停止時にseekするだけで4回くる 確実に 0 ⇒ posになる
+            // だがcontentPositionFlowのほうも普通に2回来ている
+            Timber.d("#3 else position = $contentPosition, state = $isPlaying, count=${mediaItemCount}")
+            val position = if (currentMediaItem == null) -1 else contentPosition
             flowOf(position)
         }
     })
