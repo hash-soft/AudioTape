@@ -8,7 +8,7 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.data.ControllerPlayingRepository
+import com.hashsoft.audiotape.data.ControllerRepository
 import com.hashsoft.audiotape.data.DisplayFolder
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
@@ -51,7 +51,7 @@ class FolderViewModel @Inject constructor(
     storageItemListUseCase: StorageItemListUseCase,
     private val _audioTapeRepository: AudioTapeRepository,
     private val _playingStateRepository: PlayingStateRepository,
-    private val _controllerPlayingRepository: ControllerPlayingRepository,
+    private val _controllerPlayingRepository: ControllerRepository,
     storageVolumeRepository: StorageVolumeRepository,
     private val _audioStoreRepository: AudioStoreRepository,
     userSettingsRepository: UserSettingsRepository
@@ -99,7 +99,7 @@ class FolderViewModel @Inject constructor(
         combine(
             _audioTapeRepository.findByPath(folderPath),
             userSettingsRepository.findById(UserSettingsRepository.DEFAULT_ID),
-            _controllerPlayingRepository.data,
+            _controllerPlayingRepository.isPlaying,
             _playingStateRepository.playingStateFlow()
         ) { audioTape, settings, isPlaying, playingState ->
             _state.update { FolderViewState.Success }
@@ -150,7 +150,7 @@ class FolderViewModel @Inject constructor(
 
     fun switchPlayingFolder(audioTape: AudioTapeDto, create: Boolean) {
         // MediaItemの変更前に通知がこないので前のcurrentの位置を更新する
-        val prevPosition = _controller.getContentPosition()
+        val prevPosition = _controller.getCurrentPosition()
         val prevUri = _controller.getCurrentMediaItemUri()
         _controller.clearMediaItems()
         updatePlaying(audioTape, create, prevUri, prevPosition)

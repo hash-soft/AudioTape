@@ -14,17 +14,15 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.hashsoft.audiotape.MainActivity
-import com.hashsoft.audiotape.core.extensions.playingContentPositionFlow
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerPlayingRepository
+import com.hashsoft.audiotape.data.ControllerRepository
+import com.hashsoft.audiotape.data.PlaybackPositionSource
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -41,9 +39,6 @@ class PlaybackService : MediaSessionService() {
     private val serviceScope = CoroutineScope(Dispatchers.Unconfined)
 
     @Inject
-    lateinit var contentPositionRepository: ContentPositionRepository
-
-    @Inject
     lateinit var audioTapeRepository: AudioTapeRepository
 
     @Inject
@@ -53,7 +48,7 @@ class PlaybackService : MediaSessionService() {
     lateinit var playingStateRepository: PlayingStateRepository
 
     @Inject
-    lateinit var controllerPlayingRepository: ControllerPlayingRepository
+    lateinit var controllerRepository: ControllerRepository
 
     // Create your player and media session in the onCreate lifecycle event
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -82,18 +77,8 @@ class PlaybackService : MediaSessionService() {
                     )
                     builder.setSessionActivity(intent)
                 }
-        observeState(player)
     }
 
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeState(player: ExoPlayer) {
-        serviceScope.launch {
-            player.playingContentPositionFlow(controllerPlayingRepository.data).collect { position ->
-                contentPositionRepository.update(position)
-            }
-        }
-    }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
@@ -126,7 +111,7 @@ class PlaybackService : MediaSessionService() {
             audioTapeRepository.updatePlayingPosition(
                 folderPath = file.parent ?: "",
                 currentName = file.name,
-                position = player.contentPosition,
+                position = player.currentPosition,
                 isLastPlayedAt = isLastPlayedAt
             )
         }
@@ -138,7 +123,9 @@ class PlaybackService : MediaSessionService() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 // Readyになったら再生される場合も再生扱いにする
-                controllerPlayingRepository.update(isPlaying || player.playWhenReady)
+                val uiPlaying = player.playWhenReady || isPlaying
+                controllerRepository.updateIsPlaying(uiPlaying)
+                updatePlaybackPositionSource(isPlaying, player.playWhenReady)
                 updateTapePosition(isPlaying)
 
                 // 停止中のseekは停止のままなのでここにはこない
@@ -182,7 +169,6 @@ class PlaybackService : MediaSessionService() {
                         // stopしたときや要素0のとき
                     }
                 }
-                //controllerStateRepository.updatePlaybackState(playbackState)
             }
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
@@ -211,15 +197,33 @@ class PlaybackService : MediaSessionService() {
                 super.onMediaItemTransition(mediaItem, reason)
 
                 when (reason) {
-                    Player.MEDIA_ITEM_TRANSITION_REASON_AUTO,// 曲が自動で変わったとき
-                    Player.MEDIA_ITEM_TRANSITION_REASON_SEEK,// Seekで曲が変わったとき
-                        //  Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED // プレイリストが変わったとき
-                        -> {
+                    // 曲が自動で変わったとき
+                    Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
                         updateTapePosition(false)
+                    }
+
+                    // Seekで曲が変わったとき
+                    Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
+                        updateTapePosition(false)
+                        updatePlaybackPositionSource(player.isPlaying, player.playWhenReady)
+                    }
+
+                    // プレイリストが変わったとき
+                    Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {
+                        updatePlaybackPositionSource(player.isPlaying, player.playWhenReady)
                     }
 
                     else -> {}
 
+                }
+            }
+
+            private fun updatePlaybackPositionSource(isPlaying: Boolean, playWhenReady: Boolean) {
+                if (player.availableCommands.contains(Player.COMMAND_GET_CURRENT_MEDIA_ITEM) && player.currentMediaItem != null) {
+                    val uiPlaying = playWhenReady || isPlaying
+                    controllerRepository.updatePlaybackPositionSource(if (uiPlaying) PlaybackPositionSource.Player else PlaybackPositionSource.PlayerOnce)
+                } else {
+                    controllerRepository.updatePlaybackPositionSource(PlaybackPositionSource.None)
                 }
             }
 

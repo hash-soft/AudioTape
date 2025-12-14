@@ -36,8 +36,9 @@ fun LibrarySheetRoute(
     onAudioPlayClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState
+    val playingPosition by viewModel.currentPosition.collectAsStateWithLifecycle()
+    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
-    val playingPosition by viewModel.playingPosition.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
 
 
@@ -46,6 +47,7 @@ fun LibrarySheetRoute(
         is LibraryStateUiState.Success -> LibrarySheetPager(
             state.libraryState,
             isAvailable = available,
+            isPlaying = isPlaying,
             displayPlayingItem = displayPlayingItem,
             playingPosition = playingPosition,
             audioCallback = { argument ->
@@ -101,6 +103,7 @@ private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
     isAvailable: Boolean,
+    isPlaying: Boolean,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
     audioCallback: (AudioCallbackArgument) -> Unit,
@@ -138,7 +141,7 @@ private fun LibrarySheetPager(
                     name = audioTape.currentName,
                     isAvailable = isAvailable,
                     isBuffering = false,
-                    isPlaying = displayPlayingItem.isPlaying,
+                    isPlaying = isPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
                     audioCallback = audioCallback

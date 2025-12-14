@@ -35,11 +35,10 @@ fun AudioPlayHomeRoute(
     viewModel: AudioPlayViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
+    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
-    val contentPosition by viewModel.contentPosition.collectAsStateWithLifecycle()
+    val contentPosition by viewModel.currentPosition.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
-
-    //Timber.d("#3 position = $contentPosition")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -75,6 +74,7 @@ fun AudioPlayHomeRoute(
             AudioPlayHome(
                 isAvailable = available,
                 contentPosition = contentPosition,
+                isPlaying = isPlaying,
                 displayPlayingItem,
                 { argument ->
                     audioPlay(argument = argument, displayPlayingItem, viewModel = viewModel)
@@ -96,6 +96,7 @@ fun AudioPlayHomeRoute(
 private fun AudioPlayHome(
     isAvailable: Boolean,
     contentPosition: Long,
+    isPlaying: Boolean,
     displayPlayingItem: DisplayPlayingItem?,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
@@ -108,7 +109,7 @@ private fun AudioPlayHome(
             contentPosition = contentPosition,
             displayPlayingItem.audioTape,
             displayPlayingItem.audioList,
-            displayPlayingItem.isPlaying,
+            isPlaying,
             onAudioItemClick,
             onChangeTapeSettings
         )

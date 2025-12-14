@@ -2,8 +2,7 @@ package com.hashsoft.audiotape.ui.di.module
 
 import android.content.Context
 import com.hashsoft.audiotape.data.AudioStoreRepository
-import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerPlayingRepository
+import com.hashsoft.audiotape.data.ControllerRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -32,10 +31,6 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideContentPositionRepository(): ContentPositionRepository = ContentPositionRepository()
-
-    @Provides
-    @Singleton
     fun provideAudioStoreRepository(@ApplicationContext context: Context): AudioStoreRepository =
         AudioStoreRepository(context)
 
@@ -52,7 +47,6 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providerControllerPlayingRepository(): ControllerPlayingRepository =
-        ControllerPlayingRepository()
+    fun providerControllerRepository(): ControllerRepository = ControllerRepository()
 
 }

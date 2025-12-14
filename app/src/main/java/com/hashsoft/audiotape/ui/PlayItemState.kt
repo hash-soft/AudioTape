@@ -2,15 +2,20 @@ package com.hashsoft.audiotape.ui
 
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.ControllerPlayingRepository
+import com.hashsoft.audiotape.data.ControllerRepository
+import com.hashsoft.audiotape.data.PlaybackPositionSource
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.isActive
 import timber.log.Timber
 
 
@@ -20,7 +25,7 @@ class PlayItemState(
     private val _audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
     playingStateRepository: PlayingStateRepository,
-    controllerPlayingRepository: ControllerPlayingRepository,
+    controllerRepository: ControllerRepository
 ) {
 
     private val _baseState = combine(
@@ -44,7 +49,7 @@ class PlayItemState(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _refreshAudioState = _baseState.flatMapLatest { triple ->
+    val displayPlayingState = _baseState.flatMapLatest { triple ->
         Timber.d("#5 audioState")
         if (triple != null) {
             var prevSortOrder = triple.first.sortOrder
@@ -63,19 +68,12 @@ class PlayItemState(
                     } else {
                         triple.second
                     }
-                    Triple(audioTape, sortedList, triple.third)
+                    DisplayPlayingItem(audioTape, sortedList, triple.third)
                 }
             }
         } else flowOf(null)
 
     }
-
-    val displayPlayingState =
-        combine(_refreshAudioState, controllerPlayingRepository.data) { audio, isPlaying ->
-            if (audio == null) null else {
-                DisplayPlayingItem(audio.first, audio.second, audio.third, isPlaying)
-            }
-        }
 
     val availableState =
         combine(_baseState, controller.availableStateFlow) { audio, available ->
@@ -98,6 +96,26 @@ class PlayItemState(
             }
             available
         }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentPosition = controllerRepository.playbackPositionSource.transformLatest { source ->
+        when (source) {
+            PlaybackPositionSource.None -> {
+                emit(-1L)
+            }
+
+            PlaybackPositionSource.Player -> {
+                while (currentCoroutineContext().isActive) {
+                    emit(controller.getCurrentPosition())
+                    delay(1000)
+                }
+            }
+
+            PlaybackPositionSource.PlayerOnce -> {
+                emit(controller.getCurrentPosition())
+            }
+        }
+    }
 }
 
 

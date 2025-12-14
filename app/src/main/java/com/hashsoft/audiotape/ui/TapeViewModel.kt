@@ -60,7 +60,7 @@ class TapeViewModel @Inject constructor(
             // 同じテープの場合は継続
             return
         }
-        val prevPosition = _controller.getContentPosition()
+        val prevPosition = _controller.getCurrentPosition()
         _controller.clearMediaItems()
         viewModelScope.launch {
             _playingStateRepository.saveFolderPath(tape.folderPath)

@@ -8,33 +8,38 @@ import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
-import com.hashsoft.audiotape.data.ContentPositionRepository
-import com.hashsoft.audiotape.data.ControllerPlayingRepository
+import com.hashsoft.audiotape.data.ControllerRepository
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LibraryStateViewModel @Inject constructor(
     private val _controller: AudioController,
     private val _libraryStateRepository: LibraryStateRepository,
-    controllerPlayingRepository: ControllerPlayingRepository,
+    controllerRepository: ControllerRepository,
     audioTapeRepository: AudioTapeRepository,
     playingStateRepository: PlayingStateRepository,
     audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
-    contentPositionRepository: ContentPositionRepository
 ) :
     ViewModel() {
 
     val uiState: MutableState<LibraryStateUiState> = mutableStateOf(LibraryStateUiState.Loading)
+
+    val isPlaying = controllerRepository.isPlaying
+
+    private val _currentPosition = MutableStateFlow(-1L)
+    val currentPosition = _currentPosition.asStateFlow()
 
     private val _playItemState = PlayItemState(
         controller = _controller,
@@ -42,7 +47,7 @@ class LibraryStateViewModel @Inject constructor(
         audioStoreRepository,
         storageVolumeRepository,
         playingStateRepository,
-        controllerPlayingRepository,
+        controllerRepository
     )
 
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(
@@ -57,13 +62,16 @@ class LibraryStateViewModel @Inject constructor(
         false
     )
 
-
-    val playingPosition = contentPositionRepository.value.asStateFlow()
-
     init {
         viewModelScope.launch {
             val state = _libraryStateRepository.getLibraryState()
             uiState.value = LibraryStateUiState.Success(state)
+        }
+
+        viewModelScope.launch {
+            _playItemState.currentPosition.collect { position ->
+                _currentPosition.update { position }
+            }
         }
     }
 
@@ -83,7 +91,7 @@ class LibraryStateViewModel @Inject constructor(
 
     fun pause() = _controller.pause()
 
-    fun getContentPosition() = _controller.getContentPosition()
+    fun getContentPosition() = _controller.getCurrentPosition()
 
     fun seekTo(position: Long) {
         if (_controller.isCurrentMediaItem()) {
@@ -102,8 +110,7 @@ class LibraryStateViewModel @Inject constructor(
 data class DisplayPlayingItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", ""),
     val audioList: List<AudioItemDto> = listOf(),
-    val treeList: List<String>? = null,
-    val isPlaying: Boolean = false
+    val treeList: List<String>? = null
 )
 
 
