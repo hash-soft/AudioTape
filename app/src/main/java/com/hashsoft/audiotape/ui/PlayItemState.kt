@@ -54,18 +54,21 @@ class PlayItemState(
         if (triple != null) {
             var prevSortOrder = triple.first.sortOrder
             _audioTapeRepository.findByPath(triple.first.folderPath).map { audioTape ->
-                Timber.d("#5 tape changed = $audioTape")
+                Timber.d("#5 tape changed = $audioTape prevSortOrder = $prevSortOrder")
                 if (audioTape == null) null else {
-                    // ソートが変更されていた場合更新を行う
                     val sortedList = if (audioTape.sortOrder != prevSortOrder) {
+                        // ソートが変更されていた場合リストとplayerの更新を行う
                         val result = StorageItemListUseCase.sortedAudioList(
                             triple.second,
                             audioTape.sortOrder
                         )
                         controller.sortMediaItems(result)
-                        prevSortOrder = audioTape.sortOrder
                         result
                     } else {
+                        // ソートが変更されていなかった場合playerだけ更新を行う
+                        // リストは_baseState.secondで実行済みだがplayerのほうはif(true)のほうで更新されている
+                        // 可能性があるので_baseState.secondに合わせる必要がある
+                        controller.sortMediaItems(triple.second)
                         triple.second
                     }
                     DisplayPlayingItem(audioTape, sortedList, triple.third)
