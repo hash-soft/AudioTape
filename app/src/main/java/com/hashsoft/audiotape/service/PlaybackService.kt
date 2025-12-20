@@ -17,7 +17,7 @@ import com.hashsoft.audiotape.MainActivity
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ControllerRepository
-import com.hashsoft.audiotape.data.PlaybackPositionSource
+import com.hashsoft.audiotape.data.PlaybackPosition
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -125,7 +125,11 @@ class PlaybackService : MediaSessionService() {
                 // Readyになったら再生される場合も再生扱いにする
                 val uiPlaying = player.playWhenReady || isPlaying
                 controllerRepository.updateIsPlaying(uiPlaying)
-                updatePlaybackPositionSource(isPlaying, player.playWhenReady)
+                updatePlaybackPositionSource(
+                    isPlaying,
+                    player.playWhenReady,
+                    player.contentPosition
+                )
                 updateTapePosition(isPlaying)
 
                 // 停止中のseekは停止のままなのでここにはこない
@@ -171,6 +175,22 @@ class PlaybackService : MediaSessionService() {
                 }
             }
 
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                super.onPositionDiscontinuity(oldPosition, newPosition, reason)
+                // Player.DISCONTINUITY_REASON_SEEK など
+                Timber.d("#9 listener positionDiscontinuity reason = $reason old: {${oldPosition.contentPositionMs} new: ${newPosition.contentPositionMs}, isPlaying: ${player.isPlaying}")
+                updatePlaybackPositionSource(
+                    player.isPlaying,
+                    player.playWhenReady,
+                    newPosition.contentPositionMs
+                )
+
+            }
+
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 super.onTimelineChanged(timeline, reason)
                 // Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED = 0
@@ -205,25 +225,34 @@ class PlaybackService : MediaSessionService() {
                     // Seekで曲が変わったとき
                     Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
                         updateTapePosition(false)
-                        updatePlaybackPositionSource(player.isPlaying, player.playWhenReady)
                     }
 
                     // プレイリストが変わったとき
-                    Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {
-                        updatePlaybackPositionSource(player.isPlaying, player.playWhenReady)
-                    }
+                    Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {}
 
                     else -> {}
 
                 }
             }
 
-            private fun updatePlaybackPositionSource(isPlaying: Boolean, playWhenReady: Boolean) {
+            private fun updatePlaybackPositionSource(
+                isPlaying: Boolean,
+                playWhenReady: Boolean,
+                position: Long
+            ) {
                 if (player.availableCommands.contains(Player.COMMAND_GET_CURRENT_MEDIA_ITEM) && player.currentMediaItem != null) {
                     val uiPlaying = playWhenReady || isPlaying
-                    controllerRepository.updatePlaybackPositionSource(if (uiPlaying) PlaybackPositionSource.Player else PlaybackPositionSource.PlayerOnce)
+                    controllerRepository.updatePlaybackPosition(
+                        if (uiPlaying) {
+                            PlaybackPosition.Player
+                        } else {
+                            PlaybackPosition.Once(
+                                position
+                            )
+                        }
+                    )
                 } else {
-                    controllerRepository.updatePlaybackPositionSource(PlaybackPositionSource.None)
+                    controllerRepository.updatePlaybackPosition(PlaybackPosition.None)
                 }
             }
 

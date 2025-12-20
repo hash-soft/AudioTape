@@ -7,16 +7,17 @@ class ControllerRepository {
     var isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
         private set
 
-    var playbackPositionSource: MutableStateFlow<PlaybackPositionSource> =
-        MutableStateFlow(PlaybackPositionSource.None)
+    var playbackPosition: MutableStateFlow<PlaybackPosition> =
+        MutableStateFlow(PlaybackPosition.None)
         private set
+
 
     fun updateIsPlaying(value: Boolean) {
         isPlaying.value = value
     }
 
-    fun updatePlaybackPositionSource(value: PlaybackPositionSource) {
-        playbackPositionSource.value = value
+    fun updatePlaybackPosition(value: PlaybackPosition) {
+        playbackPosition.value = value
     }
 
 }

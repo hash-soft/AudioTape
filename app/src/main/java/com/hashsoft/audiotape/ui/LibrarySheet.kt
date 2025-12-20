@@ -36,7 +36,7 @@ fun LibrarySheetRoute(
     onAudioPlayClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState
-    val playingPosition by viewModel.currentPosition.collectAsStateWithLifecycle()
+    val playingPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()

@@ -3,7 +3,7 @@ package com.hashsoft.audiotape.ui
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ControllerRepository
-import com.hashsoft.audiotape.data.PlaybackPositionSource
+import com.hashsoft.audiotape.data.PlaybackPosition
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -52,12 +52,11 @@ class PlayItemState(
     val displayPlayingState = _baseState.flatMapLatest { triple ->
         Timber.d("#5 audioState")
         if (triple != null) {
-            var prevSortOrder = triple.first.sortOrder
             _audioTapeRepository.findByPath(triple.first.folderPath).map { audioTape ->
-                Timber.d("#5 tape changed = $audioTape prevSortOrder = $prevSortOrder")
+                Timber.d("#5 tape changed = $audioTape")
                 if (audioTape == null) null else {
-                    val sortedList = if (audioTape.sortOrder != prevSortOrder) {
-                        // ソートが変更されていた場合リストとplayerの更新を行う
+                    val sortedList = if (audioTape.sortOrder != triple.first.sortOrder) {
+                        // _baseStateからソートが変更されていた場合リストとplayerの更新を行う
                         val result = StorageItemListUseCase.sortedAudioList(
                             triple.second,
                             audioTape.sortOrder
@@ -65,7 +64,7 @@ class PlayItemState(
                         controller.sortMediaItems(result)
                         result
                     } else {
-                        // ソートが変更されていなかった場合playerだけ更新を行う
+                        // _baseStateからソートが変更されていなかった場合playerだけ更新を行う
                         // リストは_baseState.secondで実行済みだがplayerのほうはif(true)のほうで更新されている
                         // 可能性があるので_baseState.secondに合わせる必要がある
                         controller.sortMediaItems(triple.second)
@@ -101,22 +100,47 @@ class PlayItemState(
         }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val currentPosition = controllerRepository.playbackPositionSource.transformLatest { source ->
-        when (source) {
-            PlaybackPositionSource.None -> {
+    val currentPosition = controllerRepository.playbackPosition.transformLatest { playback ->
+        when (playback) {
+            is PlaybackPosition.None -> {
                 emit(-1L)
             }
 
-            PlaybackPositionSource.Player -> {
+            is PlaybackPosition.Player -> {
                 while (currentCoroutineContext().isActive) {
-                    emit(controller.getCurrentPosition())
+                    emitPosition(controller.getCurrentPosition(), this::emit)
                     delay(1000)
                 }
             }
 
-            PlaybackPositionSource.PlayerOnce -> {
-                emit(controller.getCurrentPosition())
+            is PlaybackPosition.Once -> {
+                emitPosition(playback.position, this::emit)
             }
+        }
+    }
+//    val currentPosition = controllerRepository.playbackPositionSource.transformLatest { source ->
+//        Timber.d("#9, source = $source position = ${controller.getCurrentPosition()}")
+//        when (source) {
+//            PlaybackPositionSource.None -> {
+//                emit(-1L)
+//            }
+//
+//            PlaybackPositionSource.Player -> {
+//                while (currentCoroutineContext().isActive) {
+//                    emitPosition(controller.getContentPosition(), this::emit)
+//                    delay(1000)
+//                }
+//            }
+//
+//            PlaybackPositionSource.PlayerOnce -> {
+//                emitPosition(controller.getContentPosition(), this::emit)
+//            }
+//        }
+//    }
+
+    private suspend fun emitPosition(position: Long, emit: suspend (Long) -> Unit) {
+        if (position >= 0) {
+            emit(position)
         }
     }
 }

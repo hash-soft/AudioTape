@@ -150,7 +150,9 @@ class AudioController(
      *
      * @return 再生位置(ms)
      */
-    fun getCurrentPosition(): Long = _controller?.currentPosition ?: 0L
+    fun getCurrentPosition(): Long = _controller?.currentPosition ?: -1L
+
+    fun getContentPosition(): Long = _controller?.contentPosition ?: -1L
 
     /**
      * 指定した位置にシークする

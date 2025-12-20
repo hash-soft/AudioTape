@@ -13,11 +13,8 @@ import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -53,11 +50,11 @@ class AudioPlayViewModel @Inject constructor(
 
     val isPlaying = controllerRepository.isPlaying
 
-    /**
-     * 現在の再生位置をFlowとして公開する。
-     */
-    private val _currentPosition = MutableStateFlow(-1L)
-    val currentPosition = _currentPosition.asStateFlow()
+    val currentPositionState = _playItemState.currentPosition.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(0),
+        -1L
+    )
 
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(
         viewModelScope,
@@ -70,14 +67,6 @@ class AudioPlayViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         false
     )
-
-    init {
-        viewModelScope.launch {
-            _playItemState.currentPosition.collect { position ->
-                _currentPosition.update { position }
-            }
-        }
-    }
 
     /**
      * オーディオリスト内のメディアアイテムを設定する。
@@ -93,7 +82,6 @@ class AudioPlayViewModel @Inject constructor(
         if (_controller.seekToById(audioItem.id, position)) {
             return
         }
-        //_controller.setMediaItems(list, index, position)
     }
 
     /**
@@ -118,7 +106,7 @@ class AudioPlayViewModel @Inject constructor(
      * @param position シーク先の再生位置（ミリ秒）
      */
     fun seekTo(position: Long) {
-        _currentPosition.update { position }
+        //_currentPosition.update { position }
         _controller.seekTo(position)
     }
 

@@ -15,11 +15,8 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -38,8 +35,8 @@ class LibraryStateViewModel @Inject constructor(
 
     val isPlaying = controllerRepository.isPlaying
 
-    private val _currentPosition = MutableStateFlow(-1L)
-    val currentPosition = _currentPosition.asStateFlow()
+//    private val _currentPosition = MutableStateFlow(-1L)
+//    val currentPosition = _currentPosition.asStateFlow()
 
     private val _playItemState = PlayItemState(
         controller = _controller,
@@ -48,6 +45,12 @@ class LibraryStateViewModel @Inject constructor(
         storageVolumeRepository,
         playingStateRepository,
         controllerRepository
+    )
+
+    val currentPositionState = _playItemState.currentPosition.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(0),
+        -1L
     )
 
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(
@@ -68,11 +71,11 @@ class LibraryStateViewModel @Inject constructor(
             uiState.value = LibraryStateUiState.Success(state)
         }
 
-        viewModelScope.launch {
-            _playItemState.currentPosition.collect { position ->
-                _currentPosition.update { position }
-            }
-        }
+//        viewModelScope.launch {
+//            _playItemState.currentPosition.collect { position ->
+//                _currentPosition.update { position }
+//            }
+//        }
     }
 
     fun tabs() = _libraryStateRepository.tabs()

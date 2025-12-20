@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.logic.StorageHelper
+import timber.log.Timber
 
 
 /**
@@ -37,8 +38,10 @@ fun AudioPlayHomeRoute(
 ) {
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
-    val contentPosition by viewModel.currentPosition.collectAsStateWithLifecycle()
+    val contentPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
+
+    Timber.d("#7 contentPosition = $contentPosition")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
