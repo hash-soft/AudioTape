@@ -4,16 +4,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class ControllerRepository {
 
-    var isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    var playbackStatus: MutableStateFlow<PlaybackStatus> = MutableStateFlow(PlaybackStatus())
         private set
+
 
     var playbackPosition: MutableStateFlow<PlaybackPosition> =
         MutableStateFlow(PlaybackPosition.None)
         private set
 
+    fun updatePlaybackIsPlaying(isPlaying: Boolean) {
+        playbackStatus.value = playbackStatus.value.copy(isPlaying = isPlaying)
+    }
 
-    fun updateIsPlaying(value: Boolean) {
-        isPlaying.value = value
+    fun updatePlaybackPlayWhenReady(playWhenReady: Boolean) {
+        playbackStatus.value = playbackStatus.value.copy(playWhenReady = playWhenReady)
+    }
+
+    fun updatePlaybackPlayerState(state: Int) {
+        playbackStatus.value = playbackStatus.value.copy(playerState = state)
     }
 
     fun updatePlaybackPosition(value: PlaybackPosition) {

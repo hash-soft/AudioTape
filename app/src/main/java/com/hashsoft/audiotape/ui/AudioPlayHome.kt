@@ -20,6 +20,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeDto
+import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.logic.StorageHelper
 import timber.log.Timber
 
@@ -36,7 +37,7 @@ fun AudioPlayHomeRoute(
     viewModel: AudioPlayViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
-    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
+    val displayPlayingSource by viewModel.displayPlayingSource.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val contentPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
@@ -77,7 +78,7 @@ fun AudioPlayHomeRoute(
             AudioPlayHome(
                 isAvailable = available,
                 contentPosition = contentPosition,
-                isPlaying = isPlaying,
+                displayPlaying = displayPlayingSource,
                 displayPlayingItem,
                 { argument ->
                     audioPlay(argument = argument, displayPlayingItem, viewModel = viewModel)
@@ -99,7 +100,7 @@ fun AudioPlayHomeRoute(
 private fun AudioPlayHome(
     isAvailable: Boolean,
     contentPosition: Long,
-    isPlaying: Boolean,
+    displayPlaying: DisplayPlayingSource,
     displayPlayingItem: DisplayPlayingItem?,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
@@ -112,7 +113,7 @@ private fun AudioPlayHome(
             contentPosition = contentPosition,
             displayPlayingItem.audioTape,
             displayPlayingItem.audioList,
-            isPlaying,
+            displayPlaying,
             onAudioItemClick,
             onChangeTapeSettings
         )

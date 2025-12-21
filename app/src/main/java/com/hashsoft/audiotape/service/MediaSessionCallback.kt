@@ -5,7 +5,9 @@ import android.content.Intent
 import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
 import com.google.common.util.concurrent.ListenableFuture
@@ -63,7 +65,8 @@ class MediaSessionCallback(
     @androidx.annotation.OptIn(UnstableApi::class)
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
-        controller: MediaSession.ControllerInfo
+        controller: MediaSession.ControllerInfo,
+        isForPlayback: Boolean
     ): ListenableFuture<MediaItemsWithStartPosition> {
         Timber.d("onPlaybackResumption")
         val settable = SettableFuture.create<MediaItemsWithStartPosition>()
@@ -77,7 +80,10 @@ class MediaSessionCallback(
                 return@future
             }
             val playlist = restorePlaylist(tape)
-            // Todo controller設定を行う
+            mediaSession.player.playbackParameters = PlaybackParameters(tape.speed, tape.pitch)
+            mediaSession.player.volume = tape.volume
+            mediaSession.player.repeatMode =
+                if (tape.repeat) MediaController.REPEAT_MODE_ALL else MediaController.REPEAT_MODE_OFF
             settable.set(
                 MediaItemsWithStartPosition(
                     playlist.first,

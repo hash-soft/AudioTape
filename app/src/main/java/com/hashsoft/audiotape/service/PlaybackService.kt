@@ -120,29 +120,10 @@ class PlaybackService : MediaSessionService() {
     @OptIn(DelicateCoroutinesApi::class)
     private fun setPlayerListener(player: ExoPlayer) {
         player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                // Readyになったら再生される場合も再生扱いにする
-                val uiPlaying = player.playWhenReady || isPlaying
-                controllerRepository.updateIsPlaying(uiPlaying)
-                updatePlaybackPositionSource(
-                    isPlaying,
-                    player.playWhenReady,
-                    player.contentPosition
-                )
-                updateTapePosition(isPlaying)
-
-                // 停止中のseekは停止のままなのでここにはこない
-                // 再生中のseekは一度停止して再生になる
-                // false > true >
-                // MEDIA_ITEM_TRANSITION_REASON_AUTOの順に発行され
-                // trueの段階ではcurrentMediaItemは変わってない
-                Timber.d("#2 listener isPlaying = $isPlaying, ${player.playWhenReady}, position = ${player.contentPosition}, duration = ${player.duration}")
-            }
-
             // seek時にもくる
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
+                controllerRepository.updatePlaybackPlayerState(playbackState)
                 when (playbackState) {
                     Player.STATE_IDLE -> {
                         // prepare前の状態
@@ -173,6 +154,31 @@ class PlaybackService : MediaSessionService() {
                         // stopしたときや要素0のとき
                     }
                 }
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
+                // Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE など
+                Timber.d("#2 listener playWhenReady = $playWhenReady, reason = $reason")
+                controllerRepository.updatePlaybackPlayWhenReady(playWhenReady)
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                super.onIsPlayingChanged(isPlaying)
+                controllerRepository.updatePlaybackIsPlaying(isPlaying)
+                updatePlaybackPositionSource(
+                    isPlaying,
+                    player.playWhenReady,
+                    player.contentPosition
+                )
+                updateTapePosition(isPlaying)
+
+                // 停止中のseekは停止のままなのでここにはこない
+                // 再生中のseekは一度停止して再生になる
+                // false > true >
+                // MEDIA_ITEM_TRANSITION_REASON_AUTOの順に発行され
+                // trueの段階ではcurrentMediaItemは変わってない
+                Timber.d("#2 listener isPlaying = $isPlaying, ${player.playWhenReady}, position = ${player.contentPosition}, duration = ${player.duration}")
             }
 
             override fun onPositionDiscontinuity(
@@ -244,11 +250,9 @@ class PlaybackService : MediaSessionService() {
                     val uiPlaying = playWhenReady || isPlaying
                     controllerRepository.updatePlaybackPosition(
                         if (uiPlaying) {
-                            PlaybackPosition.Player
+                            PlaybackPosition.Player(position)
                         } else {
-                            PlaybackPosition.Once(
-                                position
-                            )
+                            PlaybackPosition.Once(position)
                         }
                     )
                 } else {

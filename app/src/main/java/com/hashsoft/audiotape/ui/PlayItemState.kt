@@ -7,10 +7,12 @@ import com.hashsoft.audiotape.data.PlaybackPosition
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.logic.PlaybackHelper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -79,7 +81,7 @@ class PlayItemState(
 
     val availableState =
         combine(_baseState, controller.availableStateFlow) { audio, available ->
-            Timber.d("#5 availableState = $available")
+            Timber.d("#5 availableState = $available, isPlaying: ${controller.isPlaying}")
             if (audio != null) {
                 if (controller.getMediaItemCount() == 0) {
                     val audioTape = audio.first
@@ -96,6 +98,9 @@ class PlayItemState(
                     controller.replaceMediaItemsWith(audio.second)
                 }
             }
+            if (available && controller.isPlaying) {
+                controllerRepository.updatePlaybackPosition(PlaybackPosition.Player(0, true))
+            }
             available
         }
 
@@ -107,6 +112,9 @@ class PlayItemState(
             }
 
             is PlaybackPosition.Player -> {
+                if (!playback.skipInitial) {
+                    emitPosition(playback.position, this::emit)
+                }
                 while (currentCoroutineContext().isActive) {
                     emitPosition(controller.getCurrentPosition(), this::emit)
                     delay(1000)
@@ -118,31 +126,16 @@ class PlayItemState(
             }
         }
     }
-//    val currentPosition = controllerRepository.playbackPositionSource.transformLatest { source ->
-//        Timber.d("#9, source = $source position = ${controller.getCurrentPosition()}")
-//        when (source) {
-//            PlaybackPositionSource.None -> {
-//                emit(-1L)
-//            }
-//
-//            PlaybackPositionSource.Player -> {
-//                while (currentCoroutineContext().isActive) {
-//                    emitPosition(controller.getContentPosition(), this::emit)
-//                    delay(1000)
-//                }
-//            }
-//
-//            PlaybackPositionSource.PlayerOnce -> {
-//                emitPosition(controller.getContentPosition(), this::emit)
-//            }
-//        }
-//    }
 
     private suspend fun emitPosition(position: Long, emit: suspend (Long) -> Unit) {
         if (position >= 0) {
             emit(position)
         }
     }
+
+    val displayPlayingSource = controllerRepository.playbackStatus.map {
+        PlaybackHelper.playbackStatusToDisplayPlayingSource(it)
+    }.distinctUntilChanged()
 }
 
 

@@ -31,6 +31,10 @@ class AudioController(
 
     val availableStateFlow = _availableStateFlow.asStateFlow()
 
+    val isPlaying: Boolean
+        get() = _controller?.isPlaying ?: false
+
+
     /**
      * コントローラーをビルドする
      *
@@ -151,8 +155,6 @@ class AudioController(
      * @return 再生位置(ms)
      */
     fun getCurrentPosition(): Long = _controller?.currentPosition ?: -1L
-
-    fun getContentPosition(): Long = _controller?.contentPosition ?: -1L
 
     /**
      * 指定した位置にシークする

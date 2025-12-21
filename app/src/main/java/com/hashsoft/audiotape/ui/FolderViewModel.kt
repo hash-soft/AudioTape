@@ -10,6 +10,7 @@ import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ControllerRepository
 import com.hashsoft.audiotape.data.DisplayFolder
+import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageAddressUseCase
@@ -20,6 +21,7 @@ import com.hashsoft.audiotape.data.StorageItemListUseCase.Companion.sortedFolder
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import com.hashsoft.audiotape.data.UserSettingsDto
 import com.hashsoft.audiotape.data.UserSettingsRepository
+import com.hashsoft.audiotape.logic.PlaybackHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,7 +101,10 @@ class FolderViewModel @Inject constructor(
         combine(
             _audioTapeRepository.findByPath(folderPath),
             userSettingsRepository.findById(UserSettingsRepository.DEFAULT_ID),
-            _controllerPlayingRepository.isPlaying,
+            _controllerPlayingRepository.playbackStatus.map {
+                val displayPlaying = PlaybackHelper.playbackStatusToDisplayPlayingSource(it)
+                displayPlaying != DisplayPlayingSource.Pause
+            }.distinctUntilChanged(),
             _playingStateRepository.playingStateFlow()
         ) { audioTape, settings, isPlaying, playingState ->
             _state.update { FolderViewState.Success }

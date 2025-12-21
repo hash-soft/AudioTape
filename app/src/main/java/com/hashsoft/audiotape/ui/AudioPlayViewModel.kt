@@ -8,6 +8,7 @@ import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ControllerRepository
+import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
@@ -48,7 +49,11 @@ class AudioPlayViewModel @Inject constructor(
         controllerRepository
     )
 
-    val isPlaying = controllerRepository.isPlaying
+    val displayPlayingSource = _playItemState.displayPlayingSource.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        DisplayPlayingSource.Pause
+    )
 
     val currentPositionState = _playItemState.currentPosition.stateIn(
         viewModelScope,

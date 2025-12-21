@@ -3,15 +3,15 @@ package com.hashsoft.audiotape.ui.item
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
+import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 
 @Composable
 fun SimpleAudioPlayItem(
     directory: String,
     name: String,
-    isAvailable:Boolean = false,
-    isBuffering: Boolean = false,
-    isPlaying: Boolean = false,
+    isAvailable: Boolean = false,
+    displayPlaying: DisplayPlayingSource,
     durationMs: Long = 0,
     contentPosition: Long = 0,
     audioCallback: (AudioCallbackArgument) -> Unit
@@ -22,8 +22,7 @@ fun SimpleAudioPlayItem(
             directory,
             name,
             isAvailable,
-            isBuffering,
-            isPlaying,
+            displayPlaying,
             durationMs,
             contentPosition,
             audioCallback
@@ -34,8 +33,7 @@ fun SimpleAudioPlayItem(
             directory,
             name,
             isAvailable,
-            isBuffering,
-            isPlaying,
+            displayPlaying,
             durationMs,
             contentPosition,
             audioCallback

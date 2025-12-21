@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.text.AudioDurationText
 
@@ -30,8 +31,7 @@ fun SimpleAudioPlayItemPortrait(
     directory: String,
     name: String,
     isAvailable: Boolean = false,
-    isBuffering: Boolean = false,
-    isPlaying: Boolean = false,
+    displayPlaying: DisplayPlayingSource,
     durationMs: Long = 0,
     contentPosition: Long = 0,
     audioCallback: (AudioCallbackArgument) -> Unit
@@ -43,10 +43,10 @@ fun SimpleAudioPlayItemPortrait(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = {
-            audioCallback(AudioCallbackArgument.PlayPause(isPlaying))
+            audioCallback(AudioCallbackArgument.PlayPause(displayPlaying != DisplayPlayingSource.Pause))
         }, enabled = isAvailable) {
             Icon(
-                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                imageVector = if (displayPlaying != DisplayPlayingSource.Pause) Icons.Default.Pause else Icons.Default.PlayArrow,
                 null
             )
 

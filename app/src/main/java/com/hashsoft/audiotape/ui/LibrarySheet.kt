@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.logic.StorageHelper
@@ -37,17 +38,16 @@ fun LibrarySheetRoute(
 ) {
     val uiState by viewModel.uiState
     val playingPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
-    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
+    val displayPlayingSource by viewModel.displayPlayingSource.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
-
 
     when (val state = uiState) {
         is LibraryStateUiState.Loading -> {}
         is LibraryStateUiState.Success -> LibrarySheetPager(
             state.libraryState,
             isAvailable = available,
-            isPlaying = isPlaying,
+            displayPlaying = displayPlayingSource,
             displayPlayingItem = displayPlayingItem,
             playingPosition = playingPosition,
             audioCallback = { argument ->
@@ -103,7 +103,7 @@ private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
     isAvailable: Boolean,
-    isPlaying: Boolean,
+    displayPlaying: DisplayPlayingSource,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
     audioCallback: (AudioCallbackArgument) -> Unit,
@@ -140,8 +140,7 @@ private fun LibrarySheetPager(
                     ),
                     name = audioTape.currentName,
                     isAvailable = isAvailable,
-                    isBuffering = false,
-                    isPlaying = isPlaying,
+                    displayPlaying = displayPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
                     audioCallback = audioCallback
