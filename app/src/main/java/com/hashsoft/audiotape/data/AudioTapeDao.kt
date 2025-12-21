@@ -94,13 +94,24 @@ data class AudioTapePitch(
  */
 @Dao
 interface AudioTapeDao {
-    /**
-     * すべてのオーディオテープを取得する
-     *
-     * @return オーディオテープのリスト
-     */
-    @Query("SELECT * FROM audio_tape")
-    fun getAll(): Flow<List<AudioTapeEntity>>
+
+    @Query("SELECT * FROM audio_tape ORDER BY folder_path DESC")
+    fun getAllByNameAsc(): Flow<List<AudioTapeEntity>>
+
+    @Query("SELECT * FROM audio_tape ORDER BY folder_path ASC")
+    fun getAllByNameDesc(): Flow<List<AudioTapeEntity>>
+
+    @Query("SELECT * FROM audio_tape ORDER BY last_played_at DESC")
+    fun getAllByLastPlayedAsc(): Flow<List<AudioTapeEntity>>
+
+    @Query("SELECT * FROM audio_tape ORDER BY last_played_at ASC")
+    fun getAllByLastPlayedDesc(): Flow<List<AudioTapeEntity>>
+
+    @Query("SELECT * FROM audio_tape ORDER BY create_time DESC")
+    fun getAllByCreatedAsc(): Flow<List<AudioTapeEntity>>
+
+    @Query("SELECT * FROM audio_tape ORDER BY create_time ASC")
+    fun getAllByCreatedDesc(): Flow<List<AudioTapeEntity>>
 
     /**
      * パスでオーディオテープを検索する

@@ -24,8 +24,16 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      *
      * @return オーディオテープのリストをFlowで返す
      */
-    fun getAll(): Flow<List<AudioTapeDto>> {
-        return audioTapeDao.getAll().map { list ->
+    fun getAll(sort: AudioTapeListSortOrder): Flow<List<AudioTapeDto>> {
+        val audioTapeFlow = when (sort) {
+            AudioTapeListSortOrder.NAME_ASC -> audioTapeDao.getAllByNameAsc()
+            AudioTapeListSortOrder.NAME_DESC -> audioTapeDao.getAllByNameDesc()
+            AudioTapeListSortOrder.LAST_PLAYED_ASC -> audioTapeDao.getAllByLastPlayedAsc()
+            AudioTapeListSortOrder.LAST_PLAYED_DESC -> audioTapeDao.getAllByLastPlayedDesc()
+            AudioTapeListSortOrder.CREATED_ASC -> audioTapeDao.getAllByCreatedAsc()
+            AudioTapeListSortOrder.CREATED_DESC -> audioTapeDao.getAllByCreatedDesc()
+        }
+        return audioTapeFlow.map { list ->
             list.map {
                 convertEntityToDto(it)
             }
@@ -90,6 +98,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             pitch = entity.pitch,
             itemCount = entity.itemCount,
             totalTime = entity.totalTime,
+            lastPlayedAt = entity.lastPlayedAt,
             createTime = entity.createTime,
             updateTime = entity.updateTime
         )
@@ -224,13 +233,5 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             updateTime = SystemTime.currentMillis()
         )
     )
-
-    fun memoryAudioTape(audioTape: AudioTapeDto) {
-        ramAudioTapeFlow.tryEmit(mapOf(audioTape.folderPath to audioTape))
-    }
-
-    fun memorySortOrder(path: String, sortOrder: AudioTapeSortOrder) {
-        ramSortOrderFlow.tryEmit(mapOf(path to sortOrder))
-    }
 
 }

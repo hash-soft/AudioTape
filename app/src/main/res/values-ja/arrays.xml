@@ -10,6 +10,15 @@
         <item>ファイル名（降順）</item>
     </string-array>
 
+    <string-array name="tape_list_sort_labels">
+        <item>テープ名 (昇順)</item>
+        <item>テープ名 (降順)</item>
+        <item>最終再生 (新しい)</item>
+        <item>最終再生 (古い)</item>
+        <item>作成 (新しい)</item>
+        <item>作成 (古い)</item>
+    </string-array>
+
     <string-array name="theme_labels">
         <item>システム</item>
         <item>ライト</item>

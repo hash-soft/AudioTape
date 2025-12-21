@@ -6,5 +6,6 @@ package com.hashsoft.audiotape.data
  * @param selectedTabIndex 選択されているタブのインデックス
  */
 data class LibraryStateDto(
-    val selectedTabIndex: Int
+    val selectedTabIndex: Int,
+    val tapeListSortOrder: AudioTapeListSortOrder = AudioTapeListSortOrder.NAME_ASC
 )

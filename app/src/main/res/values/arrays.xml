@@ -63,6 +63,15 @@
         <item>File Name (Descending)</item>
     </string-array>
 
+    <string-array name="tape_list_sort_labels">
+        <item>Tape Name (Ascending)</item>
+        <item>Tepe Name (Descending)</item>
+        <item>Last Played (Newest)</item>
+        <item>Last Played (Oldest)</item>
+        <item>Created (Newest)</item>
+        <item>Created (Oldest)</item>
+    </string-array>
+
     <string-array name="theme_labels">
         <item>System</item>
         <item>Light Mode</item>

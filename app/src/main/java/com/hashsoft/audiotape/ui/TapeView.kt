@@ -13,8 +13,6 @@ fun TapeView(
     onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
-    //val state by viewModel.state.collectAsStateWithLifecycle()
-    //val tapeListState by viewModel.tapeListState.list.collectAsStateWithLifecycle()
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
 
     TapeList(

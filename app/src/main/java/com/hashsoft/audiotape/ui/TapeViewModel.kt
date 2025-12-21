@@ -6,12 +6,15 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
+import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
@@ -25,19 +28,25 @@ class TapeViewModel @Inject constructor(
     private val _audioTapeRepository: AudioTapeRepository,
     private val _folderStateRepository: FolderStateRepository,
     private val _audioStoreRepository: AudioStoreRepository,
-    storageVolumeRepository: StorageVolumeRepository
+    storageVolumeRepository: StorageVolumeRepository,
+    libraryStateRepository: LibraryStateRepository
 ) :
     ViewModel() {
 
-    private val _baseState = combine(
-        storageVolumeRepository.volumeChangeFlow(),
-        audioTapeRepository.getAll()
-    ) { volumes, list ->
-        list.map { audioTape ->
-            val treeList = AudioStoreRepository.pathToTreeList(volumes, audioTape.folderPath)
-            audioTape to treeList
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _baseState =
+        libraryStateRepository.tapeListSortOrderFlow().flatMapLatest { sortOrder ->
+            combine(
+                storageVolumeRepository.volumeChangeFlow(),
+                audioTapeRepository.getAll(sortOrder)
+            ) { volumes, list ->
+                list.map { audioTape ->
+                    val treeList =
+                        AudioStoreRepository.pathToTreeList(volumes, audioTape.folderPath)
+                    audioTape to treeList
+                }
+            }
         }
-    }
 
     val displayTapeListState =
         combine(_baseState, _playingStateRepository.playingStateFlow()) { list, playingState ->

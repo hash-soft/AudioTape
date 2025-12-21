@@ -30,6 +30,7 @@ data class AudioTapeDto(
     val pitch: Float = 1.0f,
     val itemCount: Int = 0,
     val totalTime: Long = 0,
+    val lastPlayedAt: Long = 0,
     val createTime: Long = 0,
     val updateTime: Long = 0
 )

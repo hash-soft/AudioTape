@@ -29,43 +29,41 @@ import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @Composable
 fun LibrarySheetRoute(
-    viewModel: LibraryStateViewModel = hiltViewModel(),
+    libraryState: LibraryStateDto,
+    tabs: List<LibraryTab>,
+    onTabChange: (index: Int) -> Unit,
+    viewModel: LibrarySheetViewModel = hiltViewModel(),
     onAudioPlayClick: () -> Unit = {}
 ) {
-    val uiState by viewModel.uiState
     val playingPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
     val displayPlayingSource by viewModel.displayPlayingSource.collectAsStateWithLifecycle()
     val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
 
-    when (val state = uiState) {
-        is LibraryStateUiState.Loading -> {}
-        is LibraryStateUiState.Success -> LibrarySheetPager(
-            state.libraryState,
-            isAvailable = available,
-            displayPlaying = displayPlayingSource,
-            displayPlayingItem = displayPlayingItem,
-            playingPosition = playingPosition,
-            audioCallback = { argument ->
-                if (argument is AudioCallbackArgument.TransferAudioPlay) {
-                    onAudioPlayClick()
-                    return@LibrarySheetPager
-                }
-                playItemSelected(viewModel, displayPlayingItem, argument)
-            },
-            tabs = viewModel.tabs()
-        ) {
-            viewModel.saveSelectedTabName(it)
+    LibrarySheetPager(
+        libraryState,
+        tabs = tabs,
+        isAvailable = available,
+        displayPlaying = displayPlayingSource,
+        displayPlayingItem = displayPlayingItem,
+        playingPosition = playingPosition,
+        onTabChange = onTabChange,
+        audioCallback = { argument ->
+            if (argument is AudioCallbackArgument.TransferAudioPlay) {
+                onAudioPlayClick()
+                return@LibrarySheetPager
+            }
+            playItemSelected(viewModel, displayPlayingItem, argument)
         }
-    }
+    )
+
 }
 
 private fun playItemSelected(
-    viewModel: LibraryStateViewModel,
+    viewModel: LibrarySheetViewModel,
     displayPlayingItem: DisplayPlayingItem?,
     argument: AudioCallbackArgument
 ) {
@@ -106,8 +104,8 @@ private fun LibrarySheetPager(
     displayPlaying: DisplayPlayingSource,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
-    audioCallback: (AudioCallbackArgument) -> Unit,
     onTabChange: (index: Int) -> Unit,
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
     val scope = rememberCoroutineScope()
@@ -115,8 +113,7 @@ private fun LibrarySheetPager(
     LaunchedEffect(state) {
         // 完全にページが切り替わったら変化
         snapshotFlow { state.settledPage }.collect { page ->
-            Timber.d("page changed $page")
-            onTabChange(state.settledPage)
+            onTabChange(page)
         }
     }
 
