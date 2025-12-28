@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui.item
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -21,10 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.text.AudioDurationText
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.ListLabelSpace
 
 @Composable
 fun SimpleAudioPlayItemPortrait(
@@ -52,16 +56,20 @@ fun SimpleAudioPlayItemPortrait(
 
         }
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(ListLabelSpace),
+            ) {
                 Text(
                     directory,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).alignByBaseline(),
                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                     maxLines = 1,
                     overflow = TextOverflow.StartEllipsis
                 )
                 AudioDurationText(
                     duration = contentPosition,
+                    modifier = Modifier.alignByBaseline(),
                     fontSize = MaterialTheme.typography.bodySmall.fontSize
                 )
             }
@@ -93,4 +101,20 @@ fun SimpleAudioPlayItemPortrait(
         }
     }
 
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SimpleAudioPlayItemPortraitPreview() {
+    AudioTapeTheme {
+        SimpleAudioPlayItemPortrait(
+            directory = "テープ名000000000000000000000000000000",
+            name = "name",
+            isAvailable = true,
+            displayPlaying = DisplayPlayingSource.Pause,
+            durationMs = 1000,
+            contentPosition = 500,
+            audioCallback = {}
+        )
+    }
 }

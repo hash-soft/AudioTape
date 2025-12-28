@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.smallFontSize
 
 
@@ -83,5 +85,28 @@ fun TapeItem(
                 null
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TapeItemPreview() {
+    AudioTapeTheme {
+        TapeItem(
+            1,
+            "directory",
+            "path",
+            "01 みえないつばさ",
+            100,
+            AudioTapeSortOrder.DATE_ASC,
+            false,
+            1.0f,
+            1.0f,
+            1.0f,
+            1000,
+            500,
+            0,
+            audioCallback = {}
+        )
     }
 }
