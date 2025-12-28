@@ -18,6 +18,9 @@ import com.hashsoft.audiotape.ui.dialog.SelectSettingDialog
 import com.hashsoft.audiotape.ui.item.ClickableSettingItem
 import com.hashsoft.audiotape.ui.item.LabelItem
 import com.hashsoft.audiotape.ui.item.SwitchItem
+import com.hashsoft.audiotape.ui.resource.displayPitchValue
+import com.hashsoft.audiotape.ui.resource.displaySpeedValue
+import com.hashsoft.audiotape.ui.resource.displayVolumeValue
 import com.hashsoft.audiotape.ui.theme.SettingItemHorizontalPadding
 import com.hashsoft.audiotape.ui.theme.SettingItemVerticalDistance
 import com.hashsoft.audiotape.ui.theme.SettingItemVerticalPadding
@@ -167,14 +170,7 @@ private fun DefaultVolumeItem(
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.volume_title)
-    val labels = stringArrayResource(R.array.play_volume_labels).toList()
-
-    val index = PlayVolumeValues.indexOf(volume)
-    val selectedLabel =
-        if (index < 0) stringResource(
-            R.string.not_found_volume_label,
-            volume
-        ) else labels.getOrElse(index) { "" }
+    val (index, selectedLabel, labels) = displayVolumeValue(volume)
 
     ClickableSettingItem(
         title = title,
@@ -207,14 +203,7 @@ private fun DefaultSpeedItem(
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.speed_title)
-    val labels = stringArrayResource(R.array.play_speed_labels).toList()
-
-    val index = PlaySpeedValues.indexOf(speed)
-    val selectedLabel =
-        if (index < 0) stringResource(
-            R.string.not_found_speed_label,
-            speed
-        ) else labels.getOrElse(index) { "" }
+    val (index, selectedLabel, labels) = displaySpeedValue(speed)
 
     ClickableSettingItem(
         title = title,
@@ -247,14 +236,7 @@ private fun DefaultPitchItem(
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.pitch_title)
-    val labels = stringArrayResource(R.array.play_pitch_labels).toList()
-
-    val index = PlayPitchValues.indexOf(pitch)
-    val selectedLabel =
-        if (index < 0) stringResource(
-            R.string.not_found_pitch_label,
-            pitch
-        ) else labels.getOrElse(index) { "" }
+    val (index, selectedLabel, labels) = displayPitchValue(pitch)
 
     ClickableSettingItem(
         title = title,

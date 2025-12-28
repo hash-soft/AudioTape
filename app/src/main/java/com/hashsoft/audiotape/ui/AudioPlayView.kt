@@ -36,10 +36,13 @@ import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
 import com.hashsoft.audiotape.data.PlayVolumeValues
-import com.hashsoft.audiotape.ui.Button.PlayPauseButton
+import com.hashsoft.audiotape.ui.button.PlayPauseButton
 import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
 import com.hashsoft.audiotape.ui.item.PlaySliderItem
+import com.hashsoft.audiotape.ui.resource.displayPitchValue
+import com.hashsoft.audiotape.ui.resource.displaySpeedValue
+import com.hashsoft.audiotape.ui.resource.displayVolumeValue
 import com.hashsoft.audiotape.ui.theme.IconMedium
 
 
@@ -175,14 +178,7 @@ private fun VolumeDropdownSelector(
     onVolumeChange: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     val title = stringResource(R.string.volume_title)
-    val volumeLabels = stringArrayResource(R.array.play_volume_labels).toList()
-
-    val index = PlayVolumeValues.indexOf(volume)
-    val selectedLabel =
-        if (index < 0) stringResource(
-            R.string.not_found_volume_label,
-            volume
-        ) else volumeLabels[index]
+    val (index, selectedLabel, volumeLabels) = displayVolumeValue(volume)
 
     TextDropdownSelector(
         volumeLabels,
@@ -207,11 +203,7 @@ private fun SpeedDropdownSelector(
     onSpeedChange: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     val title = stringResource(R.string.speed_title)
-    val speedLabels = stringArrayResource(R.array.play_speed_labels).toList()
-
-    val index = PlaySpeedValues.indexOf(speed)
-    val selectedLabel =
-        if (index < 0) stringResource(R.string.not_found_speed_label, speed) else speedLabels[index]
+    val (index, selectedLabel, speedLabels) = displaySpeedValue(speed)
 
     TextDropdownSelector(
         speedLabels,
@@ -236,11 +228,7 @@ private fun PitchDropdownSelector(
     onPitchChange: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     val title = stringResource(R.string.pitch_title)
-    val pitchLabels = stringArrayResource(R.array.play_pitch_labels).toList()
-
-    val index = PlayPitchValues.indexOf(pitch)
-    val selectedLabel =
-        if (index < 0) stringResource(R.string.not_found_pitch_label, pitch) else pitchLabels[index]
+    val (index, selectedLabel, pitchLabels) = displayPitchValue(pitch)
 
     TextDropdownSelector(
         pitchLabels,

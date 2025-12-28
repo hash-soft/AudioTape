@@ -27,4 +27,6 @@
     <string name="appearance_label">外観</string>
     <string name="theme_title">テーマ</string>
     <string name="default_settings_label">デフォルト設定</string>
+    <string name="last_played_label">演奏 %s</string>
+    <string name="created_label">作成 %s</string>
 </resources>

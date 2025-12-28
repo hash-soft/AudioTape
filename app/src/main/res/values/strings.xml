@@ -20,9 +20,9 @@
     <string name="repeat_description">repeat</string>
     <string name="list_description">audio list</string>
     <string name="sort_order_description">Sort order</string>
-    <string name="not_found_volume_label" translatable="false">%f$1%%</string>
-    <string name="not_found_speed_label" translatable="false">%f$1x</string>
-    <string name="not_found_pitch_label" translatable="false">%f</string>
+    <string name="not_found_volume_label" translatable="false">%1$d%%</string>
+    <string name="not_found_speed_label" translatable="false">%1$.2fx</string>
+    <string name="not_found_pitch_label" translatable="false">%.1f</string>
     <string name="volume_title">volume</string>
     <string name="speed_title">speed</string>
     <string name="pitch_title">pitch</string>
@@ -31,4 +31,8 @@
     <string name="appearance_label">Appearance</string>
     <string name="theme_title">theme</string>
     <string name="default_settings_label">Default settings</string>
+    <string name="audio_item_progress_label" translatable="false">%1$d/%2$d</string>
+    <string name="last_played_label">played %s</string>
+    <string name="created_label">created %s</string>
+
 </resources>

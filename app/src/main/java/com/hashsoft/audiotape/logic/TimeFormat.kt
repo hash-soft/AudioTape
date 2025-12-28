@@ -22,8 +22,8 @@ class TimeFormat {
             }
         }
 
-        fun formatDateTimeHm(milliseconds: Long): String {
-            val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+        fun formatDateTimeHm(milliseconds: Long, formatStyle: FormatStyle = FormatStyle.SHORT): String {
+            val formatter = DateTimeFormatter.ofLocalizedDateTime(formatStyle)
                 .withLocale(Locale.getDefault())
             val dateTime = Instant.ofEpochMilli(milliseconds)
                 .atZone(ZoneId.systemDefault()) // タイムゾーンを指定

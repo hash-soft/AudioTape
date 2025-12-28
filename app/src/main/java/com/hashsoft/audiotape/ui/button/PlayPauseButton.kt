@@ -1,4 +1,4 @@
-package com.hashsoft.audiotape.ui.Button
+package com.hashsoft.audiotape.ui.button
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
