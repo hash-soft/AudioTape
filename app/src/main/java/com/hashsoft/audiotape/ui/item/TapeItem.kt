@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,9 +72,25 @@ fun TapeItem(
         )
         Column(modifier = Modifier.weight(1.0f)) {
             Text(title)
-            CurrentAudioNameItem(index, 10, currentName, smallFontSize)
-            PlaybackValueItem(volume, speed, pitch, repeat, smallFontSize)
-            TapeTimeItem(lastPlayedAt, createTime, smallFontSize)
+            CurrentAudioNameItem(
+                index,
+                10,
+                position,
+                currentName,
+                LocalTextStyle.current.copy(fontSize = smallFontSize)
+            )
+            PlaybackValueItem(
+                volume,
+                speed,
+                pitch,
+                repeat,
+                LocalTextStyle.current.copy(fontSize = smallFontSize)
+            )
+            TapeTimeItem(
+                lastPlayedAt,
+                createTime,
+                LocalTextStyle.current.copy(fontSize = smallFontSize)
+            )
         }
         IconButton(
             onClick = { audioCallback(AudioCallbackArgument.TapeFolderOpen(folderPath)) },

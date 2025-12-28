@@ -4,15 +4,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 
 @Composable
@@ -21,7 +23,6 @@ fun PlaybackValueItem(
     speed: Float,
     pitch: Float,
     isRepeat: Boolean,
-    fontSize: TextUnit = TextUnit.Unspecified,
     style: TextStyle = LocalTextStyle.current
 ) {
     Row(
@@ -29,12 +30,29 @@ fun PlaybackValueItem(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = displayVolumeValue(volume).second, fontSize = fontSize, style = style)
-        Text(text = displaySpeedValue(speed).second, fontSize = fontSize, style = style)
-        Text(text = displayPitchValue(pitch).second, fontSize = fontSize, style = style)
-        if (isRepeat) {
-            Text(text = "Repeat", fontSize = fontSize, style = style)
+        ProvideTextStyle(value = style) {
+            Text(text = displayVolumeValue(volume).second)
+            Text(text = displaySpeedValue(speed).second)
+            Text(text = displayPitchValue(pitch).second)
+            if (isRepeat) {
+                Text(text = "Repeat")
+            }
         }
     }
 
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun PlaybackValueItemPreview() {
+    AudioTapeTheme {
+        PlaybackValueItem(
+            volume = 1.0f,
+            speed = 1.0f,
+            pitch = 1.0f,
+            isRepeat = false,
+            style = LocalTextStyle.current
+        )
+    }
 }

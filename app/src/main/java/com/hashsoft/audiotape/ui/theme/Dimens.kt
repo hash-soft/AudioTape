@@ -3,6 +3,7 @@ package com.hashsoft.audiotape.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 
@@ -29,5 +30,15 @@ val DialogTitleBottomPadding = 12.dp
 
 val ListLabelSpace = 8.dp
 
+val NoPadding = 0.dp
+
+val NoGap = 0.dp
+
 val smallFontSize: TextUnit
     @Composable @ReadOnlyComposable get() = MaterialTheme.typography.bodySmall.fontSize
+
+val simpleAudioPlayBackgroundColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary
+
+val simpleAudioPlayContentColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiary
