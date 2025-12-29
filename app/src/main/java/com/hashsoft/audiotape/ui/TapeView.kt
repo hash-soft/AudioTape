@@ -6,14 +6,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.ui.list.TapeList
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 @Composable
 fun TapeView(
     viewModel: TapeViewModel = hiltViewModel(),
+    onExistTapeChange: (Boolean) -> Unit = {},
     onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
+
+    onExistTapeChange(displayTapeList.isNotEmpty())
 
     TapeList(
         displayTapeList = displayTapeList,
@@ -63,5 +67,7 @@ private fun tapeItemSelected(
 @Preview(showBackground = true)
 @Composable
 fun TapeViewPreview() {
-    TapeView()
+    AudioTapeTheme {
+        TapeView()
+    }
 }

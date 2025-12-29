@@ -7,8 +7,10 @@ import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,6 +29,9 @@ class LibraryHomeViewModel @Inject constructor(
         LibraryHomeUiState.Loading
     )
 
+    private val _existTape = MutableStateFlow(false)
+    val existTape: StateFlow<Boolean> = _existTape.asStateFlow()
+
     fun tabs() = _libraryStateRepository.tabs()
 
     fun saveSelectedTabName(index: Int) = viewModelScope.launch {
@@ -35,6 +40,10 @@ class LibraryHomeViewModel @Inject constructor(
 
     fun saveTapeListSortOrder(sortOrder: AudioTapeListSortOrder) = viewModelScope.launch {
         _libraryStateRepository.saveTapeListSortOrder(sortOrder)
+    }
+
+    fun updateExistTape(exist: Boolean) {
+        _existTape.value = exist
     }
 
 }

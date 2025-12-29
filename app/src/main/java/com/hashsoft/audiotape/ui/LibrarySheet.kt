@@ -35,6 +35,7 @@ fun LibrarySheetRoute(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
     onTabChange: (index: Int) -> Unit,
+    onExistTapeChange: (Boolean) -> Unit,
     viewModel: LibrarySheetViewModel = hiltViewModel(),
     onAudioPlayClick: () -> Unit = {}
 ) {
@@ -51,6 +52,7 @@ fun LibrarySheetRoute(
         displayPlayingItem = displayPlayingItem,
         playingPosition = playingPosition,
         onTabChange = onTabChange,
+        onExistTapeChange = onExistTapeChange,
         audioCallback = { argument ->
             if (argument is AudioCallbackArgument.TransferAudioPlay) {
                 onAudioPlayClick()
@@ -105,6 +107,7 @@ private fun LibrarySheetPager(
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
     onTabChange: (index: Int) -> Unit,
+    onExistTapeChange: (Boolean) -> Unit,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
@@ -168,7 +171,9 @@ private fun LibrarySheetPager(
                         audioCallback(AudioCallbackArgument.TransferAudioPlay)
                     }
 
-                    1 -> TapeView(onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) }) {
+                    1 -> TapeView(
+                        onExistTapeChange = onExistTapeChange,
+                        onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) }) {
                         scope.launch {
                             state.animateScrollToPage(0)
                         }

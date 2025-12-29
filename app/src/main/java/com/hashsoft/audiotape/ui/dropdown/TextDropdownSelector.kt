@@ -31,13 +31,14 @@ fun TextDropdownSelector(
     labels: List<String>,
     title: String = "",
     selectedIndex: Int = -1,
+    enabled: Boolean = true,
     iconContent: @Composable (() -> Unit),
     onItemSelected: (Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { expanded = true }, content = iconContent)
+        IconButton(onClick = { expanded = true }, content = iconContent, enabled = enabled)
 
         DropdownMenu(
             expanded = expanded,
