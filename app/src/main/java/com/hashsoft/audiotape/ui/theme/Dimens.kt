@@ -40,5 +40,10 @@ val smallFontSize: TextUnit
 val simpleAudioPlayBackgroundColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary
 
+val simpleAudioPlayBorderColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
+
+val SimpleAudioPlayBorder = 2.dp
+
 val simpleAudioPlayContentColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiary

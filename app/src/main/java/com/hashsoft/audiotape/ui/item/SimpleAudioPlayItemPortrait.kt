@@ -30,7 +30,9 @@ import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.ListLabelSpace
 import com.hashsoft.audiotape.ui.theme.NoGap
 import com.hashsoft.audiotape.ui.theme.NoPadding
+import com.hashsoft.audiotape.ui.theme.SimpleAudioPlayBorder
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayBackgroundColor
+import com.hashsoft.audiotape.ui.theme.simpleAudioPlayBorderColor
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayContentColor
 
 @Composable
@@ -43,7 +45,12 @@ fun SimpleAudioPlayItemPortrait(
     contentPosition: Long = 0,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
-    Surface(contentColor = simpleAudioPlayContentColor) {
+    Surface(
+        contentColor = simpleAudioPlayContentColor,
+        modifier = Modifier
+            .background(color = simpleAudioPlayBorderColor)
+            .padding(top = SimpleAudioPlayBorder)
+    ) {
         Row(
             Modifier
                 .clickable { audioCallback(AudioCallbackArgument.TransferAudioPlay) }
