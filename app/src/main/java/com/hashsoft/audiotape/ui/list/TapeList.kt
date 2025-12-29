@@ -40,7 +40,8 @@ fun TapeList(
                 pitch = tape.pitch,
                 tape.createTime,
                 tape.lastPlayedAt,
-                color = if (item.isCurrent) 1 else 0,
+                item.isCurrent,
+                0,
                 audioCallback = audioCallback
             )
         }

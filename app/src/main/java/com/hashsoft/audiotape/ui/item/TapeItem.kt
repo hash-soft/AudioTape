@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +20,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
+import com.hashsoft.audiotape.ui.theme.currentItemContentColor
+import com.hashsoft.audiotape.ui.theme.resolveColorForState
 import com.hashsoft.audiotape.ui.theme.smallFontSize
 
 
@@ -53,54 +57,62 @@ fun TapeItem(
     pitch: Float,
     createTime: Long,
     lastPlayedAt: Long,
-    color: Int,
+    isCurrent: Boolean,
+    state: Int,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .combinedClickable(onClick = {
-                audioCallback(AudioCallbackArgument.TapeSelected(index))
-            }, onLongClick = {
-                audioCallback(AudioCallbackArgument.TapeSelected(index, true))
-            })
-            .background(color = if (color > 0) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.background),
+    Surface(
+        contentColor = if (isCurrent) resolveColorForState(
+            currentItemContentColor,
+            state
+        ) else resolveColorForState(MaterialTheme.colorScheme.onSurfaceVariant, state)
     ) {
-        Checkbox(
-            checked = false,
-            modifier = Modifier.align(Alignment.CenterVertically),
-            onCheckedChange = {}
-        )
-        Column(modifier = Modifier.weight(1.0f)) {
-            Text(title)
-            CurrentAudioNameItem(
-                index,
-                10,
-                position,
-                currentName,
-                LocalTextStyle.current.copy(fontSize = smallFontSize)
-            )
-            PlaybackValueItem(
-                volume,
-                speed,
-                pitch,
-                repeat,
-                LocalTextStyle.current.copy(fontSize = smallFontSize)
-            )
-            TapeTimeItem(
-                lastPlayedAt,
-                createTime,
-                LocalTextStyle.current.copy(fontSize = smallFontSize)
-            )
-        }
-        IconButton(
-            onClick = { audioCallback(AudioCallbackArgument.TapeFolderOpen(folderPath)) },
+        Row(
             modifier = Modifier
-                .align(Alignment.CenterVertically)
+                .combinedClickable(onClick = {
+                    audioCallback(AudioCallbackArgument.TapeSelected(index))
+                }, onLongClick = {
+                    audioCallback(AudioCallbackArgument.TapeSelected(index, true))
+                })
+                .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background),
         ) {
-            Icon(
-                Icons.Default.FolderOpen,
-                null
+            Checkbox(
+                checked = false,
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onCheckedChange = {}
             )
+            Column(modifier = Modifier.weight(1.0f)) {
+                Text(title)
+                CurrentAudioNameItem(
+                    index,
+                    10,
+                    position,
+                    currentName,
+                    LocalTextStyle.current.copy(fontSize = smallFontSize)
+                )
+                PlaybackValueItem(
+                    volume,
+                    speed,
+                    pitch,
+                    repeat,
+                    LocalTextStyle.current.copy(fontSize = smallFontSize)
+                )
+                TapeTimeItem(
+                    lastPlayedAt,
+                    createTime,
+                    LocalTextStyle.current.copy(fontSize = smallFontSize)
+                )
+            }
+            IconButton(
+                onClick = { audioCallback(AudioCallbackArgument.TapeFolderOpen(folderPath)) },
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+            ) {
+                Icon(
+                    Icons.Default.FolderOpen,
+                    null
+                )
+            }
         }
     }
 }
@@ -122,7 +134,8 @@ fun TapeItemPreview() {
             1.0f,
             1000,
             500,
-            0,
+            true,
+            2,
             audioCallback = {}
         )
     }
