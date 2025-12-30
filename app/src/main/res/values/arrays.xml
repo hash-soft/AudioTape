@@ -2,8 +2,15 @@
 <resources>
     <string-array name="menu_labels">
         <item>Settings</item>
+        <item>Delete</item>
         <item>About</item>
     </string-array>
+
+    <integer-array name="menu_index">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
 
     <string-array name="play_volume_labels">
         <item>0%</item>

@@ -29,4 +29,8 @@
     <string name="default_settings_label">デフォルト設定</string>
     <string name="last_played_label">演奏 %s</string>
     <string name="created_label">作成 %s</string>
+    <string name="delete_tape_select_label">%1$d 選択中 全 %2$d</string>
+    <string name="delete_tape_close_description">閉じる</string>
+    <string name="delete_tape_select_all_description">全選択</string>
+    <string name="delete_tape_select_delete_description">削除</string>
 </resources>

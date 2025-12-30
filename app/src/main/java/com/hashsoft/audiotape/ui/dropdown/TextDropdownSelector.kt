@@ -1,5 +1,7 @@
 package com.hashsoft.audiotape.ui.dropdown
 
+import androidx.collection.IntSet
+import androidx.collection.intSetOf
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DividerDefaults
@@ -32,6 +34,7 @@ fun TextDropdownSelector(
     title: String = "",
     selectedIndex: Int = -1,
     enabled: Boolean = true,
+    disableMenuIds: IntSet = intSetOf(),
     iconContent: @Composable (() -> Unit),
     onItemSelected: (Int) -> Unit
 ) {
@@ -64,7 +67,8 @@ fun TextDropdownSelector(
                     onClick = {
                         onItemSelected(index)
                         expanded = false
-                    }
+                    },
+                    enabled = disableMenuIds.contains(index).not()
                 )
             }
         }

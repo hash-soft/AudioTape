@@ -10,17 +10,20 @@ import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 @Composable
 fun TapeView(
+    deleteMode: Boolean = false,
     viewModel: TapeViewModel = hiltViewModel(),
-    onExistTapeChange: (Boolean) -> Unit = {},
+    onTapeCallback: (TapeCallbackArgument) -> Unit = {},
     onAudioTransfer: () -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
 
-    onExistTapeChange(displayTapeList.isNotEmpty())
+    onTapeCallback(TapeCallbackArgument.UpdateExist(displayTapeList.isNotEmpty()))
 
     TapeList(
         displayTapeList = displayTapeList,
+        deleteMode = deleteMode,
+        onCloseSelected = { onTapeCallback(TapeCallbackArgument.CloseSelected) },
         audioCallback = { argument ->
             tapeItemSelected(
                 viewModel,

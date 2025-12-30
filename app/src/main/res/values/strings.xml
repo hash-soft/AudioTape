@@ -34,5 +34,8 @@
     <string name="audio_item_progress_label" translatable="false">%1$d/%2$d</string>
     <string name="last_played_label">played %s</string>
     <string name="created_label">created %s</string>
-
+    <string name="delete_tape_select_label">%1$d selected total %2$d</string>
+    <string name="delete_tape_close_description">close</string>
+    <string name="delete_tape_select_all_description">select all</string>
+    <string name="delete_tape_select_delete_description">delete</string>
 </resources>

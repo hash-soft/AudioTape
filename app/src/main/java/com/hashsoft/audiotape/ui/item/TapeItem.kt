@@ -59,6 +59,7 @@ fun TapeItem(
     lastPlayedAt: Long,
     isCurrent: Boolean,
     state: Int,
+    hasCheckBox: Boolean,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     Surface(
@@ -76,11 +77,13 @@ fun TapeItem(
                 })
                 .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background),
         ) {
-            Checkbox(
-                checked = false,
-                modifier = Modifier.align(Alignment.CenterVertically),
-                onCheckedChange = {}
-            )
+            if (hasCheckBox) {
+                Checkbox(
+                    checked = false,
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onCheckedChange = {}
+                )
+            }
             Column(modifier = Modifier.weight(1.0f)) {
                 Text(title)
                 CurrentAudioNameItem(
@@ -136,6 +139,7 @@ fun TapeItemPreview() {
             500,
             true,
             2,
+            false,
             audioCallback = {}
         )
     }

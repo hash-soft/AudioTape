@@ -32,6 +32,10 @@ class LibraryHomeViewModel @Inject constructor(
     private val _existTape = MutableStateFlow(false)
     val existTape: StateFlow<Boolean> = _existTape.asStateFlow()
 
+    private val _viewMode = MutableStateFlow(LibraryHomeViewMode.Normal)
+    val viewMode: StateFlow<LibraryHomeViewMode> = _viewMode.asStateFlow()
+
+
     fun tabs() = _libraryStateRepository.tabs()
 
     fun saveSelectedTabName(index: Int) = viewModelScope.launch {
@@ -46,6 +50,14 @@ class LibraryHomeViewModel @Inject constructor(
         _existTape.value = exist
     }
 
+    fun updateViewMode(viewMode: LibraryHomeViewMode) {
+        _viewMode.value = viewMode
+    }
+
+    fun resetViewMode() {
+        _viewMode.value = LibraryHomeViewMode.Normal
+    }
+
 }
 
 sealed interface LibraryHomeUiState {
@@ -53,4 +65,9 @@ sealed interface LibraryHomeUiState {
     data class Success(
         val libraryState: LibraryStateDto
     ) : LibraryHomeUiState
+}
+
+enum class LibraryHomeViewMode {
+    Normal,
+    DeleteTape
 }

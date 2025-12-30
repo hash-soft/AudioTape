@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui
 
+import androidx.collection.intSetOf
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.integerArrayResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +33,11 @@ import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 
+private enum class MenuIndex {
+    UserSettings,
+    Delete
+}
+
 @Composable
 fun LibraryHomeRoute(
     viewModel: LibraryHomeViewModel = hiltViewModel(),
@@ -38,18 +45,35 @@ fun LibraryHomeRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val existTape by viewModel.existTape.collectAsStateWithLifecycle()
+    val viewMode by viewModel.viewMode.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
         is LibraryHomeUiState.Loading -> {}
         is LibraryHomeUiState.Success -> LibraryHome(
             state.libraryState,
             tabs = viewModel.tabs(),
-            onTransferClick = onTransferClick,
+            onTransferClick = {
+                viewModel.resetViewMode()
+                onTransferClick(it)
+            },
             existTape = existTape,
+            viewMode = viewMode,
             onTabChange = {
+                viewModel.resetViewMode()
                 viewModel.saveSelectedTabName(it)
             },
-            onExistTapeChange = { viewModel.updateExistTape(it) },
+            onTapeCallback = {
+                when (it) {
+                    is TapeCallbackArgument.UpdateExist -> viewModel.updateExistTape(it.exist)
+                    is TapeCallbackArgument.CloseSelected -> viewModel.updateViewMode(
+                        LibraryHomeViewMode.Normal
+                    )
+
+                    is TapeCallbackArgument.DeleteSelected -> viewModel.updateViewMode(
+                        LibraryHomeViewMode.DeleteTape
+                    )
+                }
+            },
         ) {
             viewModel.saveTapeListSortOrder(it)
         }
@@ -61,44 +85,77 @@ private fun LibraryHome(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
     existTape: Boolean,
+    viewMode: LibraryHomeViewMode,
     onTransferClick: (route: Any) -> Unit = {},
     onTabChange: (index: Int) -> Unit = {},
-    onExistTapeChange: (exist: Boolean) -> Unit = {},
+    onTapeCallback: (TapeCallbackArgument) -> Unit = {},
     onSortChange: (sortOrder: AudioTapeListSortOrder) -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.app_name)) },
-                actions = {
-                    if (libraryState.selectedTabIndex == LibraryStateRepository.TAPE_NAME_INDEX) {
-                        SortDropdownSelector(
-                            libraryState.tapeListSortOrder,
-                            enabled = existTape,
-                            onSortChange
-                        )
-                    }
-                    MenuDropdownSelector {
-                        when (it) {
-                            0 -> onTransferClick(Route.UserSettings)
-                            else -> {}
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            if (viewMode == LibraryHomeViewMode.DeleteTape) {
+                DeleteTapeTopBar()
+            } else {
+                NormalTopBar(
+                    libraryState, existTape, onTransferClick, onTapeDelete = {
+                        onTapeCallback(TapeCallbackArgument.DeleteSelected)
+                    }, onSortChange
                 )
-            )
+            }
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            LibrarySheetRoute(libraryState, tabs, onTabChange, onExistTapeChange) {
+            LibrarySheetRoute(libraryState, tabs, viewMode, onTabChange, onTapeCallback) {
                 onTransferClick(Route.AudioPlay)
             }
         }
     }
+}
+
+@Composable
+private fun NormalTopBar(
+    libraryState: LibraryStateDto,
+    existTape: Boolean,
+    onTransferClick: (route: Any) -> Unit = {},
+    onTapeDelete: () -> Unit = {},
+    onSortChange: (sortOrder: AudioTapeListSortOrder) -> Unit = {}
+) {
+    @OptIn(ExperimentalMaterial3Api::class)
+    TopAppBar(
+        title = { Text(text = stringResource(R.string.app_name)) },
+        actions = {
+            if (libraryState.selectedTabIndex == LibraryStateRepository.TAPE_NAME_INDEX) {
+                SortDropdownSelector(
+                    libraryState.tapeListSortOrder,
+                    enabled = existTape,
+                    onSortChange
+                )
+            }
+            MenuDropdownSelector(libraryState.selectedTabIndex, existTape) {
+                when (it) {
+                    MenuIndex.UserSettings.ordinal -> onTransferClick(Route.UserSettings)
+                    MenuIndex.Delete.ordinal -> onTapeDelete()
+                    else -> {}
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    )
+}
+
+@Composable
+private fun DeleteTapeTopBar() {
+    @OptIn(ExperimentalMaterial3Api::class)
+    TopAppBar(
+        title = { Text(text = stringResource(R.string.app_name)) },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    )
 }
 
 @Composable
@@ -126,17 +183,31 @@ private fun SortDropdownSelector(
 
 @Composable
 private fun MenuDropdownSelector(
+    tabIndex: Int,
+    existTape: Boolean,
     onChange: (Int) -> Unit = {}
 ) {
-    val menuLabels = stringArrayResource(R.array.menu_labels).toList()
+    val tapeTab = tabIndex == LibraryStateRepository.TAPE_NAME_INDEX
+    val (menuLabels, menuIndex) = if (tapeTab) {
+        stringArrayResource(R.array.menu_labels).toList() to
+                integerArrayResource(R.array.menu_index).toList()
+    } else {
+        stringArrayResource(R.array.menu_labels).filterIndexed { index, _ -> index != MenuIndex.Delete.ordinal } to
+                integerArrayResource(R.array.menu_index).filterIndexed { index, _ -> index != MenuIndex.Delete.ordinal }
+    }
 
-    TextDropdownSelector(menuLabels, "", selectedIndex = -1, iconContent = {
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = stringResource(R.string.menu_description),
-        )
-    }) {
-        onChange(it)
+    TextDropdownSelector(
+        menuLabels,
+        "",
+        selectedIndex = -1,
+        disableMenuIds = if (tapeTab && !existTape) intSetOf(MenuIndex.Delete.ordinal) else intSetOf(),
+        iconContent = {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.menu_description),
+            )
+        }) {
+        onChange(menuIndex.getOrElse(it) { -1 })
     }
 }
 
@@ -145,6 +216,11 @@ private fun MenuDropdownSelector(
 @Composable
 fun LibraryHomePreview() {
     AudioTapeTheme {
-        LibraryHome(LibraryStateDto(0, AudioTapeListSortOrder.NAME_ASC), listOf(), false)
+        LibraryHome(
+            LibraryStateDto(0, AudioTapeListSortOrder.NAME_ASC),
+            listOf(),
+            false,
+            LibraryHomeViewMode.Normal
+        )
     }
 }

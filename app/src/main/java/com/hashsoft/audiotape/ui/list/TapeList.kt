@@ -9,17 +9,25 @@ import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.DisplayTapeItem
+import com.hashsoft.audiotape.ui.bar.DeleteTapeSelectionBar
 import com.hashsoft.audiotape.ui.item.TapeItem
 
 @Composable
 fun TapeList(
     displayTapeList: List<DisplayTapeItem>,
+    deleteMode: Boolean = false,
+    onCloseSelected: () -> Unit = {},
     audioCallback: (AudioCallbackArgument) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
     ) {
+        if (deleteMode) {
+            stickyHeader {
+                DeleteTapeSelectionBar(0, 10, onClose = onCloseSelected, {}, {})
+            }
+        }
         items(displayTapeList.size) {
             val item = displayTapeList[it]
             val tape = item.audioTape
@@ -42,6 +50,7 @@ fun TapeList(
                 tape.lastPlayedAt,
                 item.isCurrent,
                 0,
+                hasCheckBox = deleteMode,
                 audioCallback = audioCallback
             )
         }

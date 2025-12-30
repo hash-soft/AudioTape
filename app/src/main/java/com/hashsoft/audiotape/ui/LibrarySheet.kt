@@ -34,8 +34,9 @@ import kotlinx.coroutines.launch
 fun LibrarySheetRoute(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
+    viewMode: LibraryHomeViewMode,
     onTabChange: (index: Int) -> Unit,
-    onExistTapeChange: (Boolean) -> Unit,
+    onTapeCallback: (TapeCallbackArgument) -> Unit,
     viewModel: LibrarySheetViewModel = hiltViewModel(),
     onAudioPlayClick: () -> Unit = {}
 ) {
@@ -47,12 +48,13 @@ fun LibrarySheetRoute(
     LibrarySheetPager(
         libraryState,
         tabs = tabs,
+        viewMode = viewMode,
         isAvailable = available,
         displayPlaying = displayPlayingSource,
         displayPlayingItem = displayPlayingItem,
         playingPosition = playingPosition,
         onTabChange = onTabChange,
-        onExistTapeChange = onExistTapeChange,
+        onTapeCallback = onTapeCallback,
         audioCallback = { argument ->
             if (argument is AudioCallbackArgument.TransferAudioPlay) {
                 onAudioPlayClick()
@@ -102,12 +104,13 @@ private fun playItemSelected(
 private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
+    viewMode: LibraryHomeViewMode,
     isAvailable: Boolean,
     displayPlaying: DisplayPlayingSource,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
     onTabChange: (index: Int) -> Unit,
-    onExistTapeChange: (Boolean) -> Unit,
+    onTapeCallback: (TapeCallbackArgument) -> Unit,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
@@ -172,7 +175,8 @@ private fun LibrarySheetPager(
                     }
 
                     1 -> TapeView(
-                        onExistTapeChange = onExistTapeChange,
+                        deleteMode = viewMode == LibraryHomeViewMode.DeleteTape,
+                        onTapeCallback = onTapeCallback,
                         onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) }) {
                         scope.launch {
                             state.animateScrollToPage(0)
