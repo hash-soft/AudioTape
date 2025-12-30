@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.integerArrayResource
@@ -47,15 +48,18 @@ fun LibraryHomeRoute(
     val existTape by viewModel.existTape.collectAsStateWithLifecycle()
     val viewMode by viewModel.viewMode.collectAsStateWithLifecycle()
 
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.resetViewMode()
+        }
+    }
+
     when (val state = uiState) {
         is LibraryHomeUiState.Loading -> {}
         is LibraryHomeUiState.Success -> LibraryHome(
             state.libraryState,
             tabs = viewModel.tabs(),
-            onTransferClick = {
-                viewModel.resetViewMode()
-                onTransferClick(it)
-            },
+            onTransferClick = onTransferClick,
             existTape = existTape,
             viewMode = viewMode,
             onTabChange = {

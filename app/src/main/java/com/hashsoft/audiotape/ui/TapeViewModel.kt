@@ -1,5 +1,8 @@
 package com.hashsoft.audiotape.ui
 
+import androidx.collection.IntSet
+import androidx.collection.intSetOf
+import androidx.collection.mutableIntSetOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioStoreRepository
@@ -12,10 +15,13 @@ import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -61,6 +67,9 @@ class TapeViewModel @Inject constructor(
             emptyList()
         )
 
+    private val _deleteIdsSet = MutableStateFlow(intSetOf())
+    val deleteIdsSet = _deleteIdsSet.asStateFlow()
+
     fun switchPlayingFolder(tape: AudioTapeDto) {
         val file = _controller.getCurrentMediaItemUri()?.run {
             File(_audioStoreRepository.uriToPath(this))
@@ -95,6 +104,43 @@ class TapeViewModel @Inject constructor(
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
+    }
+
+    fun addDeleteId(id: Int) {
+        _deleteIdsSet.update { currentSet ->
+            mutableIntSetOf().apply {
+                addAll(currentSet)
+                add(id)
+            }
+        }
+    }
+
+    fun removeDeleteId(id: Int) {
+        _deleteIdsSet.update { currentSet ->
+            mutableIntSetOf().apply {
+                addAll(currentSet)
+                remove(id)
+            }
+        }
+    }
+
+    fun resetDeleteIds() {
+        _deleteIdsSet.update { intSetOf() }
+    }
+
+    fun setDeletedIds(ids: IntSet) {
+        _deleteIdsSet.update { ids }
+    }
+
+    fun deleteSelectedTape(onDeletedAfter: () -> Unit) = viewModelScope.launch {
+        val list: MutableList<AudioTapeDto> = mutableListOf()
+        _deleteIdsSet.value.forEach { id ->
+            val tape = displayTapeListState.value.getOrNull(id) ?: return@forEach
+            list.add(tape.audioTape)
+        }
+        _audioTapeRepository.deleteTapes(list)
+        _deleteIdsSet.update { intSetOf() }
+        onDeletedAfter()
     }
 }
 

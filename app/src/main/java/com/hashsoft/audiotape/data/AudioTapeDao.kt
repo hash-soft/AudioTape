@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -186,5 +187,8 @@ interface AudioTapeDao {
      */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePitch(entity: AudioTapePitch)
+
+    @Delete
+    suspend fun deleteTapes(vararg entities: AudioTapeEntity)
 
 }

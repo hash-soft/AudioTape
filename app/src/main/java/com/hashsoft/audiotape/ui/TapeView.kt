@@ -1,6 +1,8 @@
 package com.hashsoft.audiotape.ui
 
+import androidx.collection.mutableIntSetOf
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -17,13 +19,44 @@ fun TapeView(
     onFolderOpen: () -> Unit = {}
 ) {
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
+    val deleteIdsSet by viewModel.deleteIdsSet.collectAsStateWithLifecycle()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.resetDeleteIds()
+        }
+    }
 
     onTapeCallback(TapeCallbackArgument.UpdateExist(displayTapeList.isNotEmpty()))
 
     TapeList(
         displayTapeList = displayTapeList,
         deleteMode = deleteMode,
-        onCloseSelected = { onTapeCallback(TapeCallbackArgument.CloseSelected) },
+        deleteIdsSet = deleteIdsSet,
+        onCloseSelected = {
+            viewModel.resetDeleteIds()
+            onTapeCallback(TapeCallbackArgument.CloseSelected)
+        },
+        onCheckedChange = { checked, index ->
+            if (checked) {
+                viewModel.addDeleteId(index)
+            } else {
+                viewModel.removeDeleteId(index)
+            }
+        },
+        onSelectedAllCheck = {
+            val ids = mutableIntSetOf().apply {
+                for (i in 0 until displayTapeList.size) {
+                    add(i)
+                }
+            }
+            viewModel.setDeletedIds(ids)
+        },
+        onTapeDelete = {
+            viewModel.deleteSelectedTape {
+                onTapeCallback(TapeCallbackArgument.CloseSelected)
+            }
+        },
         audioCallback = { argument ->
             tapeItemSelected(
                 viewModel,

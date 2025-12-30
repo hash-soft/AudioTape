@@ -1,5 +1,7 @@
 package com.hashsoft.audiotape.ui.list
 
+import androidx.collection.IntSet
+import androidx.collection.intSetOf
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
@@ -16,7 +18,11 @@ import com.hashsoft.audiotape.ui.item.TapeItem
 fun TapeList(
     displayTapeList: List<DisplayTapeItem>,
     deleteMode: Boolean = false,
+    deleteIdsSet: IntSet = intSetOf(),
     onCloseSelected: () -> Unit = {},
+    onCheckedChange: (checked: Boolean, index: Int) -> Unit,
+    onSelectedAllCheck: () -> Unit,
+    onTapeDelete: () -> Unit,
     audioCallback: (AudioCallbackArgument) -> Unit,
 ) {
     LazyColumn(
@@ -25,7 +31,13 @@ fun TapeList(
     ) {
         if (deleteMode) {
             stickyHeader {
-                DeleteTapeSelectionBar(0, 10, onClose = onCloseSelected, {}, {})
+                DeleteTapeSelectionBar(
+                    deleteIdsSet.size,
+                    displayTapeList.size,
+                    onClose = onCloseSelected,
+                    onSelectAll = onSelectedAllCheck,
+                    onDelete = onTapeDelete
+                )
             }
         }
         items(displayTapeList.size) {
@@ -51,6 +63,8 @@ fun TapeList(
                 item.isCurrent,
                 0,
                 hasCheckBox = deleteMode,
+                isChecked = deleteIdsSet.contains(it),
+                onCheckedChange = onCheckedChange,
                 audioCallback = audioCallback
             )
         }

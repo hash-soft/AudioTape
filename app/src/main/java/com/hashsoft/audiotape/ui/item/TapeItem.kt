@@ -60,7 +60,9 @@ fun TapeItem(
     isCurrent: Boolean,
     state: Int,
     hasCheckBox: Boolean,
-    audioCallback: (AudioCallbackArgument) -> Unit
+    isChecked: Boolean,
+    onCheckedChange: (checked: Boolean, index: Int) -> Unit = { _, _ -> },
+    audioCallback: (AudioCallbackArgument) -> Unit = {}
 ) {
     Surface(
         contentColor = if (isCurrent) resolveColorForState(
@@ -79,9 +81,9 @@ fun TapeItem(
         ) {
             if (hasCheckBox) {
                 Checkbox(
-                    checked = false,
+                    checked = isChecked,
                     modifier = Modifier.align(Alignment.CenterVertically),
-                    onCheckedChange = {}
+                    onCheckedChange = { onCheckedChange(it, index) }
                 )
             }
             Column(modifier = Modifier.weight(1.0f)) {
@@ -139,8 +141,8 @@ fun TapeItemPreview() {
             500,
             true,
             2,
-            false,
-            audioCallback = {}
+            hasCheckBox = false,
+            true
         )
     }
 }

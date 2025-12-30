@@ -54,7 +54,7 @@ fun DeleteTapeSelectionBar(
                     contentDescription = stringResource(R.string.delete_tape_select_all_description)
                 )
             }
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = onDelete, enabled = count > 0) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = stringResource(R.string.delete_tape_select_delete_description)
