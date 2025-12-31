@@ -12,6 +12,7 @@ import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.DisplayTapeItem
 import com.hashsoft.audiotape.ui.bar.DeleteTapeSelectionBar
+import com.hashsoft.audiotape.ui.item.TapeCheckItem
 import com.hashsoft.audiotape.ui.item.TapeItem
 
 @Composable
@@ -43,30 +44,49 @@ fun TapeList(
         items(displayTapeList.size) {
             val item = displayTapeList[it]
             val tape = item.audioTape
-            TapeItem(
-                index = it,
-                title = StorageHelper.treeListToString(
-                    item.treeList,
-                    stringResource(R.string.path_separator),
-                    default = item.audioTape.folderPath
-                ),
-                tape.folderPath,
-                tape.currentName,
-                tape.position,
-                tape.sortOrder,
-                repeat = tape.repeat,
-                speed = tape.speed,
-                volume = tape.volume,
-                pitch = tape.pitch,
-                tape.createTime,
-                tape.lastPlayedAt,
-                item.isCurrent,
-                0,
-                hasCheckBox = deleteMode,
-                isChecked = deleteIdsSet.contains(it),
-                onCheckedChange = onCheckedChange,
-                audioCallback = audioCallback
+            val title = StorageHelper.treeListToString(
+                item.treeList,
+                stringResource(R.string.path_separator),
+                default = item.audioTape.folderPath
             )
+            if (deleteMode) {
+                TapeCheckItem(
+                    index = it,
+                    title = title,
+                    tape.folderPath,
+                    tape.currentName,
+                    tape.position,
+                    tape.sortOrder,
+                    repeat = tape.repeat,
+                    speed = tape.speed,
+                    volume = tape.volume,
+                    pitch = tape.pitch,
+                    tape.createTime,
+                    tape.lastPlayedAt,
+                    item.isCurrent,
+                    0,
+                    isChecked = deleteIdsSet.contains(it),
+                    onCheckedChange = onCheckedChange
+                )
+            } else {
+                TapeItem(
+                    index = it,
+                    title = title,
+                    tape.folderPath,
+                    tape.currentName,
+                    tape.position,
+                    tape.sortOrder,
+                    repeat = tape.repeat,
+                    speed = tape.speed,
+                    volume = tape.volume,
+                    pitch = tape.pitch,
+                    tape.createTime,
+                    tape.lastPlayedAt,
+                    item.isCurrent,
+                    0,
+                    audioCallback = audioCallback
+                )
+            }
         }
     }
 }

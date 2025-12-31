@@ -1,13 +1,10 @@
 package com.hashsoft.audiotape.ui.item
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
-import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
 import com.hashsoft.audiotape.ui.theme.currentItemContentColor
@@ -26,7 +22,7 @@ import com.hashsoft.audiotape.ui.theme.smallFontSize
 
 
 /**
- * テープリストのアイテムを表示するComposable関数
+ * テープリストのアイテムを表示するComposable関数 (チェックボックス付き)
  *
  * @param index リスト内でのインデックス
  * @param title タイトル
@@ -42,10 +38,11 @@ import com.hashsoft.audiotape.ui.theme.smallFontSize
  * @param lastPlayedAt 最終再生日時
  * @param isCurrent 現在再生中かどうか
  * @param state 状態
- * @param audioCallback オーディオ関連のコールバック
+ * @param isChecked チェックされているかどうか
+ * @param onCheckedChange チェック状態変更時のコールバック
  */
 @Composable
-fun TapeItem(
+fun TapeCheckItem(
     index: Int,
     title: String,
     folderPath: String,
@@ -60,7 +57,8 @@ fun TapeItem(
     lastPlayedAt: Long,
     isCurrent: Boolean,
     state: Int,
-    audioCallback: (AudioCallbackArgument) -> Unit = {}
+    isChecked: Boolean,
+    onCheckedChange: (checked: Boolean, index: Int) -> Unit = { _, _ -> },
 ) {
     Surface(
         contentColor = if (isCurrent) resolveColorForState(
@@ -70,13 +68,14 @@ fun TapeItem(
     ) {
         Row(
             modifier = Modifier
-                .combinedClickable(onClick = {
-                    audioCallback(AudioCallbackArgument.TapeSelected(index))
-                }, onLongClick = {
-                    audioCallback(AudioCallbackArgument.TapeSelected(index, true))
-                })
+                .clickable { onCheckedChange(!isChecked, index) }
                 .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background),
         ) {
+            Checkbox(
+                checked = isChecked,
+                modifier = Modifier.align(Alignment.CenterVertically),
+                onCheckedChange = { onCheckedChange(it, index) }
+            )
             Column(modifier = Modifier.weight(1.0f)) {
                 Text(title)
                 CurrentAudioNameItem(
@@ -99,25 +98,15 @@ fun TapeItem(
                     LocalTextStyle.current.copy(fontSize = smallFontSize)
                 )
             }
-            IconButton(
-                onClick = { audioCallback(AudioCallbackArgument.TapeFolderOpen(folderPath)) },
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-            ) {
-                Icon(
-                    Icons.Default.FolderOpen,
-                    null
-                )
-            }
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun TapeItemPreview() {
+fun TapeCheckItemPreview() {
     AudioTapeTheme {
-        TapeItem(
+        TapeCheckItem(
             1,
             "directory",
             "path",
@@ -132,6 +121,7 @@ fun TapeItemPreview() {
             500,
             true,
             2,
+            true
         )
     }
 }

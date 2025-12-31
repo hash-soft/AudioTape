@@ -24,6 +24,15 @@ data class AudioTapePlayingPosition(
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
 
+/**
+ * オーディオテープの再生位置と最終再生日時
+ *
+ * @property folderPath フォルダパス
+ * @property currentName 現在のファイル名
+ * @property position 再生位置
+ * @property lastPlayedAt 最終再生日時
+ * @property updateTime 更新日時
+ */
 data class AudioTapePlayingPositionWithLastPlayedAt(
     @ColumnInfo(name = "folder_path") val folderPath: String,
     @ColumnInfo(name = "current_name") val currentName: String,
@@ -32,6 +41,13 @@ data class AudioTapePlayingPositionWithLastPlayedAt(
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
 
+/**
+ * オーディオテープのソート順サブエンティティ
+ *
+ * @property folderPath フォルダパス
+ * @property sortOrder ソート順
+ * @property updateTime 更新日時
+ */
 data class AudioTapeSortOrderSubEntity(
     @ColumnInfo(name = "folder_path") val folderPath: String,
     @ColumnInfo(name = "sort_order") val sortOrder: Int,
@@ -91,26 +107,65 @@ data class AudioTapePitch(
 )
 
 /**
+ * オーディオテープのプライマリキー情報
+ *
+ * @property folderPath フォルダパス
+ */
+data class AudioTapePrimary(
+    @ColumnInfo(name = "folder_path") val folderPath: String,
+)
+
+/**
  * オーディオテープDAO
  */
 @Dao
 interface AudioTapeDao {
 
+    /**
+     * すべてのオーディオテープを名前の昇順で取得する
+     *
+     * @return オーディオテープのリスト
+     */
     @Query("SELECT * FROM audio_tape ORDER BY folder_path DESC")
     fun getAllByNameAsc(): Flow<List<AudioTapeEntity>>
 
+    /**
+     * すべてのオーディオテープを名前の降順で取得する
+     *
+     * @return オーディオテープのリスト
+     */
     @Query("SELECT * FROM audio_tape ORDER BY folder_path ASC")
     fun getAllByNameDesc(): Flow<List<AudioTapeEntity>>
 
+    /**
+     * すべてのオーディオテープを最終再生日時の昇順で取得する
+     *
+     * @return オーディオテープのリスト
+     */
     @Query("SELECT * FROM audio_tape ORDER BY last_played_at DESC")
     fun getAllByLastPlayedAsc(): Flow<List<AudioTapeEntity>>
 
+    /**
+     * すべてのオーディオテープを最終再生日時の降順で取得する
+     *
+     * @return オーディオテープのリスト
+     */
     @Query("SELECT * FROM audio_tape ORDER BY last_played_at ASC")
     fun getAllByLastPlayedDesc(): Flow<List<AudioTapeEntity>>
 
+    /**
+     * すべてのオーディオテープを作成日時の昇順で取得する
+     *
+     * @return オーディオテープのリスト
+     */
     @Query("SELECT * FROM audio_tape ORDER BY create_time DESC")
     fun getAllByCreatedAsc(): Flow<List<AudioTapeEntity>>
 
+    /**
+     * すべてのオーディオテープを作成日時の降順で取得する
+     *
+     * @return オーディオテープのリスト
+     */
     @Query("SELECT * FROM audio_tape ORDER BY create_time ASC")
     fun getAllByCreatedDesc(): Flow<List<AudioTapeEntity>>
 
@@ -149,10 +204,19 @@ interface AudioTapeDao {
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePlayingPosition(entity: AudioTapePlayingPosition)
 
+    /**
+     * 再生位置と最終再生日時を更新する
+     *
+     * @param entity 再生位置と最終再生日時
+     */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePlayingPositionWithLastPlayedAt(entity: AudioTapePlayingPositionWithLastPlayedAt)
 
-
+    /**
+     * ソート順を更新する
+     *
+     * @param entity ソート順
+     */
     @Update(entity = AudioTapeEntity::class)
     suspend fun updateSortOrder(entity: AudioTapeSortOrderSubEntity)
 
@@ -188,7 +252,12 @@ interface AudioTapeDao {
     @Update(entity = AudioTapeEntity::class)
     suspend fun updatePitch(entity: AudioTapePitch)
 
-    @Delete
-    suspend fun deleteTapes(vararg entities: AudioTapeEntity)
+    /**
+     * オーディオテープを削除する
+     *
+     * @param entities 削除するオーディオテープ
+     */
+    @Delete(entity = AudioTapeEntity::class)
+    suspend fun deleteTapes(vararg entities: AudioTapePrimary)
 
 }

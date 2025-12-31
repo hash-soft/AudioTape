@@ -236,12 +236,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
 
     suspend fun deleteTapes(list: List<AudioTapeDto>) {
         val entities = list.map { audioTape ->
-            AudioTapeEntity(
-                folderPath = audioTape.folderPath,
-                currentName = audioTape.currentName,
-                createTime = 0,
-                updateTime = 0
-            )
+            AudioTapePrimary(folderPath = audioTape.folderPath)
         }.toTypedArray()
         audioTapeDao.deleteTapes(*entities)
     }
