@@ -70,8 +70,8 @@ fun TapeView(
         DeleteTapeConfirmDialog(
             onConfirmResult = {
                 viewModel.deleteSelectedTape {
-                    onTapeCallback(TapeCallbackArgument.CloseSelected)
                     showConfirmDialog.value = false
+                    onTapeCallback(TapeCallbackArgument.CloseSelected)
                 }
             },
             onDismissResult = { showConfirmDialog.value = false })
