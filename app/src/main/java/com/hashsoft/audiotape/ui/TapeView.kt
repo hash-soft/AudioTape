@@ -2,11 +2,14 @@ package com.hashsoft.audiotape.ui
 
 import androidx.collection.mutableIntSetOf
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hashsoft.audiotape.ui.dialog.DeleteTapeConfirmDialog
 import com.hashsoft.audiotape.ui.list.TapeList
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
@@ -20,9 +23,10 @@ fun TapeView(
 ) {
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
     val deleteIdsSet by viewModel.deleteIdsSet.collectAsStateWithLifecycle()
+    val showConfirmDialog = remember { mutableStateOf(false) }
 
-    DisposableEffect(Unit) {
-        onDispose {
+    LaunchedEffect(deleteMode) {
+        if (!deleteMode) {
             viewModel.resetDeleteIds()
         }
     }
@@ -34,7 +38,6 @@ fun TapeView(
         deleteMode = deleteMode,
         deleteIdsSet = deleteIdsSet,
         onCloseSelected = {
-            viewModel.resetDeleteIds()
             onTapeCallback(TapeCallbackArgument.CloseSelected)
         },
         onCheckedChange = { checked, index ->
@@ -52,11 +55,7 @@ fun TapeView(
             }
             viewModel.setDeletedIds(ids)
         },
-        onTapeDelete = {
-            viewModel.deleteSelectedTape {
-                onTapeCallback(TapeCallbackArgument.CloseSelected)
-            }
-        },
+        onTapeDelete = { showConfirmDialog.value = true },
         audioCallback = { argument ->
             tapeItemSelected(
                 viewModel,
@@ -67,6 +66,16 @@ fun TapeView(
             )
         }
     )
+    if (showConfirmDialog.value) {
+        DeleteTapeConfirmDialog(
+            onConfirmResult = {
+                viewModel.deleteSelectedTape {
+                    onTapeCallback(TapeCallbackArgument.CloseSelected)
+                    showConfirmDialog.value = false
+                }
+            },
+            onDismissResult = { showConfirmDialog.value = false })
+    }
 }
 
 private fun tapeItemSelected(

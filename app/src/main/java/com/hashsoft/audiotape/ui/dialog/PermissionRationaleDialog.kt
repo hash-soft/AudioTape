@@ -5,7 +5,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.hashsoft.audiotape.R
 
 /**
@@ -15,14 +15,13 @@ import com.hashsoft.audiotape.R
  */
 @Composable
 fun PermissionRationaleDialog(onDialogResult: () -> Unit) {
-    val context = LocalContext.current
     AlertDialog(
-        title = { Text(context.getString(R.string.permission_required)) },
-        text = { Text(text = context.getString(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.permission_rationale_33 else R.string.permission_rationale_legacy)) },
+        title = { Text(text = stringResource(R.string.permission_required)) },
+        text = { Text(text = stringResource(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) R.string.permission_rationale_33 else R.string.permission_rationale_legacy)) },
         onDismissRequest = {},
         confirmButton = {
             TextButton(onClick = onDialogResult) {
-                Text(text = context.getString(R.string.ok))
+                Text(text = stringResource(R.string.ok))
             }
         }
     )

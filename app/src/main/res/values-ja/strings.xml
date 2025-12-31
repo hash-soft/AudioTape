@@ -33,4 +33,6 @@
     <string name="delete_tape_close_description">閉じる</string>
     <string name="delete_tape_select_all_description">全選択</string>
     <string name="delete_tape_select_delete_description">削除</string>
+    <string name="delete_confirm_title">削除</string>
+    <string name="delete_confirm_text">選択したテープを削除します。</string>
 </resources>

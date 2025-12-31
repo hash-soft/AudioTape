@@ -35,8 +35,14 @@ class LibraryHomeViewModel @Inject constructor(
     private val _viewMode = MutableStateFlow(LibraryHomeViewMode.Normal)
     val viewMode: StateFlow<LibraryHomeViewMode> = _viewMode.asStateFlow()
 
-
     fun tabs() = _libraryStateRepository.tabs()
+
+    fun selectedTabIndex(): Int {
+        return when (val uiState = uiState.value) {
+            is LibraryHomeUiState.Loading -> -1
+            is LibraryHomeUiState.Success -> uiState.libraryState.selectedTabIndex
+        }
+    }
 
     fun saveSelectedTabName(index: Int) = viewModelScope.launch {
         _libraryStateRepository.saveSelectedTabName(index)
