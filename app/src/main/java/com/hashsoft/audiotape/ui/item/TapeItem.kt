@@ -49,6 +49,8 @@ fun TapeItem(
     index: Int,
     title: String,
     folderPath: String,
+    currentNo: Int,
+    count: Int,
     currentName: String,
     position: Long,
     sortOrder: AudioTapeSortOrder,
@@ -80,8 +82,8 @@ fun TapeItem(
             Column(modifier = Modifier.weight(1.0f)) {
                 Text(title)
                 CurrentAudioNameItem(
-                    index,
-                    10,
+                    currentNo,
+                    count,
                     position,
                     currentName,
                     LocalTextStyle.current.copy(fontSize = smallFontSize)
@@ -121,6 +123,8 @@ fun TapeItemPreview() {
             1,
             "directory",
             "path",
+            3,
+            10,
             "01 みえないつばさ",
             100,
             AudioTapeSortOrder.DATE_ASC,

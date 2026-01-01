@@ -5,6 +5,7 @@ import androidx.collection.intSetOf
 import androidx.collection.mutableIntSetOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
@@ -55,7 +56,7 @@ class TapeViewModel @Inject constructor(
                 list.map { audioTape ->
                     val treeList =
                         AudioStoreRepository.pathToTreeList(volumes, audioTape.folderPath)
-                    audioTape to treeList
+                    Triple(audioTape, treeList, volumes)
                 }
             }
         }
@@ -65,11 +66,16 @@ class TapeViewModel @Inject constructor(
      * 現在再生中のフォルダかどうかの情報を含めて公開される
      */
     val displayTapeListState =
-        combine(_baseState, _playingStateRepository.playingStateFlow()) { list, playingState ->
-            list.map {
+        combine(_baseState, _playingStateRepository.playingStateFlow()) { triple, playingState ->
+            triple.map {
                 val audioTape = it.first
                 val isCurrent = playingState.folderPath == audioTape.folderPath
-                DisplayTapeItem(audioTape, it.second, isCurrent)
+                val searchObject = AudioStoreRepository.pathToSearchObject(
+                    it.third,
+                    audioTape.folderPath,
+                )
+                val audioList = _audioStoreRepository.getListByPath(searchObject)
+                DisplayTapeItem(audioTape, audioList, it.second, isCurrent)
             }
         }.stateIn(
             viewModelScope,
@@ -223,6 +229,7 @@ class TapeViewModel @Inject constructor(
  */
 data class DisplayTapeItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", ""),
+    val audioList: List<AudioItemDto> = emptyList(),
     val treeList: List<String>? = null,
     val isCurrent: Boolean = false
 )

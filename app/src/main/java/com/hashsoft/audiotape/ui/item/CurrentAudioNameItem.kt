@@ -20,8 +20,8 @@ import com.hashsoft.audiotape.ui.theme.ListLabelSpace
 
 @Composable
 fun CurrentAudioNameItem(
-    index: Int,
-    total: Int,
+    no: Int,
+    count: Int,
     position: Long,
     name: String,
     style: TextStyle = LocalTextStyle.current
@@ -32,7 +32,11 @@ fun CurrentAudioNameItem(
     ) {
         ProvideTextStyle(value = style) {
             Text(
-                text = stringResource(R.string.audio_item_progress_label, index, total),
+                text = stringResource(
+                    R.string.audio_item_progress_label,
+                    if (no <= 0) stringResource(R.string.audio_item_unknow_no) else no.toString(),
+                    count
+                ),
                 modifier = Modifier.alignByBaseline()
             )
             Text(
@@ -55,7 +59,7 @@ fun CurrentAudioNameItem(
 fun CurrentAudioNameItemPreview() {
     AudioTapeTheme {
         CurrentAudioNameItem(
-            1,
+            0,
             10,
             position = 11200,
             "みえないつばさ",

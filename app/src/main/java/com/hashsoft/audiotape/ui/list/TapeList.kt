@@ -49,11 +49,14 @@ fun TapeList(
                 stringResource(R.string.path_separator),
                 default = item.audioTape.folderPath
             )
+            val currentNo = item.audioList.indexOfFirst { it.name == tape.currentName } + 1
             if (deleteMode) {
                 TapeCheckItem(
                     index = it,
                     title = title,
                     tape.folderPath,
+                    currentNo,
+                    item.audioList.size,
                     tape.currentName,
                     tape.position,
                     tape.sortOrder,
@@ -73,6 +76,8 @@ fun TapeList(
                     index = it,
                     title = title,
                     tape.folderPath,
+                    currentNo,
+                    item.audioList.size,
                     tape.currentName,
                     tape.position,
                     tape.sortOrder,
