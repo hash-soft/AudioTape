@@ -12,13 +12,14 @@ import kotlinx.coroutines.flow.Flow
 /**
  * オーディオテープの再生位置
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property currentName 現在のファイル名
  * @property position 再生位置
  * @property updateTime 更新日時
  */
 data class AudioTapePlayingPosition(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "current_name") val currentName: String,
     @ColumnInfo(name = "position") val position: Long,
     @ColumnInfo(name = "update_time") val updateTime: Long
@@ -27,14 +28,15 @@ data class AudioTapePlayingPosition(
 /**
  * オーディオテープの再生位置と最終再生日時
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property currentName 現在のファイル名
  * @property position 再生位置
  * @property lastPlayedAt 最終再生日時
  * @property updateTime 更新日時
  */
 data class AudioTapePlayingPositionWithLastPlayedAt(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "current_name") val currentName: String,
     @ColumnInfo(name = "position") val position: Long,
     @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long,
@@ -44,12 +46,13 @@ data class AudioTapePlayingPositionWithLastPlayedAt(
 /**
  * オーディオテープのソート順サブエンティティ
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property sortOrder ソート順
  * @property updateTime 更新日時
  */
 data class AudioTapeSortOrderSubEntity(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "sort_order") val sortOrder: Int,
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
@@ -57,12 +60,13 @@ data class AudioTapeSortOrderSubEntity(
 /**
  * オーディオテープのリピート設定
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property repeat リピート設定
  * @property updateTime 更新日時
  */
 data class AudioTapeRepeat(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "repeat") val repeat: Int,
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
@@ -70,12 +74,13 @@ data class AudioTapeRepeat(
 /**
  * オーディオテープの音量
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property volume 音量
  * @property updateTime 更新日時
  */
 data class AudioTapeVolume(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "volume") val volume: Float,
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
@@ -83,12 +88,13 @@ data class AudioTapeVolume(
 /**
  * オーディオテープの再生速度
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property speed 再生速度
  * @property updateTime 更新日時
  */
 data class AudioTapeSpeed(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "speed") val speed: Float,
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
@@ -96,12 +102,13 @@ data class AudioTapeSpeed(
 /**
  * オーディオテープのピッチ
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  * @property pitch ピッチ
  * @property updateTime 更新日時
  */
 data class AudioTapePitch(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "pitch") val pitch: Float,
     @ColumnInfo(name = "update_time") val updateTime: Long
 )
@@ -109,10 +116,11 @@ data class AudioTapePitch(
 /**
  * オーディオテープのプライマリキー情報
  *
- * @property folderPath フォルダパス
+ * @property name フォルダパス
  */
 data class AudioTapePrimary(
-    @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
 )
 
 /**
@@ -126,7 +134,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY folder_path DESC")
+    @Query("SELECT * FROM audio_tape ORDER BY name DESC")
     fun getAllByNameAsc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -134,7 +142,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY folder_path ASC")
+    @Query("SELECT * FROM audio_tape ORDER BY name ASC")
     fun getAllByNameDesc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -175,7 +183,7 @@ interface AudioTapeDao {
      * @param path パス
      * @return オーディオテープ
      */
-    @Query("SELECT * FROM audio_tape WHERE folder_path = :path")
+    @Query("SELECT * FROM audio_tape WHERE name = :path")
     fun findByPath(path: String): Flow<AudioTapeEntity?>
 
     /**
@@ -184,7 +192,7 @@ interface AudioTapeDao {
      * @param path パス
      * @return sortOrder
      */
-    @Query("SELECT sort_order FROM audio_tape WHERE folder_path = :path")
+    @Query("SELECT sort_order FROM audio_tape WHERE name = :path")
     fun findSortOrderByPath(path: String): Flow<Int?>
 
     /**

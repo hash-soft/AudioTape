@@ -87,7 +87,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      */
     private fun convertEntityToDto(entity: AudioTapeEntity): AudioTapeDto {
         return AudioTapeDto(
-            folderPath = entity.folderPath,
+            folderPath = entity.name,
             currentName = entity.currentName,
             position = entity.position,
             tapeName = entity.tapeName,
@@ -109,7 +109,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         val time = SystemTime.currentMillis()
         return audioTapeDao.insertAll(
             AudioTapeEntity(
-                folderPath = audioTape.folderPath,
+                name = audioTape.folderPath,
+                type = 0,
                 currentName = audioTape.currentName,
                 position = audioTape.position,
                 tapeName = audioTape.tapeName,
@@ -144,7 +145,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         if (isLastPlayedAt) {
             audioTapeDao.updatePlayingPositionWithLastPlayedAt(
                 AudioTapePlayingPositionWithLastPlayedAt(
-                    folderPath = folderPath,
+                    name = folderPath,
+                    type = 0,
                     currentName = currentName,
                     position = position,
                     lastPlayedAt = time,
@@ -154,7 +156,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         } else {
             audioTapeDao.updatePlayingPosition(
                 AudioTapePlayingPosition(
-                    folderPath = folderPath,
+                    name = folderPath,
+                    type = 0,
                     currentName = currentName,
                     position = position,
                     updateTime = time,
@@ -172,7 +175,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
     suspend fun updateSortOrder(folderPath: String, sortOrder: AudioTapeSortOrder) =
         audioTapeDao.updateSortOrder(
             AudioTapeSortOrderSubEntity(
-                folderPath = folderPath,
+                name = folderPath,
+                type = 0,
                 sortOrder = sortOrder.ordinal,
                 updateTime = SystemTime.currentMillis()
             )
@@ -186,7 +190,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      */
     suspend fun updateRepeat(folderPath: String, repeat: Boolean) = audioTapeDao.updateRepeat(
         AudioTapeRepeat(
-            folderPath = folderPath,
+            name = folderPath,
+            type = 0,
             repeat = if (repeat) 2 else 0,
             updateTime = SystemTime.currentMillis()
         )
@@ -200,7 +205,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      */
     suspend fun updateVolume(folderPath: String, volume: Float) = audioTapeDao.updateVolume(
         AudioTapeVolume(
-            folderPath = folderPath,
+            name = folderPath,
+            type = 0,
             volume = volume,
             updateTime = SystemTime.currentMillis()
         )
@@ -214,7 +220,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      */
     suspend fun updateSpeed(folderPath: String, speed: Float) = audioTapeDao.updateSpeed(
         AudioTapeSpeed(
-            folderPath = folderPath,
+            name = folderPath,
+            type = 0,
             speed = speed,
             updateTime = SystemTime.currentMillis()
         )
@@ -228,7 +235,8 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
      */
     suspend fun updatePitch(folderPath: String, pitch: Float) = audioTapeDao.updatePitch(
         AudioTapePitch(
-            folderPath = folderPath,
+            name = folderPath,
+            type = 0,
             pitch = pitch,
             updateTime = SystemTime.currentMillis()
         )
@@ -236,7 +244,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
 
     suspend fun deleteTapes(list: List<AudioTapeDto>) {
         val entities = list.map { audioTape ->
-            AudioTapePrimary(folderPath = audioTape.folderPath)
+            AudioTapePrimary(name = audioTape.folderPath, type = 0)
         }.toTypedArray()
         audioTapeDao.deleteTapes(*entities)
     }

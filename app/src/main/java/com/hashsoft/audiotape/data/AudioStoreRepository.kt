@@ -40,12 +40,6 @@ sealed class AudioLoadState {
      * @param audioList 読み込んだ音声ファイルのリスト。
      */
     data class Success(val audioList: List<AudioItemDto>) : AudioLoadState()
-
-    /**
-     * 読み込みエラー。
-     * @param throwable 発生した例外。
-     */
-    data class Error(val throwable: Throwable) : AudioLoadState()
 }
 
 /**

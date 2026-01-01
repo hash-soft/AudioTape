@@ -2,12 +2,11 @@ package com.hashsoft.audiotape.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
 /**
  * オーディオテープの情報を格納するエンティティ
  *
- * @param folderPath フォルダのパス(主キー)
+ * @param name フォルダのパス(主キー)
  * @param currentName 現在再生中のアイテム名
  * @param position 再生位置
  * @param tapeName テープ名
@@ -22,9 +21,10 @@ import androidx.room.PrimaryKey
  * @param createTime 作成日時
  * @param updateTime 更新日時
  */
-@Entity(tableName = "audio_tape")
+@Entity(tableName = "audio_tape", primaryKeys = ["name", "type"])
 data class AudioTapeEntity(
-    @PrimaryKey @ColumnInfo(name = "folder_path") val folderPath: String,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "type") val type: Int,
     @ColumnInfo(name = "current_name") val currentName: String,
     @ColumnInfo(name = "position", defaultValue = "0") val position: Long = 0,
     @ColumnInfo(name = "tape_name", defaultValue = "") val tapeName: String = "",

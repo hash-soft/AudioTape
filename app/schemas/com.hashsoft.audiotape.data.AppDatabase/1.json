@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "7aead0645c9a61791abd0517579dcb46",
+    "identityHash": "e2737cf888696e712d14630042b04523",
     "entities": [
       {
         "tableName": "user_settings",
@@ -99,12 +99,18 @@
       },
       {
         "tableName": "audio_tape",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`folder_path` TEXT NOT NULL, `current_name` TEXT NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `tape_name` TEXT NOT NULL DEFAULT '', `sort_order` INTEGER NOT NULL DEFAULT 0, `repeat` INTEGER NOT NULL DEFAULT 2, `volume` REAL NOT NULL DEFAULT 1.0, `speed` REAL NOT NULL DEFAULT 1.0, `pitch` REAL NOT NULL DEFAULT 1.0, `item_count` INTEGER NOT NULL DEFAULT 0, `total_time` INTEGER NOT NULL DEFAULT 0, `last_played_at` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER NOT NULL, `update_time` INTEGER NOT NULL, PRIMARY KEY(`folder_path`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `type` INTEGER NOT NULL, `current_name` TEXT NOT NULL, `position` INTEGER NOT NULL DEFAULT 0, `tape_name` TEXT NOT NULL DEFAULT '', `sort_order` INTEGER NOT NULL DEFAULT 0, `repeat` INTEGER NOT NULL DEFAULT 2, `volume` REAL NOT NULL DEFAULT 1.0, `speed` REAL NOT NULL DEFAULT 1.0, `pitch` REAL NOT NULL DEFAULT 1.0, `item_count` INTEGER NOT NULL DEFAULT 0, `total_time` INTEGER NOT NULL DEFAULT 0, `last_played_at` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER NOT NULL, `update_time` INTEGER NOT NULL, PRIMARY KEY(`name`, `type`))",
         "fields": [
           {
-            "fieldPath": "folderPath",
-            "columnName": "folder_path",
+            "fieldPath": "name",
+            "columnName": "name",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -199,14 +205,15 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "folder_path"
+            "name",
+            "type"
           ]
         }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7aead0645c9a61791abd0517579dcb46')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e2737cf888696e712d14630042b04523')"
     ]
   }
 }
