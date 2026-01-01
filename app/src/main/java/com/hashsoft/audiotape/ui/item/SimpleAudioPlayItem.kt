@@ -14,6 +14,7 @@ fun SimpleAudioPlayItem(
     displayPlaying: DisplayPlayingSource,
     durationMs: Long = 0,
     contentPosition: Long = 0,
+    enableTransfer: Boolean = true,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val configuration = LocalConfiguration.current
@@ -25,6 +26,7 @@ fun SimpleAudioPlayItem(
             displayPlaying,
             durationMs,
             contentPosition,
+            enableTransfer,
             audioCallback
         )
     } else {
@@ -36,6 +38,7 @@ fun SimpleAudioPlayItem(
             displayPlaying,
             durationMs,
             contentPosition,
+            enableTransfer,
             audioCallback
         )
     }

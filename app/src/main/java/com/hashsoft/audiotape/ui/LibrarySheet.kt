@@ -146,6 +146,7 @@ private fun LibrarySheetPager(
                     displayPlaying = displayPlaying,
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
+                    enableTransfer = viewMode != LibraryHomeViewMode.DeleteTape,
                     audioCallback = audioCallback
                 )
             }

@@ -43,6 +43,7 @@ fun SimpleAudioPlayItemPortrait(
     displayPlaying: DisplayPlayingSource,
     durationMs: Long = 0,
     contentPosition: Long = 0,
+    enableTransfer: Boolean = true,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     Surface(
@@ -51,9 +52,10 @@ fun SimpleAudioPlayItemPortrait(
             .background(color = simpleAudioPlayBorderColor)
             .padding(top = SimpleAudioPlayBorder)
     ) {
+        val baseModifier =
+            if (enableTransfer) Modifier.clickable { audioCallback(AudioCallbackArgument.TransferAudioPlay) } else Modifier
         Row(
-            Modifier
-                .clickable { audioCallback(AudioCallbackArgument.TransferAudioPlay) }
+            modifier = baseModifier
                 .background(color = simpleAudioPlayBackgroundColor),
             verticalAlignment = Alignment.CenterVertically,
         ) {
