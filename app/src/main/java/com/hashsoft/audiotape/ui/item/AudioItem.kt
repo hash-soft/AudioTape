@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 @Composable
 fun AudioItem(
@@ -28,7 +30,7 @@ fun AudioItem(
     icon: Int = 0,
     isResume: Boolean = false,
     contentPosition: Long = 0,
-    audioCallback: (AudioCallbackArgument) -> Unit
+    audioCallback: (AudioCallbackArgument) -> Unit = {}
 ) {
     ListItem(
         leadingContent = {
@@ -109,5 +111,22 @@ private fun OverlineContext(metadata: AudioItemMetadata) {
     }
     if (text.isNotEmpty()) {
         Text(text)
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun AudioItemPreview() {
+    AudioTapeTheme {
+        AudioItem(
+            0,
+            0,
+            "audio 00",
+            6000,
+            12300,
+            AudioItemMetadata("", "", "", 0, 0),
+            isResume = true
+        )
     }
 }

@@ -31,4 +31,6 @@ val NoGap = 0.dp
 
 val SimpleAudioPlayBorder = 2.dp
 
+val SimpleAudioIndicatorStart = 10.dp
+
 val SelectionBarElevation = 3.dp

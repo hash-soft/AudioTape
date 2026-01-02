@@ -10,10 +10,15 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.ui.text.AudioDurationText
 import com.hashsoft.audiotape.ui.text.SizeAndLastModifiedText
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.NoGap
+import com.hashsoft.audiotape.ui.theme.SimpleAudioIndicatorStart
 
 /**
  * オーディオファイルのサブ情報アイテム
@@ -95,10 +100,25 @@ private fun AudioFileSubInfoItemTwoRow(
                     .weight(1f)
                     .defaultMinSize(minWidth = 0.dp)
                     .fillMaxWidth()
-                    .padding(start = 10.dp),
-                gapSize = 0.dp,
+                    .padding(start = SimpleAudioIndicatorStart),
+                strokeCap = StrokeCap.Butt,
+                gapSize = NoGap,
                 drawStopIndicator = {}
             )
         }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun AudioFileSubInfoItemTwoRowPreview() {
+    AudioTapeTheme {
+        AudioFileSubInfoItemTwoRow(
+            100,
+            100,
+            10000,
+            1000
+        )
     }
 }
