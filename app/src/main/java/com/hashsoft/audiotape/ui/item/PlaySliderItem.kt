@@ -63,8 +63,7 @@ fun PlaySliderItem(
             enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(24.dp),
-            waveAmplitude = 4.dp
+                .height(24.dp)
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
