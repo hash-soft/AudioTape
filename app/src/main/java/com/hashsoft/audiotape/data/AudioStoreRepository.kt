@@ -220,13 +220,10 @@ class AudioStoreRepository(
             )
         }
 
-        // show only music
-        val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
-
         val query = context.contentResolver.query(
             collection,
             projection,
-            selection,
+            enableMusicSelection(),
             null,
             null,
         )
@@ -236,6 +233,10 @@ class AudioStoreRepository(
         } else {
             audioItemListFromCursorUseData(query)
         }
+    }
+
+    private fun enableMusicSelection(): String {
+        return "${MediaStore.Audio.Media.IS_MUSIC} != 0 and ${MediaStore.Audio.Media.DURATION} > 0"
     }
 
     /**
