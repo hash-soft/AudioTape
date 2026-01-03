@@ -6,5 +6,5 @@ data class FolderItemDto(
     override val absolutePath: String,
     override val relativePath: String,
     override val lastModified: Long,
-    val itemCount: Long
+    val itemCount: Int
 ) : StorageItem

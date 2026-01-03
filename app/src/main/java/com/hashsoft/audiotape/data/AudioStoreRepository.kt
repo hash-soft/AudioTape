@@ -164,6 +164,17 @@ class AudioStoreRepository(
         }
     }
 
+    fun countByPathRecursively(searchItem: AudioSearchObject): Int {
+        return when (searchItem) {
+            is AudioSearchObject.Direct -> cache.count { it.relativePath.startsWith(searchItem.searchPath) }
+            is AudioSearchObject.Relative -> cache.count {
+                it.volumeName == searchItem.volumeName && it.relativePath.startsWith(
+                    searchItem.relativePath
+                )
+            }
+        }
+    }
+
     /**
      * MediaStoreから音声リストを再読み込みし、キャッシュと状態を更新する。
      */

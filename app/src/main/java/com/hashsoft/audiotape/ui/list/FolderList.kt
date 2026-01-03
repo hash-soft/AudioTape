@@ -58,6 +58,7 @@ fun FolderList(
                 is FolderItemDto -> FolderItem(
                     item.absolutePath,
                     item.name,
+                    item.itemCount,
                     item.lastModified,
                     audioCallback
                 )

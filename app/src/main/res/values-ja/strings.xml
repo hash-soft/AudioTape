@@ -3,6 +3,7 @@
     <string name="app_name">オーディオテープ</string>
     <string name="loading">取得中</string>
     <string name="back">戻る</string>
+    <string name="audio_items_label">%d 項目</string>
     <string name="settings">設定</string>
     <string name="permission_required">権限要求</string>
     <string name="permission_rationale_legacy">音声ファイルを読み込むためにストレージの権限をONにしてください</string>

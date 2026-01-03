@@ -1,6 +1,7 @@
 package com.hashsoft.audiotape.data
 
 import jakarta.inject.Inject
+import java.io.File
 
 
 class StorageItemListUseCase @Inject constructor(
@@ -8,15 +9,6 @@ class StorageItemListUseCase @Inject constructor(
 ) {
 
     companion object {
-        fun sortFoldersAndAudiosSeparately(
-            list: MutableList<StorageItem>,
-            sortOrder: AudioTapeSortOrder
-        ) {
-            val folders = list.filterIsInstance<FolderItemDto>()
-            val audios = list.filterIsInstance<AudioItemDto>()
-            list.clear()
-            list.addAll(sortedFolderList(folders, sortOrder) + sortedAudioList(audios, sortOrder))
-        }
 
         fun sortedFolderList(
             list: List<FolderItemDto>,
@@ -26,14 +18,6 @@ class StorageItemListUseCase @Inject constructor(
                 AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
                 AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { it.name }
                 else -> list
-            }
-        }
-
-        fun sortFolderList(list: MutableList<FolderItemDto>, sortOrder: AudioTapeSortOrder) {
-            when (sortOrder) {
-                AudioTapeSortOrder.NAME_ASC -> list.sortBy { it.name }
-                AudioTapeSortOrder.NAME_DESC -> list.sortByDescending { it.name }
-                else -> {}
             }
         }
 
@@ -48,33 +32,6 @@ class StorageItemListUseCase @Inject constructor(
             }
         }
 
-        fun sortAudioList(list: MutableList<AudioItemDto>, sortOrder: AudioTapeSortOrder) {
-            when (sortOrder) {
-                AudioTapeSortOrder.NAME_ASC -> list.sortBy { it.name }
-                AudioTapeSortOrder.NAME_DESC -> list.sortByDescending { it.name }
-                else -> {}
-            }
-        }
-
-        fun <T> sortedList(
-            list: List<T>,
-            sortOrder: AudioTapeSortOrder,
-            sortName: (T) -> String
-        ): List<T> {
-            return when (sortOrder) {
-                AudioTapeSortOrder.NAME_ASC -> list.sortedBy { sortName(it) }
-                AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { sortName(it) }
-                else -> list
-            }
-        }
-
-        fun sortedAndCombinedList(
-            folderList: List<FolderItemDto>,
-            audioList: List<AudioItemDto>,
-            sortOrder: AudioTapeSortOrder
-        ): List<StorageItem> {
-            return sortedFolderList(folderList, sortOrder) + sortedAudioList(audioList, sortOrder)
-        }
     }
 
     fun pathToStorageItemList(
@@ -94,8 +51,12 @@ class StorageItemListUseCase @Inject constructor(
         volumes: List<VolumeItem>,
         sortOrder: AudioTapeSortOrder?
     ): Pair<List<FolderItemDto>, List<AudioItemDto>> {
-        val list = volumes
-            .map { FolderItemDto(it.name, it.path, "", it.lastModified, 0) }
+        val list = volumes.map {
+            val searchItem =
+                AudioStoreRepository.pathToSearchObject(volumes, it.path)
+            val count = _audioStoreRepository.countByPathRecursively(searchItem)
+            FolderItemDto(it.name, it.path, "", it.lastModified, count)
+        }
         return sortedFolderList(list, sortOrder) to listOf()
     }
 
@@ -104,32 +65,26 @@ class StorageItemListUseCase @Inject constructor(
         path: String,
         sortOrder: AudioTapeSortOrder?
     ): Pair<List<FolderItemDto>, List<AudioItemDto>> {
-        val folderList = getDirectoryList(path)
+        val folderList = getDirectoryList(volumes, path)
         val searchItem = AudioStoreRepository.pathToSearchObject(volumes, path)
         val audioList = _audioStoreRepository.getListByPath(searchItem)
         return sortedFolderList(folderList, sortOrder) to sortedAudioList(audioList, sortOrder)
     }
 
-    private fun getDirectoryList(path: String): List<FolderItemDto> {
-        val file = java.io.File(path)
+    private fun getDirectoryList(volumes: List<VolumeItem>, path: String): List<FolderItemDto> {
+        val file = File(path)
         return file.listFiles { file -> file.isDirectory }?.map {
+            val searchItem =
+                AudioStoreRepository.pathToSearchObject(volumes, path + File.separator + it.name)
+            val count = _audioStoreRepository.countByPathRecursively(searchItem)
             FolderItemDto(
                 it.name,
                 it.absolutePath,
                 "",
                 it.lastModified(),
-                0
+                count
             )
         } ?: listOf()
     }
 
-    fun getAudioItemList(
-        volumes: List<VolumeItem>,
-        path: String,
-        sortOrder: AudioTapeSortOrder?
-    ): List<AudioItemDto> {
-        val searchItem = AudioStoreRepository.pathToSearchObject(volumes, path)
-        val list = _audioStoreRepository.getListByPath(searchItem)
-        return sortedAudioList(list, sortOrder)
-    }
 }
