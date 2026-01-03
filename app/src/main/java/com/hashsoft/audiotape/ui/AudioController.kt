@@ -79,15 +79,25 @@ class AudioController(
         return _controller?.currentMediaItem != null
     }
 
-    fun playWhenReady(playWhenReady: Boolean) = _controller?.playWhenReady = playWhenReady
-
 
     fun prepare() = _controller?.prepare()
+
+    fun playWhenReady(playWhenReady: Boolean) {
+        _controller?.let { controller ->
+            controller.prepare()
+            controller.playWhenReady = playWhenReady
+        }
+    }
 
     /**
      * 再生
      */
-    fun play() = _controller?.play()
+    fun play() {
+        _controller?.let { controller ->
+            controller.prepare()
+            controller.play()
+        }
+    }
 
 
     /**

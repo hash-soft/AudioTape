@@ -57,7 +57,6 @@ class PlaybackService : MediaSessionService() {
         Timber.d("onCreate")
         val player = ExoPlayer.Builder(this)
             .setHandleAudioBecomingNoisy(true).build()
-        Timber.d("#2 onCreate: player = ${player.playbackState}")
         setPlayerListener(player)
         mediaSession =
             MediaSession.Builder(this, player)
@@ -129,8 +128,7 @@ class PlaybackService : MediaSessionService() {
                         // prepare前の状態
                         // 初期状態だがlistener設定時にコールバックは来ない
                         // ここに来たらprepareが必要
-                        // Todo stopはしないがエラーは発生するのでどこでprepareをすべきか
-                        // MediaItemがあったらprepareを試してみる
+                        // エラー発生するとここにくるためプレイ開始前は常にprepareを実行する
                         Timber.d("#2 state idle")
                     }
 
@@ -206,9 +204,22 @@ class PlaybackService : MediaSessionService() {
 
             override fun onPlayerError(error: PlaybackException) {
                 super.onPlayerError(error)
-                Timber.d("#2 listener error = $error")
-                // Todo エラー発生したメディアを無視しt次にすすめるか
-                // この後idleになる
+                Timber.w("onPlayerError:${error.toString()}")
+                with(player) {
+                    if (!playWhenReady) {
+                        return
+                    }
+                    if (mediaItemCount <= 1) {
+                        playWhenReady = false
+                    } else {
+                        if (currentMediaItemIndex >= mediaItemCount - 1) {
+                            playWhenReady = false
+                        } else {
+                            seekToNext()
+                            prepare()
+                        }
+                    }
+                }
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
