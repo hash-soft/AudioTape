@@ -14,7 +14,7 @@ import com.hashsoft.audiotape.logic.StorageHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -116,7 +116,7 @@ class AudioStoreRepository(
         }
     }
 
-    init {
+    fun register() {
         context.contentResolver.registerContentObserver(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             true, // サブディレクトリも監視する
@@ -131,24 +131,7 @@ class AudioStoreRepository(
      */
     fun release() {
         context.contentResolver.unregisterContentObserver(observer)
-        scope.cancel()
-    }
-
-    /**
-     * 指定された検索オブジェクトに一致する音声アイテムを取得する。
-     *
-     * @param searchItem 検索オブジェクト。
-     * @return 見つかった場合は [AudioItemDto]、見つからない場合は null。
-     */
-    fun getAudioItem(searchItem: AudioSearchObject): AudioItemDto? {
-        return when (searchItem) {
-            is AudioSearchObject.Direct -> cache.find { it.absolutePath + File.separator + it.name == searchItem.searchPath }
-            is AudioSearchObject.Relative -> {
-                cache.find {
-                    it.volumeName == searchItem.volumeName && it.relativePath == searchItem.relativePath && it.name == searchItem.name
-                }
-            }
-        }
+        scope.coroutineContext.cancelChildren()
     }
 
     /**
