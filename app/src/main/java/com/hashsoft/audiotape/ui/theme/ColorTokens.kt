@@ -19,6 +19,12 @@ val simpleAudioPlayBorderColor: Color
 val simpleAudioPlayContentColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiary
 
+val simpleAudioPlayIndicatorColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiary
+
+val simpleAudioPlayIndicatorTrackColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiaryContainer
+
 val currentItemBackgroundColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.surfaceVariant
 

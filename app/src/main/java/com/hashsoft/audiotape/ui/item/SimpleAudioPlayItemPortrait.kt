@@ -5,7 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -24,18 +24,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.text.AudioDurationText
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.ListLabelSpace
 import com.hashsoft.audiotape.ui.theme.NoGap
-import com.hashsoft.audiotape.ui.theme.NoPadding
 import com.hashsoft.audiotape.ui.theme.SimpleAudioPlayBorder
+import com.hashsoft.audiotape.ui.theme.SimpleAudioPlayItemEndPadding
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayBackgroundColor
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayBorderColor
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayContentColor
+import com.hashsoft.audiotape.ui.theme.simpleAudioPlayIndicatorColor
+import com.hashsoft.audiotape.ui.theme.simpleAudioPlayIndicatorTrackColor
 
 @Composable
 fun SimpleAudioPlayItemPortrait(
@@ -58,7 +59,8 @@ fun SimpleAudioPlayItemPortrait(
             if (enableTransfer) Modifier.clickable { audioCallback(AudioCallbackArgument.TransferAudioPlay) } else Modifier
         Row(
             modifier = baseModifier
-                .background(color = simpleAudioPlayBackgroundColor),
+                .background(color = simpleAudioPlayBackgroundColor)
+                .padding(bottom = SimpleAudioPlayItemEndPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = {
@@ -98,9 +100,9 @@ fun SimpleAudioPlayItemPortrait(
                 )
                 LinearProgressIndicator(
                     progress = { contentPosition.toFloat() / durationMs },
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 0.dp)
-                        .padding(start = NoPadding),
+                    color = simpleAudioPlayIndicatorColor,
+                    trackColor = simpleAudioPlayIndicatorTrackColor,
+                    modifier = Modifier.fillMaxWidth(),
                     strokeCap = StrokeCap.Butt, // 淵を平らにする
                     gapSize = NoGap,    // 進捗の境目の点
                     drawStopIndicator = {}  // Endの印

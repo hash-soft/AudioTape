@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.Icon
@@ -19,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.TapeListItemHorizonalPadding
+import com.hashsoft.audiotape.ui.theme.TapeListItemVerticalPadding
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
 import com.hashsoft.audiotape.ui.theme.currentItemContentColor
 import com.hashsoft.audiotape.ui.theme.resolveColorForState
@@ -77,7 +80,11 @@ fun TapeItem(
                 }, onLongClick = {
                     audioCallback(AudioCallbackArgument.TapeSelected(index, true))
                 })
-                .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background),
+                .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background)
+                .padding(
+                    horizontal = TapeListItemHorizonalPadding,
+                    vertical = TapeListItemVerticalPadding
+                )
         ) {
             Column(modifier = Modifier.weight(1.0f)) {
                 Text(title)

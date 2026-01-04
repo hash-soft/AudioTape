@@ -25,12 +25,18 @@ val DialogTitleBottomPadding = 12.dp
 
 val ListLabelSpace = 8.dp
 
-val NoPadding = 0.dp
-
 val NoGap = 0.dp
 
-val SimpleAudioPlayBorder = 2.dp
+val SimpleAudioPlayBorder = 1.dp
+
+val SimpleAudioPlayItemEndPadding = 6.dp
 
 val SimpleAudioIndicatorStart = 10.dp
 
 val SelectionBarElevation = 3.dp
+
+
+val TapeListItemHorizonalPadding = 16.dp
+
+
+val TapeListItemVerticalPadding = 8.dp
