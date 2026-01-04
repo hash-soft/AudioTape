@@ -25,6 +25,7 @@ import androidx.room.Entity
 data class AudioTapeEntity(
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "type") val type: Int,
+    @ColumnInfo(name = "current_path") val currentPath: String,
     @ColumnInfo(name = "current_name") val currentName: String,
     @ColumnInfo(name = "position", defaultValue = "0") val position: Long = 0,
     @ColumnInfo(name = "tape_name", defaultValue = "") val tapeName: String = "",

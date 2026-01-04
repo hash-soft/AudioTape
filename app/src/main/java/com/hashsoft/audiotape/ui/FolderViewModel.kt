@@ -208,6 +208,7 @@ class FolderViewModel @Inject constructor(
         return if (srcAudioTape == null) {
             AudioTapeDto(
                 folderPath = folderPath,
+                currentPath = folderPath,
                 currentName = currentName,
                 sortOrder = settings.defaultSortOrder,
                 repeat = settings.defaultRepeat,

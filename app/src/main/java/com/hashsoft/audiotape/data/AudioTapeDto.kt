@@ -4,7 +4,7 @@ package com.hashsoft.audiotape.data
 /**
  * オーディオテープのデータ転送オブジェクト(DTO)
  *
- * @param folderPath フォルダのパス
+ * @param folderPath フォルダのパス -> アルバムなどに対応するときはここをnameに変更する
  * @param currentName 現在再生中のアイテム名
  * @param position 再生位置
  * @param tapeName テープ名
@@ -20,6 +20,7 @@ package com.hashsoft.audiotape.data
  */
 data class AudioTapeDto(
     val folderPath: String,
+    val currentPath: String,
     val currentName: String,
     val position: Long = 0,
     val tapeName: String = "",

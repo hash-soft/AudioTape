@@ -228,7 +228,7 @@ class TapeViewModel @Inject constructor(
  * @property isCurrent 現在再生中のテープかどうか
  */
 data class DisplayTapeItem(
-    val audioTape: AudioTapeDto = AudioTapeDto("", ""),
+    val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
     val audioList: List<AudioItemDto> = emptyList(),
     val treeList: List<String>? = null,
     val isCurrent: Boolean = false

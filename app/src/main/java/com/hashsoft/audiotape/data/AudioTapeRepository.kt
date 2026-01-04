@@ -88,6 +88,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
     private fun convertEntityToDto(entity: AudioTapeEntity): AudioTapeDto {
         return AudioTapeDto(
             folderPath = entity.name,
+            currentPath = entity.currentPath,
             currentName = entity.currentName,
             position = entity.position,
             tapeName = entity.tapeName,
@@ -111,6 +112,7 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
             AudioTapeEntity(
                 name = audioTape.folderPath,
                 type = 0,
+                currentPath = audioTape.currentPath,
                 currentName = audioTape.currentName,
                 position = audioTape.position,
                 tapeName = audioTape.tapeName,

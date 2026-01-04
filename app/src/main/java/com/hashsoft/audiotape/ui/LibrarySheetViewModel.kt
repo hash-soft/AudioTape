@@ -84,7 +84,7 @@ class LibrarySheetViewModel @Inject constructor(
 }
 
 data class DisplayPlayingItem(
-    val audioTape: AudioTapeDto = AudioTapeDto("", ""),
+    val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
     val audioList: List<AudioItemDto> = listOf(),
     val treeList: List<String>? = null
 )
