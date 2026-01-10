@@ -26,10 +26,10 @@ val simpleAudioPlayIndicatorTrackColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiaryContainer
 
 val currentItemBackgroundColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.surfaceVariant
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.secondaryFixed
 
 val currentItemContentColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSecondaryFixed
 
 val addressBarBackgroundColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.surfaceVariant
