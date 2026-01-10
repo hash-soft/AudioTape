@@ -48,7 +48,8 @@ class StorageHelper {
                         name,
                         directory.absolutePath,
                         directory.lastModified(),
-                        mediaStoreVolumeName
+                        mediaStorageVolumeName = mediaStoreVolumeName,
+                        isRemovable = it.isRemovable
                     )
                 } else {
                     return@mapNotNull null

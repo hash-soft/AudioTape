@@ -38,5 +38,8 @@ val SelectionBarElevation = 3.dp
 
 val TapeListItemHorizonalPadding = 16.dp
 
-
 val TapeListItemVerticalPadding = 8.dp
+
+val AddressBarItemSpace = 2.dp
+
+val AddressRightIconSize = 18.dp

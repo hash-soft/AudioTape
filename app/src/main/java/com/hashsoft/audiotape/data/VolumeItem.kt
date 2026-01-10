@@ -13,5 +13,6 @@ data class VolumeItem(
     val name: String,
     val path: String,
     val lastModified: Long,
-    val mediaStorageVolumeName: String
+    val mediaStorageVolumeName: String,
+    val isRemovable: Boolean
 )

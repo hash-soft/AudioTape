@@ -66,7 +66,7 @@ class StorageVolumeRepository(
                 if (path != null) {
                     val name = it.getDescription(context)
                         ?: context.getString(R.string.volume_name_unknown)
-                    VolumeItem(name, path, 0, "")
+                    VolumeItem(name, path, 0, "", it.isRemovable)
                 } else {
                     return@mapNotNull null
                 }

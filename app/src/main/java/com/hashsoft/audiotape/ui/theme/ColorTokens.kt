@@ -31,6 +31,14 @@ val currentItemBackgroundColor: Color
 val currentItemContentColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
+val addressBarBackgroundColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.surfaceVariant
+
+val addressBarContentColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
+
+
+
 @Composable
 fun resolveColorForState(color: Color, state: Int): Color {
     return when (state) {

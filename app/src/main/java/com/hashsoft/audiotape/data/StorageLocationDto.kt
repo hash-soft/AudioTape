@@ -3,7 +3,8 @@ package com.hashsoft.audiotape.data
 enum class LocationType {
     Normal,
     Root,
-    Home
+    Inner,
+    External
 }
 
 data class StorageLocationDto(
