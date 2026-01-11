@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.directorytest.ui.view.AddressBar
+import com.hashsoft.audiotape.ui.bar.AddressBar
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.PlayingStateDto
 import com.hashsoft.audiotape.data.StorageItem

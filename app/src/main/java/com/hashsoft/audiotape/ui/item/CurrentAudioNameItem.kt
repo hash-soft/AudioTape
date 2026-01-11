@@ -7,7 +7,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,8 +35,7 @@ fun CurrentAudioNameItem(
                     R.string.audio_item_progress_label,
                     if (no <= 0) stringResource(R.string.audio_item_unknow_no) else no.toString(),
                     count
-                ),
-                modifier = Modifier.alignByBaseline()
+                )
             )
             Text(
                 text = formatMillis(position),
@@ -45,8 +43,7 @@ fun CurrentAudioNameItem(
             Text(
                 text = name,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.alignByBaseline()
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

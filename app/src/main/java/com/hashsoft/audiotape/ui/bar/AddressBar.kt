@@ -1,4 +1,4 @@
-package com.example.directorytest.ui.view
+package com.hashsoft.audiotape.ui.bar
 
 
 import androidx.compose.foundation.clickable
@@ -26,8 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.LocationType
 import com.hashsoft.audiotape.data.StorageLocationDto
@@ -136,15 +134,7 @@ private fun OneDirectory(address: StorageLocationDto, hasRight: Boolean) {
         }
 
         LocationType.Normal -> {
-            Text(
-                text = address.name,
-                style = TextStyle(
-                    platformStyle = PlatformTextStyle(
-                        includeFontPadding = true
-                    )
-                )
-
-            )
+            Text(text = address.name)
         }
     }
 

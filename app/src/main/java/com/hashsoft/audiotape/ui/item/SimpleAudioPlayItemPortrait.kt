@@ -80,16 +80,14 @@ fun SimpleAudioPlayItemPortrait(
                     Text(
                         directory,
                         modifier = Modifier
-                            .weight(1f)
-                            .alignByBaseline(),
+                            .weight(1f),
                         fontSize = MaterialTheme.typography.bodySmall.fontSize,
                         maxLines = 1,
-                        overflow = TextOverflow.StartEllipsis
+                        overflow = TextOverflow.StartEllipsis,
                     )
                     AudioDurationText(
                         duration = contentPosition,
-                        modifier = Modifier.alignByBaseline(),
-                        fontSize = MaterialTheme.typography.bodySmall.fontSize
+                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
                     )
                 }
                 Text(
