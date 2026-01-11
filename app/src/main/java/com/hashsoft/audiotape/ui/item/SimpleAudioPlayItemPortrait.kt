@@ -21,10 +21,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.DisplayPlayingSource
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.text.AudioDurationText
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -32,6 +34,7 @@ import com.hashsoft.audiotape.ui.theme.ListLabelSpace
 import com.hashsoft.audiotape.ui.theme.NoGap
 import com.hashsoft.audiotape.ui.theme.SimpleAudioPlayBorder
 import com.hashsoft.audiotape.ui.theme.SimpleAudioPlayItemEndPadding
+import com.hashsoft.audiotape.ui.theme.resolveAlphaForState
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayBackgroundColor
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayBorderColor
 import com.hashsoft.audiotape.ui.theme.simpleAudioPlayContentColor
@@ -47,10 +50,12 @@ fun SimpleAudioPlayItemPortrait(
     durationMs: Long = 0,
     contentPosition: Long = 0,
     enableTransfer: Boolean = true,
+    status: ItemStatus,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
+    val enable = isAvailable && status == ItemStatus.Normal
     Surface(
-        contentColor = simpleAudioPlayContentColor,
+        contentColor = simpleAudioPlayContentColor, // 背景がtertiaryなので固定にする
         modifier = Modifier
             .background(color = simpleAudioPlayBorderColor)
             .padding(top = SimpleAudioPlayBorder)
@@ -60,12 +65,13 @@ fun SimpleAudioPlayItemPortrait(
         Row(
             modifier = baseModifier
                 .background(color = simpleAudioPlayBackgroundColor)
-                .padding(bottom = SimpleAudioPlayItemEndPadding),
+                .padding(bottom = SimpleAudioPlayItemEndPadding)
+                .alpha(resolveAlphaForState(status)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = {
                 audioCallback(AudioCallbackArgument.PlayPause(displayPlaying != DisplayPlayingSource.Pause))
-            }, enabled = isAvailable) {
+            }, enabled = enable) {
                 Icon(
                     imageVector = if (displayPlaying != DisplayPlayingSource.Pause) Icons.Default.Pause else Icons.Default.PlayArrow,
                     null
@@ -108,11 +114,11 @@ fun SimpleAudioPlayItemPortrait(
             }
             IconButton(
                 onClick = { audioCallback(AudioCallbackArgument.SkipPrevious) },
-                enabled = isAvailable,
+                enabled = enable,
             ) { Icon(Icons.Default.SkipPrevious, null) }
             IconButton(
                 onClick = { audioCallback(AudioCallbackArgument.SkipNext) },
-                enabled = isAvailable,
+                enabled = enable,
             ) {
                 Icon(Icons.Default.SkipNext, null)
             }
@@ -133,6 +139,7 @@ fun SimpleAudioPlayItemPortraitPreview() {
             displayPlaying = DisplayPlayingSource.Pause,
             durationMs = 1000,
             contentPosition = 500,
+            status = ItemStatus.Normal,
             audioCallback = {}
         )
     }

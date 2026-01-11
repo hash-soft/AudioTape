@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.SdCard
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import com.hashsoft.audiotape.ui.theme.AddressRightIconSize
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.addressBarBackgroundColor
 import com.hashsoft.audiotape.ui.theme.addressBarContentColor
+import com.hashsoft.audiotape.ui.theme.primaryItemColor
 import kotlinx.coroutines.launch
 
 
@@ -94,7 +96,7 @@ private fun AddressRow(
                 verticalAlignment = Alignment.CenterVertically
 
             ) {
-                OneDirectory(address, it != 0)
+                OneDirectory(address, it != 0, it == addressList.lastIndex)
             }
         }
 
@@ -103,7 +105,11 @@ private fun AddressRow(
 }
 
 @Composable
-private fun OneDirectory(address: StorageLocationDto, hasRight: Boolean) {
+private fun OneDirectory(
+    address: StorageLocationDto,
+    hasRight: Boolean,
+    isPrimary: Boolean = false
+) {
     if (hasRight) {
         Icon(
             imageVector = Icons.Outlined.ChevronRight,
@@ -116,6 +122,7 @@ private fun OneDirectory(address: StorageLocationDto, hasRight: Boolean) {
             Icon(
                 imageVector = Icons.Default.Home,
                 contentDescription = null,
+                tint = if (isPrimary) primaryItemColor else LocalContentColor.current
             )
         }
 
@@ -123,6 +130,7 @@ private fun OneDirectory(address: StorageLocationDto, hasRight: Boolean) {
             Icon(
                 imageVector = Icons.Default.PhoneAndroid,
                 contentDescription = null,
+                tint = if (isPrimary) primaryItemColor else LocalContentColor.current
             )
         }
 
@@ -130,11 +138,16 @@ private fun OneDirectory(address: StorageLocationDto, hasRight: Boolean) {
             Icon(
                 imageVector = Icons.Default.SdCard,
                 contentDescription = null,
+                tint = if (isPrimary) primaryItemColor else LocalContentColor.current
             )
         }
 
         LocationType.Normal -> {
-            Text(text = address.name)
+            if (isPrimary) {
+                Text(text = address.name, color = primaryItemColor)
+            } else {
+                Text(text = address.name)
+            }
         }
     }
 

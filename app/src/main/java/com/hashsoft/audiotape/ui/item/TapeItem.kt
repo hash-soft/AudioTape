@@ -16,14 +16,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.TapeListItemHorizonalPadding
 import com.hashsoft.audiotape.ui.theme.TapeListItemVerticalPadding
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
 import com.hashsoft.audiotape.ui.theme.currentItemContentColor
+import com.hashsoft.audiotape.ui.theme.defaultSurfaceContentColor
+import com.hashsoft.audiotape.ui.theme.resolveAlphaForState
 import com.hashsoft.audiotape.ui.theme.resolveColorForState
 import com.hashsoft.audiotape.ui.theme.smallFontSize
 
@@ -44,7 +48,7 @@ import com.hashsoft.audiotape.ui.theme.smallFontSize
  * @param createTime 作成日時
  * @param lastPlayedAt 最終再生日時
  * @param isCurrent 現在再生中かどうか
- * @param state 状態
+ * @param status 状態
  * @param audioCallback オーディオ関連のコールバック
  */
 @Composable
@@ -64,14 +68,14 @@ fun TapeItem(
     createTime: Long,
     lastPlayedAt: Long,
     isCurrent: Boolean,
-    state: Int,
+    status: ItemStatus,
     audioCallback: (AudioCallbackArgument) -> Unit = {}
 ) {
     Surface(
         contentColor = if (isCurrent) resolveColorForState(
-            currentItemContentColor,
-            state
-        ) else resolveColorForState(MaterialTheme.colorScheme.onSurfaceVariant, state)
+            status,
+            currentItemContentColor
+        ) else resolveColorForState(status, defaultSurfaceContentColor)
     ) {
         Row(
             modifier = Modifier
@@ -81,12 +85,14 @@ fun TapeItem(
                     audioCallback(AudioCallbackArgument.TapeSelected(index, true))
                 })
                 .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background)
-                .padding(
-                    horizontal = TapeListItemHorizonalPadding,
-                    vertical = TapeListItemVerticalPadding
-                )
+                .padding(vertical = TapeListItemVerticalPadding)
+                .alpha(resolveAlphaForState(status))
         ) {
-            Column(modifier = Modifier.weight(1.0f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1.0f)
+                    .padding(start = TapeListItemHorizonalPadding)
+            ) {
                 Text(title)
                 CurrentAudioNameItem(
                     currentNo,
@@ -142,7 +148,7 @@ fun TapeItemPreview() {
             1000,
             500,
             true,
-            2,
+            ItemStatus.Missing,
         )
     }
 }

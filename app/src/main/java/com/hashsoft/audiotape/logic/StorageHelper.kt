@@ -6,6 +6,7 @@ import android.os.Environment.getExternalStorageDirectory
 import android.os.storage.StorageManager
 import androidx.annotation.RequiresApi
 import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.VolumeItem
 import timber.log.Timber
 import java.io.File
@@ -56,5 +57,17 @@ class StorageHelper {
                 }
             }
         }
+
+        fun checkState(size: Int, path: String): ItemStatus {
+            return if (size > 0) ItemStatus.Normal else {
+                if (existFolder(path)) ItemStatus.Disabled else ItemStatus.Missing
+            }
+        }
+
+        fun existFolder(path: String): Boolean {
+            return File(path).exists()
+        }
+
     }
+
 }

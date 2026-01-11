@@ -10,9 +10,12 @@ import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
+import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.logic.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -75,7 +78,17 @@ class TapeViewModel @Inject constructor(
                     audioTape.folderPath,
                 )
                 val audioList = _audioStoreRepository.getListByPath(searchObject)
-                DisplayTapeItem(audioTape, audioList, it.second, isCurrent)
+                val sortedList = StorageItemListUseCase.sortedAudioList(audioList, audioTape.sortOrder)
+                DisplayTapeItem(
+                    audioTape,
+                    sortedList,
+                    it.second,
+                    isCurrent,
+                    status = StorageHelper.checkState(
+                        sortedList.size,
+                        audioTape.folderPath
+                    )   // フォルダ以外はsizeだけで判断
+                )
             }
         }.stateIn(
             viewModelScope,
@@ -231,5 +244,6 @@ data class DisplayTapeItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
     val audioList: List<AudioItemDto> = emptyList(),
     val treeList: List<String>? = null,
-    val isCurrent: Boolean = false
+    val isCurrent: Boolean = false,
+    val status: ItemStatus = ItemStatus.Normal
 )

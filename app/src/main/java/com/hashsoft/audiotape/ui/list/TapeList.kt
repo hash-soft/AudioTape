@@ -67,7 +67,7 @@ fun TapeList(
                     tape.createTime,
                     tape.lastPlayedAt,
                     item.isCurrent,
-                    0,
+                    item.status,
                     isChecked = deleteIdsSet.contains(it),
                     onCheckedChange = onCheckedChange
                 )
@@ -88,7 +88,7 @@ fun TapeList(
                     tape.createTime,
                     tape.lastPlayedAt,
                     item.isCurrent,
-                    0,
+                    item.status,
                     audioCallback = audioCallback
                 )
             }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -12,11 +13,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.TapeListItemHorizonalPadding
+import com.hashsoft.audiotape.ui.theme.TapeListItemVerticalPadding
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
 import com.hashsoft.audiotape.ui.theme.currentItemContentColor
+import com.hashsoft.audiotape.ui.theme.defaultSurfaceContentColor
+import com.hashsoft.audiotape.ui.theme.resolveAlphaForState
 import com.hashsoft.audiotape.ui.theme.resolveColorForState
 import com.hashsoft.audiotape.ui.theme.smallFontSize
 
@@ -37,7 +44,7 @@ import com.hashsoft.audiotape.ui.theme.smallFontSize
  * @param createTime 作成日時
  * @param lastPlayedAt 最終再生日時
  * @param isCurrent 現在再生中かどうか
- * @param state 状態
+ * @param status 状態
  * @param isChecked チェックされているかどうか
  * @param onCheckedChange チェック状態変更時のコールバック
  */
@@ -58,27 +65,32 @@ fun TapeCheckItem(
     createTime: Long,
     lastPlayedAt: Long,
     isCurrent: Boolean,
-    state: Int,
+    status: ItemStatus,
     isChecked: Boolean,
     onCheckedChange: (checked: Boolean, index: Int) -> Unit = { _, _ -> },
 ) {
     Surface(
         contentColor = if (isCurrent) resolveColorForState(
-            currentItemContentColor,
-            state
-        ) else resolveColorForState(MaterialTheme.colorScheme.onSurfaceVariant, state)
+            status, currentItemContentColor
+        ) else resolveColorForState(status, defaultSurfaceContentColor)
     ) {
         Row(
             modifier = Modifier
                 .clickable { onCheckedChange(!isChecked, index) }
-                .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background),
+                .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background)
+                .padding(vertical = TapeListItemVerticalPadding),
         ) {
             Checkbox(
                 checked = isChecked,
                 modifier = Modifier.align(Alignment.CenterVertically),
                 onCheckedChange = { onCheckedChange(it, index) }
             )
-            Column(modifier = Modifier.weight(1.0f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1.0f)
+                    .padding(end = TapeListItemHorizonalPadding)
+                    .alpha(resolveAlphaForState(status))
+            ) {
                 Text(title)
                 CurrentAudioNameItem(
                     currentNo,
@@ -124,7 +136,7 @@ fun TapeCheckItemPreview() {
             1000,
             500,
             true,
-            2,
+            ItemStatus.Normal,
             true
         )
     }

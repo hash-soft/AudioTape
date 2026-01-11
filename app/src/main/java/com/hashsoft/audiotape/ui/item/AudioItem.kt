@@ -21,7 +21,6 @@ import com.hashsoft.audiotape.ui.theme.currentItemContentColor
 
 @Composable
 fun AudioItem(
-    index: Int,
     audioIndex: Int,
     name: String,
     size: Long,
@@ -121,7 +120,6 @@ private fun OverlineContext(metadata: AudioItemMetadata) {
 fun AudioItemPreview() {
     AudioTapeTheme {
         AudioItem(
-            0,
             0,
             "audio 00",
             6000,

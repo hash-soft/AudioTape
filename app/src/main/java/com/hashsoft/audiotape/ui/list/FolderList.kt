@@ -37,7 +37,6 @@ fun FolderList(
                     val isTarget = item.name == targetName
                     val isResume = !isCurrent && isTarget
                     AudioItem(
-                        index = it,
                         audioIndex = expandIndexList.getOrElse(it) { 0 },
                         item.name,
                         item.size,

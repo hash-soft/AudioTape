@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.dialog.DeleteTapeConfirmDialog
 import com.hashsoft.audiotape.ui.list.TapeList
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -19,6 +20,7 @@ fun TapeView(
     viewModel: TapeViewModel = hiltViewModel(),
     onTapeCallback: (TapeCallbackArgument) -> Unit = {},
     onAudioTransfer: () -> Unit = {},
+    onDisplaySnackBar: (String) -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
@@ -62,6 +64,7 @@ fun TapeView(
                 displayTapeList,
                 argument,
                 onAudioTransfer = onAudioTransfer,
+                onDisplaySnackBar = onDisplaySnackBar,
                 onFolderOpen
             )
         }
@@ -83,11 +86,17 @@ private fun tapeItemSelected(
     displayTapeList: List<DisplayTapeItem>,
     argument: AudioCallbackArgument,
     onAudioTransfer: () -> Unit = {},
+    onDisplaySnackBar: (String) -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
             val displayTape = displayTapeList.getOrNull(argument.index) ?: return
+            // 遷移時は遷移後の画面で再生不可にするので許可する
+            if (displayTape.status != ItemStatus.Normal && !argument.transfer) {
+                onDisplaySnackBar(displayTape.audioTape.folderPath)
+                return
+            }
             val tape = displayTape.audioTape
             viewModel.switchPlayingFolder(tape)
             viewModel.setPlayingParameters(tape)

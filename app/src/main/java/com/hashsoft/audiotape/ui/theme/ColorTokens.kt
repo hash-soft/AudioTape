@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
+import com.hashsoft.audiotape.data.ItemStatus
 
 
 val smallFontSize: TextUnit
@@ -37,19 +38,29 @@ val addressBarBackgroundColor: Color
 val addressBarContentColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
+val primaryItemColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.primary
+
+val warningItemColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.error
+
+val defaultSurfaceContentColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
 
 @Composable
-fun resolveColorForState(color: Color, state: Int): Color {
-    return when (state) {
-        1 -> color.copy(alpha = color.alpha + 0.5f)
-        2 -> color.copy(red = color.red + 0.8f, green = color.green + 0.2f)
-        3 -> color.copy(
-            alpha = color.alpha + 0.5f,
-            red = color.red + 0.8f,
-            green = color.green + 0.2f
-        )
+fun resolveColorForState(status: ItemStatus, defaultColor: Color): Color {
+    return when (status) {
+        ItemStatus.Warning, ItemStatus.Missing -> warningItemColor
 
-        else -> color
+        else -> defaultColor
+    }
+}
+
+fun resolveAlphaForState(status: ItemStatus): Float {
+    return when (status) {
+        ItemStatus.Disabled, ItemStatus.Missing -> 0.38f
+
+        else -> 1.0f
     }
 }

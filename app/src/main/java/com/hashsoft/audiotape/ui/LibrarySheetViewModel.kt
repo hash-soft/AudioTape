@@ -8,6 +8,7 @@ import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ControllerRepository
 import com.hashsoft.audiotape.data.DisplayPlayingSource
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -86,5 +87,6 @@ class LibrarySheetViewModel @Inject constructor(
 data class DisplayPlayingItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
     val audioList: List<AudioItemDto> = listOf(),
-    val treeList: List<String>? = null
+    val treeList: List<String>? = null,
+    val status: ItemStatus = ItemStatus.Normal
 )

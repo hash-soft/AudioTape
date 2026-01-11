@@ -11,14 +11,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -114,7 +119,9 @@ private fun LibrarySheetPager(
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
+    val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(state) {
         // 完全にページが切り替わったら変化
@@ -147,10 +154,11 @@ private fun LibrarySheetPager(
                     durationMs = audioItem?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
                     enableTransfer = viewMode != LibraryHomeViewMode.DeleteTape,
+                    status = displayPlayingItem.status,
                     audioCallback = audioCallback
                 )
             }
-        }) { innerPadding ->
+        }, snackbarHost = { SnackbarHost(hostState = snackBarHostState) }) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             SecondaryTabRow(selectedTabIndex = state.currentPage) {
                 tabs.forEachIndexed { index, tab ->
@@ -178,7 +186,15 @@ private fun LibrarySheetPager(
                     1 -> TapeView(
                         deleteMode = viewMode == LibraryHomeViewMode.DeleteTape,
                         onTapeCallback = onTapeCallback,
-                        onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) }) {
+                        onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) },
+                        onDisplaySnackBar = {
+                            scope.launch {
+                                snackBarHostState.showSnackbar(
+                                    message = context.getString(R.string.this_no_audio, it),
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }) {
                         scope.launch {
                             state.animateScrollToPage(0)
                         }

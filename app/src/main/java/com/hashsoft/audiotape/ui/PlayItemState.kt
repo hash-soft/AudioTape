@@ -8,6 +8,7 @@ import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import com.hashsoft.audiotape.logic.PlaybackHelper
+import com.hashsoft.audiotape.logic.StorageHelper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -72,7 +73,10 @@ class PlayItemState(
                         controller.sortMediaItems(triple.second)
                         triple.second
                     }
-                    DisplayPlayingItem(audioTape, sortedList, triple.third)
+                    DisplayPlayingItem(
+                        audioTape, sortedList, triple.third,
+                        status = StorageHelper.checkState(sortedList.size, audioTape.folderPath)
+                    )
                 }
             }
         } else flowOf(null)

@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 import com.hashsoft.audiotape.data.DisplayPlayingSource
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 
 @Composable
@@ -15,6 +16,7 @@ fun SimpleAudioPlayItem(
     durationMs: Long = 0,
     contentPosition: Long = 0,
     enableTransfer: Boolean = true,
+    status: ItemStatus,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val configuration = LocalConfiguration.current
@@ -27,6 +29,7 @@ fun SimpleAudioPlayItem(
             durationMs,
             contentPosition,
             enableTransfer,
+            status,
             audioCallback
         )
     } else {
@@ -39,6 +42,7 @@ fun SimpleAudioPlayItem(
             durationMs,
             contentPosition,
             enableTransfer,
+            status,
             audioCallback
         )
     }
