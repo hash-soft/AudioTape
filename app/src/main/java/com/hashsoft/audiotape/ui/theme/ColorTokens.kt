@@ -84,7 +84,7 @@ fun simpleAudioPlayIndicatorColor(status: ItemStatus): Color {
 @Composable
 fun simpleAudioPlayIndicatorTrackColor(status: ItemStatus): Color {
     return when (status) {
-        ItemStatus.Normal -> MaterialTheme.colorScheme.tertiaryContainer
+        ItemStatus.Normal -> MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.12f)
 
         else -> MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
     }
