@@ -20,7 +20,7 @@ fun TapeView(
     viewModel: TapeViewModel = hiltViewModel(),
     onTapeCallback: (TapeCallbackArgument) -> Unit = {},
     onAudioTransfer: () -> Unit = {},
-    onDisplaySnackBar: (String) -> Unit = {},
+    onDisplayMessage: (String) -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
@@ -64,7 +64,7 @@ fun TapeView(
                 displayTapeList,
                 argument,
                 onAudioTransfer = onAudioTransfer,
-                onDisplaySnackBar = onDisplaySnackBar,
+                onDisplayMessage = onDisplayMessage,
                 onFolderOpen
             )
         }
@@ -86,15 +86,16 @@ private fun tapeItemSelected(
     displayTapeList: List<DisplayTapeItem>,
     argument: AudioCallbackArgument,
     onAudioTransfer: () -> Unit = {},
-    onDisplaySnackBar: (String) -> Unit = {},
+    onDisplayMessage: (String) -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
     when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
             val displayTape = displayTapeList.getOrNull(argument.index) ?: return
             // 遷移時は遷移後の画面で再生不可にするので許可する
-            if (displayTape.status != ItemStatus.Normal && !argument.transfer) {
-                onDisplaySnackBar(displayTape.audioTape.folderPath)
+            val status = displayTape.status
+            if (status != ItemStatus.Normal && status != ItemStatus.Warning && !argument.transfer) {
+                onDisplayMessage(displayTape.audioTape.folderPath)
                 return
             }
             val tape = displayTape.audioTape

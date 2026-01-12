@@ -1,8 +1,11 @@
 package com.hashsoft.audiotape.ui
 
+import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
+import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ControllerRepository
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.PlaybackPosition
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
@@ -73,9 +76,15 @@ class PlayItemState(
                         controller.sortMediaItems(triple.second)
                         triple.second
                     }
+                    val currentAudio = sortedList.find { it.name == audioTape.currentName }
                     DisplayPlayingItem(
                         audioTape, sortedList, triple.third,
-                        status = StorageHelper.checkState(sortedList.size, audioTape.folderPath)
+                        currentAudio = currentAudio,
+                        status = StorageHelper.checkState(
+                            sortedList.size,
+                            currentAudio != null,
+                            audioTape.folderPath
+                        )
                     )
                 }
             }
@@ -94,10 +103,10 @@ class PlayItemState(
                         audioTape.currentName,
                         audioTape.position
                     )
-                    controller.prepare()
                     controller.setSpeed(audioTape.speed)
                     controller.setPitch(audioTape.pitch)
                     controller.setRepeat(audioTape.repeat)
+                    controller.prepare()
                 } else {
                     controller.replaceMediaItemsWith(audio.second)
                 }
@@ -142,5 +151,10 @@ class PlayItemState(
     }.distinctUntilChanged()
 }
 
-
-
+data class DisplayPlayingItem(
+    val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
+    val audioList: List<AudioItemDto> = listOf(),
+    val treeList: List<String>? = null,
+    val currentAudio: AudioItemDto? = null,
+    val status: ItemStatus = ItemStatus.Normal
+)

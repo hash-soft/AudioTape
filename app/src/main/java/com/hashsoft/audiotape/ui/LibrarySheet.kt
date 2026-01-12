@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -138,8 +139,6 @@ private fun LibrarySheetPager(
         } else {
             {
                 val audioTape = displayPlayingItem.audioTape
-                val audioItem =
-                    displayPlayingItem.audioList.find { it.name == audioTape.currentName }
                 val contentPosition =
                     if (playingPosition >= 0) playingPosition else audioTape.position
                 SimpleAudioPlayItem(
@@ -151,7 +150,7 @@ private fun LibrarySheetPager(
                     name = audioTape.currentName,
                     isAvailable = isAvailable,
                     displayPlaying = displayPlaying,
-                    durationMs = audioItem?.metadata?.duration ?: 0,
+                    durationMs = displayPlayingItem.currentAudio?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
                     enableTransfer = viewMode != LibraryHomeViewMode.DeleteTape,
                     status = displayPlayingItem.status,
@@ -187,10 +186,11 @@ private fun LibrarySheetPager(
                         deleteMode = viewMode == LibraryHomeViewMode.DeleteTape,
                         onTapeCallback = onTapeCallback,
                         onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) },
-                        onDisplaySnackBar = {
+                        onDisplayMessage = { name ->
+                            @SuppressLint("LocalContextGetResourceValueCall")
                             scope.launch {
                                 snackBarHostState.showSnackbar(
-                                    message = context.getString(R.string.this_no_audio, it),
+                                    message = context.getString(R.string.this_no_audio, name),
                                     duration = SnackbarDuration.Short
                                 )
                             }

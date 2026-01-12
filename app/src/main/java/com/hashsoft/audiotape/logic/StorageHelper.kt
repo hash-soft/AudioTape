@@ -58,8 +58,11 @@ class StorageHelper {
             }
         }
 
-        fun checkState(size: Int, path: String): ItemStatus {
-            return if (size > 0) ItemStatus.Normal else {
+        fun checkState(size: Int, existCurrent: Boolean, path: String): ItemStatus {
+            // 正常よりから判定していく
+            return if (size > 0) {
+                if (existCurrent) ItemStatus.Normal else ItemStatus.Warning
+            } else {
                 if (existFolder(path)) ItemStatus.Disabled else ItemStatus.Missing
             }
         }

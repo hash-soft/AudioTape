@@ -240,7 +240,12 @@ class AudioController(
 
     fun setMediaItems(list: List<AudioItemDto>, indexName: String, positionMs: Long = 0) {
         val startIndex = list.indexOfFirst { it.name == indexName }
-        setMediaItems(list, if (startIndex < 0) 0 else startIndex, positionMs)
+        val (index, position) = if (startIndex < 0) {
+            0 to 0L
+        } else {
+            startIndex to positionMs
+        }
+        setMediaItems(list, index, position)
     }
 
 

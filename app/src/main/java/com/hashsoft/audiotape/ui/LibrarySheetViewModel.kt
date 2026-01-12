@@ -2,13 +2,11 @@ package com.hashsoft.audiotape.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.ControllerRepository
 import com.hashsoft.audiotape.data.DisplayPlayingSource
-import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageVolumeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -83,10 +81,3 @@ class LibrarySheetViewModel @Inject constructor(
     fun seekToPrevious() = _controller.seekToPrevious()
 
 }
-
-data class DisplayPlayingItem(
-    val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
-    val audioList: List<AudioItemDto> = listOf(),
-    val treeList: List<String>? = null,
-    val status: ItemStatus = ItemStatus.Normal
-)

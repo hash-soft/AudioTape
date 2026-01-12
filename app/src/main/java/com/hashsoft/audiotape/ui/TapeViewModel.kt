@@ -78,16 +78,21 @@ class TapeViewModel @Inject constructor(
                     audioTape.folderPath,
                 )
                 val audioList = _audioStoreRepository.getListByPath(searchObject)
-                val sortedList = StorageItemListUseCase.sortedAudioList(audioList, audioTape.sortOrder)
+                val sortedList =
+                    StorageItemListUseCase.sortedAudioList(audioList, audioTape.sortOrder)
+                val currentAudioNo =
+                    sortedList.indexOfFirst { it.name == audioTape.currentName } + 1
                 DisplayTapeItem(
                     audioTape,
                     sortedList,
                     it.second,
+                    currentAudioNo,
                     isCurrent,
                     status = StorageHelper.checkState(
                         sortedList.size,
+                        currentAudioNo > 0,
                         audioTape.folderPath
-                    )   // フォルダ以外はsizeだけで判断
+                    )
                 )
             }
         }.stateIn(
@@ -121,6 +126,7 @@ class TapeViewModel @Inject constructor(
             // 同じテープの場合は継続
             return
         }
+        // 切り替わる前の位置をclear前に保持
         val prevPosition = _controller.getCurrentPosition()
         _controller.clearMediaItems()
         viewModelScope.launch {
@@ -244,6 +250,7 @@ data class DisplayTapeItem(
     val audioTape: AudioTapeDto = AudioTapeDto("", "", ""),
     val audioList: List<AudioItemDto> = emptyList(),
     val treeList: List<String>? = null,
+    val currentAudioNo: Int = 0,
     val isCurrent: Boolean = false,
     val status: ItemStatus = ItemStatus.Normal
 )

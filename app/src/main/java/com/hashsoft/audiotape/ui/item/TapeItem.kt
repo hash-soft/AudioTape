@@ -27,8 +27,8 @@ import com.hashsoft.audiotape.ui.theme.TapeListItemVerticalPadding
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
 import com.hashsoft.audiotape.ui.theme.currentItemContentColor
 import com.hashsoft.audiotape.ui.theme.defaultSurfaceContentColor
-import com.hashsoft.audiotape.ui.theme.resolveAlphaForState
-import com.hashsoft.audiotape.ui.theme.resolveColorForState
+import com.hashsoft.audiotape.ui.theme.libraryAlpha
+import com.hashsoft.audiotape.ui.theme.libraryColor
 import com.hashsoft.audiotape.ui.theme.smallFontSize
 
 
@@ -72,10 +72,10 @@ fun TapeItem(
     audioCallback: (AudioCallbackArgument) -> Unit = {}
 ) {
     Surface(
-        contentColor = if (isCurrent) resolveColorForState(
+        contentColor = if (isCurrent) libraryColor(
             status,
             currentItemContentColor
-        ) else resolveColorForState(status, defaultSurfaceContentColor)
+        ) else libraryColor(status, defaultSurfaceContentColor)
     ) {
         Row(
             modifier = Modifier
@@ -86,7 +86,7 @@ fun TapeItem(
                 })
                 .background(color = if (isCurrent) currentItemBackgroundColor else MaterialTheme.colorScheme.background)
                 .padding(vertical = TapeListItemVerticalPadding)
-                .alpha(resolveAlphaForState(status))
+                .alpha(libraryAlpha(status))
         ) {
             Column(
                 modifier = Modifier

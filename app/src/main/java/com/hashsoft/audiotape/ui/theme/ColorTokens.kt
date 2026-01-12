@@ -11,21 +11,6 @@ import com.hashsoft.audiotape.data.ItemStatus
 val smallFontSize: TextUnit
     @Composable @ReadOnlyComposable get() = MaterialTheme.typography.bodySmall.fontSize
 
-val simpleAudioPlayBackgroundColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary
-
-val simpleAudioPlayBorderColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
-
-val simpleAudioPlayContentColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiary
-
-val simpleAudioPlayIndicatorColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiary
-
-val simpleAudioPlayIndicatorTrackColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onTertiaryContainer
-
 val currentItemBackgroundColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.secondaryFixed
 
@@ -49,7 +34,7 @@ val defaultSurfaceContentColor: Color
 
 
 @Composable
-fun resolveColorForState(status: ItemStatus, defaultColor: Color): Color {
+fun libraryColor(status: ItemStatus, defaultColor: Color): Color {
     return when (status) {
         ItemStatus.Warning, ItemStatus.Missing -> warningItemColor
 
@@ -57,10 +42,50 @@ fun resolveColorForState(status: ItemStatus, defaultColor: Color): Color {
     }
 }
 
-fun resolveAlphaForState(status: ItemStatus): Float {
+fun libraryAlpha(status: ItemStatus): Float {
     return when (status) {
         ItemStatus.Disabled, ItemStatus.Missing -> 0.38f
 
         else -> 1.0f
+    }
+}
+
+@Composable
+fun simpleAudioPlayContentColor(status: ItemStatus): Color {
+    return when (status) {
+        ItemStatus.Normal -> MaterialTheme.colorScheme.onTertiary
+
+        else -> MaterialTheme.colorScheme.onTertiaryContainer
+    }
+}
+
+@Composable
+fun simpleAudioPlayBackgroundColor(status: ItemStatus): Color {
+    return when (status) {
+        ItemStatus.Normal -> MaterialTheme.colorScheme.tertiary
+
+        else -> MaterialTheme.colorScheme.tertiaryContainer
+    }
+}
+
+@Composable
+fun simpleAudioPlayBorderColor(status: ItemStatus): Color =
+    simpleAudioPlayBackgroundColor(status).copy(alpha = 0.7f)
+
+@Composable
+fun simpleAudioPlayIndicatorColor(status: ItemStatus): Color {
+    return when (status) {
+        ItemStatus.Normal -> MaterialTheme.colorScheme.onTertiary
+
+        else -> MaterialTheme.colorScheme.tertiary
+    }
+}
+
+@Composable
+fun simpleAudioPlayIndicatorTrackColor(status: ItemStatus): Color {
+    return when (status) {
+        ItemStatus.Normal -> MaterialTheme.colorScheme.tertiaryContainer
+
+        else -> MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
     }
 }
