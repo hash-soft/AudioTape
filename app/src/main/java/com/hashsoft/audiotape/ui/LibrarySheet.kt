@@ -36,13 +36,14 @@ import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
 import kotlinx.coroutines.launch
 
+private const val TAB_FOLDER = 0
+private const val TAB_TAPE = 1
+
 @Composable
 fun LibrarySheetRoute(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
-    viewMode: LibraryHomeViewMode,
     onTabChange: (index: Int) -> Unit,
-    onTapeCallback: (TapeCallbackArgument) -> Unit,
     viewModel: LibrarySheetViewModel = hiltViewModel(),
     onAudioPlayClick: () -> Unit = {}
 ) {
@@ -54,13 +55,11 @@ fun LibrarySheetRoute(
     LibrarySheetPager(
         libraryState,
         tabs = tabs,
-        viewMode = viewMode,
         isAvailable = available,
         displayPlaying = displayPlayingSource,
         displayPlayingItem = displayPlayingItem,
         playingPosition = playingPosition,
         onTabChange = onTabChange,
-        onTapeCallback = onTapeCallback,
         audioCallback = { argument ->
             if (argument is AudioCallbackArgument.TransferAudioPlay) {
                 onAudioPlayClick()
@@ -110,13 +109,11 @@ private fun playItemSelected(
 private fun LibrarySheetPager(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
-    viewMode: LibraryHomeViewMode,
     isAvailable: Boolean,
     displayPlaying: DisplayPlayingSource,
     displayPlayingItem: DisplayPlayingItem?,
     playingPosition: Long,
     onTabChange: (index: Int) -> Unit,
-    onTapeCallback: (TapeCallbackArgument) -> Unit,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     val state = rememberPagerState(initialPage = libraryState.selectedTabIndex) { tabs.size }
@@ -152,7 +149,6 @@ private fun LibrarySheetPager(
                     displayPlaying = displayPlaying,
                     durationMs = displayPlayingItem.currentAudio?.metadata?.duration ?: 0,
                     contentPosition = contentPosition,
-                    enableTransfer = viewMode != LibraryHomeViewMode.DeleteTape,
                     status = displayPlayingItem.status,
                     audioCallback = audioCallback
                 )
@@ -178,13 +174,11 @@ private fun LibrarySheetPager(
                 flingBehavior = PagerDefaults.flingBehavior(state, snapPositionalThreshold = 0.3f)
             ) {
                 when (it) {
-                    0 -> FolderViewRoute {
+                    TAB_FOLDER -> FolderViewRoute {
                         audioCallback(AudioCallbackArgument.TransferAudioPlay)
                     }
 
-                    1 -> TapeView(
-                        deleteMode = viewMode == LibraryHomeViewMode.DeleteTape,
-                        onTapeCallback = onTapeCallback,
+                    TAB_TAPE -> TapeView(
                         onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) },
                         onDisplayMessage = { name ->
                             @SuppressLint("LocalContextGetResourceValueCall")

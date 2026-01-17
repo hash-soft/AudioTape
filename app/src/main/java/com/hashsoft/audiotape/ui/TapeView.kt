@@ -1,14 +1,19 @@
 package com.hashsoft.audiotape.ui
 
+import android.app.Activity
 import androidx.collection.mutableIntSetOf
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hashsoft.audiotape.data.AudioTapeListSortOrder
 import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.dialog.DeleteTapeConfirmDialog
 import com.hashsoft.audiotape.ui.list.TapeList
@@ -16,31 +21,45 @@ import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 @Composable
 fun TapeView(
-    deleteMode: Boolean = false,
     viewModel: TapeViewModel = hiltViewModel(),
-    onTapeCallback: (TapeCallbackArgument) -> Unit = {},
     onAudioTransfer: () -> Unit = {},
     onDisplayMessage: (String) -> Unit = {},
     onFolderOpen: () -> Unit = {}
 ) {
-    val displayTapeList by viewModel.displayTapeListState.collectAsStateWithLifecycle()
+    val displayTapePair by viewModel.displayTapeListState.collectAsStateWithLifecycle()
+    val viewMode by viewModel.viewMode.collectAsStateWithLifecycle()
     val deleteIdsSet by viewModel.deleteIdsSet.collectAsStateWithLifecycle()
     val showConfirmDialog = remember { mutableStateOf(false) }
 
-    LaunchedEffect(deleteMode) {
-        if (!deleteMode) {
-            viewModel.resetDeleteIds()
+    val (displayTapeList, sortOrder) = displayTapePair
+    val deleteMode = viewMode == TapeViewMode.DeleteTape
+    val context = LocalContext.current
+
+    DisposableEffect(Unit) {
+        onDispose {
+            val activity = context as? Activity
+            if (activity != null && !activity.isChangingConfigurations) {
+                viewModel.resetViewMode()
+                viewModel.resetDeleteIds()
+            }
         }
     }
 
-    onTapeCallback(TapeCallbackArgument.UpdateExist(displayTapeList.isNotEmpty()))
-
     TapeList(
+        modifier = Modifier.fillMaxSize(),
         displayTapeList = displayTapeList,
+        sortOrder = sortOrder.ordinal,
         deleteMode = deleteMode,
         deleteIdsSet = deleteIdsSet,
+        onSortChange = {
+            viewModel.saveTapeListSortOrder(AudioTapeListSortOrder.fromInt(it))
+        },
+        onDeleteClick = {
+            viewModel.switchDeleteTapeMode()
+        },
         onCloseSelected = {
-            onTapeCallback(TapeCallbackArgument.CloseSelected)
+            viewModel.resetViewMode()
+            viewModel.resetDeleteIds()
         },
         onCheckedChange = { checked, index ->
             if (checked) {
@@ -69,12 +88,13 @@ fun TapeView(
             )
         }
     )
+
     if (showConfirmDialog.value) {
         DeleteTapeConfirmDialog(
             onConfirmResult = {
                 viewModel.deleteSelectedTape {
                     showConfirmDialog.value = false
-                    onTapeCallback(TapeCallbackArgument.CloseSelected)
+                    viewModel.resetViewMode()
                 }
             },
             onDismissResult = { showConfirmDialog.value = false })

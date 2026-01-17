@@ -11,6 +11,7 @@ import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.RouteStateRepository
+import com.hashsoft.audiotape.data.TapeStateRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,6 +33,10 @@ private val Context.libraryStateStore: DataStore<Preferences> by preferencesData
 /** フォルダ画面の状態を保存するためのDataStore */
 private val Context.libraryFolderStore: DataStore<Preferences> by preferencesDataStore(
     name = FolderStateRepository.DATA_STORE_NAME
+)
+
+private val Context.tapeStateStore: DataStore<Preferences> by preferencesDataStore(
+    name = TapeStateRepository.DATA_STORE_NAME
 )
 
 /** 再生状態を保存するためのDataStore */
@@ -80,6 +85,12 @@ object DataStoreModule {
     @Singleton
     fun provideFolderStateRepository(@ApplicationContext context: Context): FolderStateRepository {
         return FolderStateRepository(context.libraryFolderStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTapeStateRepository(@ApplicationContext context: Context): TapeStateRepository {
+        return TapeStateRepository(context.tapeStateStore)
     }
 
     /**

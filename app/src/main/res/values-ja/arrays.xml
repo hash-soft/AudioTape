@@ -2,7 +2,6 @@
 <resources>
     <string-array name="menu_labels">
         <item>設定</item>
-        <item>削除</item>
         <item>このアプリについて</item>
     </string-array>
 

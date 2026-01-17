@@ -2,7 +2,6 @@ package com.hashsoft.audiotape.ui.list
 
 import androidx.collection.IntSet
 import androidx.collection.intSetOf
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,14 +11,19 @@ import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.DisplayTapeItem
 import com.hashsoft.audiotape.ui.bar.DeleteTapeSelectionBar
+import com.hashsoft.audiotape.ui.bar.TapeBar
 import com.hashsoft.audiotape.ui.item.TapeCheckItem
 import com.hashsoft.audiotape.ui.item.TapeItem
 
 @Composable
 fun TapeList(
+    modifier: Modifier = Modifier,
     displayTapeList: List<DisplayTapeItem>,
+    sortOrder: Int,
     deleteMode: Boolean = false,
     deleteIdsSet: IntSet = intSetOf(),
+    onSortChange: (sortOrder: Int) -> Unit = {},
+    onDeleteClick: () -> Unit = {},
     onCloseSelected: () -> Unit = {},
     onCheckedChange: (checked: Boolean, index: Int) -> Unit,
     onSelectedAllCheck: () -> Unit,
@@ -27,8 +31,7 @@ fun TapeList(
     audioCallback: (AudioCallbackArgument) -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
     ) {
         if (deleteMode) {
             stickyHeader {
@@ -39,6 +42,10 @@ fun TapeList(
                     onSelectAll = onSelectedAllCheck,
                     onDelete = onTapeDelete
                 )
+            }
+        } else {
+            if (displayTapeList.isNotEmpty()) {
+                item { TapeBar(sortOrder, onSortChange, onDeleteClick) }
             }
         }
         items(displayTapeList.size) {

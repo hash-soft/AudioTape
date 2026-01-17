@@ -23,6 +23,12 @@ val addressBarBackgroundColor: Color
 val addressBarContentColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
+val tapeBarBackgroundColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.surfaceVariant
+
+val tapeBarContentColor: Color
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
+
 val primaryItemColor: Color
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.primary
 

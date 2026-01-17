@@ -8,19 +8,21 @@ import androidx.lifecycle.viewModelScope
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioStoreRepository
 import com.hashsoft.audiotape.data.AudioTapeDto
+import com.hashsoft.audiotape.data.AudioTapeListSortOrder
 import com.hashsoft.audiotape.data.AudioTapeRepository
 import com.hashsoft.audiotape.data.FolderStateRepository
 import com.hashsoft.audiotape.data.ItemStatus
-import com.hashsoft.audiotape.data.LibraryStateRepository
 import com.hashsoft.audiotape.data.PlayingStateRepository
 import com.hashsoft.audiotape.data.StorageItemListUseCase
 import com.hashsoft.audiotape.data.StorageVolumeRepository
+import com.hashsoft.audiotape.data.TapeStateRepository
 import com.hashsoft.audiotape.logic.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -42,16 +44,29 @@ class TapeViewModel @Inject constructor(
     private val _folderStateRepository: FolderStateRepository,
     private val _audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
-    libraryStateRepository: LibraryStateRepository
+    private val _tapeStateRepository: TapeStateRepository
 ) :
     ViewModel() {
+
+    private val _viewMode = MutableStateFlow(TapeViewMode.Normal)
+    val viewMode: StateFlow<TapeViewMode> = _viewMode.asStateFlow()
+
+    /**
+     * 削除対象として選択されたテープのIDセット
+     */
+    private val _deleteIdsSet = MutableStateFlow(intSetOf())
+
+    /**
+     * 削除対象として選択されたテープのIDセットの公開プロパティ
+     */
+    val deleteIdsSet = _deleteIdsSet.asStateFlow()
 
     /**
      * ソート順やボリュームの変更を監視し、テープ情報とディレクトリ構造のリストを生成する内部State
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _baseState =
-        libraryStateRepository.tapeListSortOrderFlow().flatMapLatest { sortOrder ->
+        _tapeStateRepository.tapeListSortOrderFlow().flatMapLatest { sortOrder ->
             combine(
                 storageVolumeRepository.volumeChangeFlow(),
                 audioTapeRepository.getAll(sortOrder)
@@ -60,7 +75,7 @@ class TapeViewModel @Inject constructor(
                     val treeList =
                         AudioStoreRepository.pathToTreeList(volumes, audioTape.folderPath)
                     Triple(audioTape, treeList, volumes)
-                }
+                } to sortOrder
             }
         }
 
@@ -69,8 +84,8 @@ class TapeViewModel @Inject constructor(
      * 現在再生中のフォルダかどうかの情報を含めて公開される
      */
     val displayTapeListState =
-        combine(_baseState, _playingStateRepository.playingStateFlow()) { triple, playingState ->
-            triple.map {
+        combine(_baseState, _playingStateRepository.playingStateFlow()) { pair, playingState ->
+            pair.first.map {
                 val audioTape = it.first
                 val isCurrent = playingState.folderPath == audioTape.folderPath
                 val searchObject = AudioStoreRepository.pathToSearchObject(
@@ -94,22 +109,12 @@ class TapeViewModel @Inject constructor(
                         audioTape.folderPath
                     )
                 )
-            }
+            } to pair.second
         }.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
-            emptyList()
+            Pair(emptyList(), AudioTapeListSortOrder.NAME_ASC)
         )
-
-    /**
-     * 削除対象として選択されたテープのIDセット
-     */
-    private val _deleteIdsSet = MutableStateFlow(intSetOf())
-
-    /**
-     * 削除対象として選択されたテープのIDセットの公開プロパティ
-     */
-    val deleteIdsSet = _deleteIdsSet.asStateFlow()
 
     /**
      * 再生するフォルダを切り替える
@@ -223,7 +228,7 @@ class TapeViewModel @Inject constructor(
     fun deleteSelectedTape(onDeletedAfter: () -> Unit) = viewModelScope.launch {
         val list: MutableList<AudioTapeDto> = mutableListOf()
         _deleteIdsSet.value.forEach { id ->
-            val tape = displayTapeListState.value.getOrNull(id) ?: return@forEach
+            val tape = displayTapeListState.value.first.getOrNull(id) ?: return@forEach
             list.add(tape.audioTape)
         }
         // 削除対象のテープが演奏設定に場合は演奏設定を外し、MediaItemを空にする
@@ -236,6 +241,18 @@ class TapeViewModel @Inject constructor(
         _audioTapeRepository.deleteTapes(list)
         _deleteIdsSet.update { intSetOf() }
         onDeletedAfter()
+    }
+
+    fun saveTapeListSortOrder(sortOrder: AudioTapeListSortOrder) = viewModelScope.launch {
+        _tapeStateRepository.saveTapeListSortOrder(sortOrder)
+    }
+
+    fun resetViewMode() {
+        _viewMode.value = TapeViewMode.Normal
+    }
+
+    fun switchDeleteTapeMode() {
+        _viewMode.value = TapeViewMode.DeleteTape
     }
 }
 
@@ -254,3 +271,8 @@ data class DisplayTapeItem(
     val isCurrent: Boolean = false,
     val status: ItemStatus = ItemStatus.Normal
 )
+
+enum class TapeViewMode {
+    Normal,
+    DeleteTape
+}
