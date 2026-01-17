@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,6 +102,7 @@ private fun AudioFileSubInfoItemTwoRow(
                     .defaultMinSize(minWidth = 0.dp)
                     .fillMaxWidth()
                     .padding(start = SimpleAudioIndicatorStart),
+                trackColor = ProgressIndicatorDefaults.linearColor.copy(alpha = 0.12f),
                 strokeCap = StrokeCap.Butt,
                 gapSize = NoGap,
                 drawStopIndicator = {}

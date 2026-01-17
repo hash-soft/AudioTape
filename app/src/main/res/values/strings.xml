@@ -45,4 +45,5 @@
     <string name="delete_confirm_title">Delete</string>
     <string name="delete_confirm_text">The selected tape will be deleted.</string>
     <string name="this_no_audio">%s does not contain any audio files.</string>
+    <string name="metadata_separator" translatable="false">\u0020-\u0020</string>
 </resources>

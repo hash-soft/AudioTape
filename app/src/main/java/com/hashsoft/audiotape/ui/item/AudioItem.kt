@@ -1,7 +1,10 @@
 package com.hashsoft.audiotape.ui.item
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.PlayArrow
@@ -10,9 +13,11 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -34,53 +39,48 @@ fun AudioItem(
 ) {
     ListItem(
         leadingContent = {
-            // プレイ中は特殊なものにしたい
-            Icon(
-                imageVector = if (icon > 0) Icons.Default.PlayArrow else Icons.Default.AudioFile,
-                null
-            )
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                // プレイ中は特殊なものにしたい
+                Icon(
+                    imageVector = if (icon > 0) Icons.Default.PlayArrow else Icons.Default.AudioFile,
+                    null
+                )
+            }
         },
         overlineContent = { OverlineContext(metadata) },
         headlineContent = { Text(name) },
         supportingContent = {
             AudioFileSubInfoItem(size, lastModified, metadata.duration, isResume, contentPosition)
         },
-        trailingContent =
-            if (metadata.artwork.isNotEmpty()) {
-                {
-                    val picture = metadata.artwork.toByteArray()
-                    Icon(
-                        bitmap = BitmapFactory.decodeByteArray(
-                            picture,
-                            0,
-                            picture.size
-                        ).asImageBitmap(), null
+        modifier = Modifier
+            .height(IntrinsicSize.Min)
+            .combinedClickable(onClick = {
+                audioCallback(
+                    AudioCallbackArgument.AudioSelected(
+                        index = audioIndex,
+                        name = name,
+                        position = contentPosition
                     )
-                }
-            } else {
-                null
-            },
-        modifier = Modifier.combinedClickable(onClick = {
-            audioCallback(
-                AudioCallbackArgument.AudioSelected(
-                    index = audioIndex,
-                    name = name,
-                    position = contentPosition
                 )
-            )
-        }, onLongClick = {
-            audioCallback(
-                AudioCallbackArgument.AudioSelected(
-                    index = audioIndex,
-                    name = name,
-                    position = contentPosition,
-                    transfer = true
+            }, onLongClick = {
+                audioCallback(
+                    AudioCallbackArgument.AudioSelected(
+                        index = audioIndex,
+                        name = name,
+                        position = contentPosition,
+                        transfer = true
+                    )
                 )
-            )
-        }),
+            }),
         colors = if (color > 0) ListItemDefaults.colors(
             containerColor = currentItemBackgroundColor, // 背景色
-            headlineColor = currentItemContentColor         // 見出し文字色
+            headlineColor = currentItemContentColor,
+            leadingIconColor = currentItemContentColor,
+            overlineColor = currentItemContentColor,
+            supportingColor = currentItemContentColor
         ) else {
             ListItemDefaults.colors()
         }
@@ -90,6 +90,7 @@ fun AudioItem(
 @Composable
 private fun OverlineContext(metadata: AudioItemMetadata) {
     val text = buildString {
+        val separatorText = stringResource(R.string.metadata_separator)
         var sep = false
         if (metadata.artist.isNotEmpty()) {
             append(metadata.artist)
@@ -97,14 +98,14 @@ private fun OverlineContext(metadata: AudioItemMetadata) {
         }
         if (metadata.title.isNotEmpty()) {
             if (sep) {
-                append(" - ")
+                append(separatorText)
             }
             append(metadata.title)
             sep = true
         }
         if (metadata.album.isNotEmpty()) {
             if (sep) {
-                append(" - ")
+                append(separatorText)
             }
             append(metadata.album)
         }
