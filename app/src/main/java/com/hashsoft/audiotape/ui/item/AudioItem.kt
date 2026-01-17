@@ -5,12 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AudioFile
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
+import com.hashsoft.audiotape.ui.animation.EqualizerAnimation
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.LeadingContentWidth
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
 import com.hashsoft.audiotape.ui.theme.currentItemContentColor
 
@@ -40,14 +40,19 @@ fun AudioItem(
     ListItem(
         leadingContent = {
             Box(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(LeadingContentWidth),
                 contentAlignment = Alignment.Center
             ) {
-                // プレイ中は特殊なものにしたい
-                Icon(
-                    imageVector = if (icon > 0) Icons.Default.PlayArrow else Icons.Default.AudioFile,
-                    null
-                )
+                if (icon > 0) {
+                    EqualizerAnimation()
+                } else {
+                    Text(
+                        text = (audioIndex + 1).toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
         },
         overlineContent = { OverlineContext(metadata) },
@@ -121,11 +126,27 @@ private fun OverlineContext(metadata: AudioItemMetadata) {
 fun AudioItemPreview() {
     AudioTapeTheme {
         AudioItem(
+            98,
+            "audio 00",
+            6000,
+            12300,
+            AudioItemMetadata("", "", "", 0, 0),
+            isResume = true
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AudioItemPreview2() {
+    AudioTapeTheme {
+        AudioItem(
             0,
             "audio 00",
             6000,
             12300,
             AudioItemMetadata("", "", "", 0, 0),
+            icon = 1,
             isResume = true
         )
     }

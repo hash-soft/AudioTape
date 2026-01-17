@@ -43,3 +43,7 @@ val TapeListItemVerticalPadding = 8.dp
 val AddressBarItemSpace = 2.dp
 
 val AddressRightIconSize = 18.dp
+
+val LeadingContentWidth = 24.dp
+
+val EqualizerSize = 16.dp
