@@ -89,18 +89,18 @@ class PlaybackService : MediaSessionService() {
 
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
-        Timber.d("**onDestroy: mediaSession = $mediaSession")
+        Timber.d("#9 onDestroy: mediaSession = $mediaSession")
         ioScope.cancel()
-        mediaSession?.run {
+        mediaSession?.let { session ->
             // 再生中の場合だけ再生情報の保存をする
-            if (player.isPlaying) {
+            if (session.player.isPlaying) {
                 runBlocking {
-                    updateTapeCurrentPosition(player, false)
+                    updateTapeCurrentPosition(session.player, false)
                 }
             }
-            release()
+            session.release()
+            mediaSession = null
         }
-        mediaSession?.player?.release()
         super.onDestroy()
     }
 

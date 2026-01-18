@@ -9,8 +9,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.hashsoft.audiotape.ui.AudioController
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,7 +29,9 @@ class MainActivity : ComponentActivity() {
                     audioController.buildController(applicationContext)
                     awaitCancellation()
                 } finally {
-                    audioController.releaseController()
+                    withContext(NonCancellable) {
+                        audioController.releaseController()
+                    }
                 }
             }
         }

@@ -6,13 +6,13 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
-import com.hashsoft.audiotape.core.extensions.await
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.logic.MediaItemHelper
 import com.hashsoft.audiotape.service.PlaybackService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.guava.await
 import timber.log.Timber
 
 
@@ -60,13 +60,14 @@ class AudioController(
     fun releaseController() {
         Timber.d("#1 Controller disconnected")
         _availableStateFlow.update { false }
+        _controllerFuture?.let {
+            if (!it.isDone) it.cancel(true)
+            MediaController.releaseFuture(it)
+            _controllerFuture = null
+        }
         _controller?.let {
             it.release()
             _controller = null
-        }
-        _controllerFuture?.let {
-            MediaController.releaseFuture(it)
-            _controllerFuture = null
         }
     }
 
