@@ -19,15 +19,12 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.data.LibraryStateDto
@@ -43,66 +40,26 @@ private const val TAB_TAPE = 1
 fun LibrarySheetRoute(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
+    isAvailable: Boolean,
+    displayPlaying: DisplayPlayingSource,
+    displayPlayingItem: DisplayPlayingItem?,
+    playingPosition: Long,
     onTabChange: (index: Int) -> Unit,
-    viewModel: LibrarySheetViewModel = hiltViewModel(),
-    onAudioPlayClick: () -> Unit = {}
+    audioCallback: (AudioCallbackArgument) -> Unit
 ) {
-    val playingPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
-    val displayPlayingSource by viewModel.displayPlayingSource.collectAsStateWithLifecycle()
-    val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
-    val available by viewModel.availableState.collectAsStateWithLifecycle()
-
     LibrarySheetPager(
         libraryState,
         tabs = tabs,
-        isAvailable = available,
-        displayPlaying = displayPlayingSource,
+        isAvailable = isAvailable,
+        displayPlaying = displayPlaying,
         displayPlayingItem = displayPlayingItem,
         playingPosition = playingPosition,
         onTabChange = onTabChange,
-        audioCallback = { argument ->
-            if (argument is AudioCallbackArgument.TransferAudioPlay) {
-                onAudioPlayClick()
-                return@LibrarySheetPager
-            }
-            playItemSelected(viewModel, displayPlayingItem, argument)
-        }
+        audioCallback = audioCallback
     )
 
 }
 
-private fun playItemSelected(
-    viewModel: LibrarySheetViewModel,
-    displayPlayingItem: DisplayPlayingItem?,
-    argument: AudioCallbackArgument
-) {
-    if (displayPlayingItem == null) return
-    when (argument) {
-
-        is AudioCallbackArgument.SeekTo -> {
-            viewModel.seekTo(argument.position)
-        }
-
-        is AudioCallbackArgument.PlayPause -> {
-            if (argument.isPlaying) {
-                viewModel.pause()
-            } else {
-                viewModel.setPlayingParameters(displayPlayingItem.audioTape)
-                viewModel.play()
-            }
-        }
-
-        is AudioCallbackArgument.SkipNext -> {
-            viewModel.seekToNext()
-        }
-
-        is AudioCallbackArgument.SkipPrevious -> {
-            viewModel.seekToPrevious()
-        }
-
-        else -> {}
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

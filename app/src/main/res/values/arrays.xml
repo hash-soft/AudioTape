@@ -2,6 +2,7 @@
 <resources>
     <string-array name="menu_labels">
         <item>Settings</item>
+        <item>Eject</item>
         <item>About</item>
     </string-array>
 

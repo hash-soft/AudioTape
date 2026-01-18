@@ -2,6 +2,7 @@
 <resources>
     <string-array name="menu_labels">
         <item>設定</item>
+        <item>取り出し</item>
         <item>このアプリについて</item>
     </string-array>
 

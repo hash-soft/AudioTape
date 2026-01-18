@@ -31,7 +31,8 @@ import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 
 private enum class MenuIndex {
-    UserSettings
+    UserSettings,
+    Eject
 }
 
 @Composable
@@ -62,37 +63,92 @@ fun LibraryHomeRoute(
 private fun LibraryHome(
     libraryState: LibraryStateDto,
     tabs: List<LibraryTab>,
+    viewModel: LibrarySheetViewModel = hiltViewModel(),
     onTransferClick: (route: Any) -> Unit = {},
     onTabChange: (index: Int) -> Unit = {},
 ) {
+    val playingPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
+    val displayPlayingSource by viewModel.displayPlayingSource.collectAsStateWithLifecycle()
+    val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
+    val available by viewModel.availableState.collectAsStateWithLifecycle()
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            NormalTopBar(onTransferClick)
+            NormalTopBar(displayPlayingItem != null) {
+                when (it) {
+                    MenuIndex.UserSettings.ordinal -> onTransferClick(Route.UserSettings)
+                    MenuIndex.Eject.ordinal -> viewModel.ejectTape(displayPlayingItem?.audioTape)
+
+                    else -> {}
+                }
+            }
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            LibrarySheetRoute(libraryState, tabs, onTabChange) {
-                onTransferClick(Route.AudioPlay)
+            LibrarySheetRoute(
+                libraryState,
+                tabs,
+                isAvailable = available,
+                displayPlaying = displayPlayingSource,
+                displayPlayingItem = displayPlayingItem,
+                playingPosition = playingPosition,
+                onTabChange
+            ) { argument ->
+                playItemSelected(viewModel, displayPlayingItem, argument, onTransferClick)
             }
         }
     }
 }
 
+private fun playItemSelected(
+    viewModel: LibrarySheetViewModel,
+    displayPlayingItem: DisplayPlayingItem?,
+    argument: AudioCallbackArgument,
+    onTransferClick: (route: Any) -> Unit = {}
+) {
+    if (displayPlayingItem == null) return
+    when (argument) {
+
+        is AudioCallbackArgument.TransferAudioPlay -> {
+            onTransferClick(Route.AudioPlay)
+        }
+
+        is AudioCallbackArgument.SeekTo -> {
+            // 簡易プレイヤーにシークはない
+            viewModel.seekTo(argument.position)
+        }
+
+        is AudioCallbackArgument.PlayPause -> {
+            if (argument.isPlaying) {
+                viewModel.pause()
+            } else {
+                viewModel.setPlayingParameters(displayPlayingItem.audioTape)
+                viewModel.play()
+            }
+        }
+
+        is AudioCallbackArgument.SkipNext -> {
+            viewModel.seekToNext()
+        }
+
+        is AudioCallbackArgument.SkipPrevious -> {
+            viewModel.seekToPrevious()
+        }
+
+        else -> {}
+    }
+}
+
+
 @Composable
 private fun NormalTopBar(
-    onTransferClick: (route: Any) -> Unit = {}
+    ejectEnabled: Boolean,
+    onClick: (Int) -> Unit = {}
 ) {
     @OptIn(ExperimentalMaterial3Api::class)
     TopAppBar(
         title = { Text(text = stringResource(R.string.app_name)) },
-        actions = {
-            MenuDropdownSelector {
-                when (it) {
-                    MenuIndex.UserSettings.ordinal -> onTransferClick(Route.UserSettings)
-                    else -> {}
-                }
-            }
-        },
+        actions = { MenuDropdownSelector(ejectEnabled, onClick) },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -101,7 +157,7 @@ private fun NormalTopBar(
 }
 
 @Composable
-private fun MenuDropdownSelector(onChange: (Int) -> Unit = {}) {
+private fun MenuDropdownSelector(ejectEnabled: Boolean, onClick: (Int) -> Unit = {}) {
     val (menuLabels, menuIndex) =
         stringArrayResource(R.array.menu_labels).toList() to
                 integerArrayResource(R.array.menu_index).toList()
@@ -110,14 +166,14 @@ private fun MenuDropdownSelector(onChange: (Int) -> Unit = {}) {
         menuLabels,
         "",
         selectedIndex = -1,
-        disableMenuIds = intSetOf(),
+        disableMenuIds = if (ejectEnabled) intSetOf() else intSetOf(MenuIndex.Eject.ordinal),
         iconContent = {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.menu_description),
             )
         }) {
-        onChange(menuIndex.getOrElse(it) { -1 })
+        onClick(menuIndex.getOrElse(it) { -1 })
     }
 }
 

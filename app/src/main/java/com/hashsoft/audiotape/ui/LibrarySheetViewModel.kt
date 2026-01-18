@@ -13,24 +13,26 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.io.File
 
 @HiltViewModel
 class LibrarySheetViewModel @Inject constructor(
     private val _controller: AudioController,
     controllerRepository: ControllerRepository,
-    audioTapeRepository: AudioTapeRepository,
-    playingStateRepository: PlayingStateRepository,
-    audioStoreRepository: AudioStoreRepository,
+    private val _audioTapeRepository: AudioTapeRepository,
+    private val _playingStateRepository: PlayingStateRepository,
+    private val _audioStoreRepository: AudioStoreRepository,
     storageVolumeRepository: StorageVolumeRepository,
 ) :
     ViewModel() {
 
     private val _playItemState = PlayItemState(
         controller = _controller,
-        audioTapeRepository,
-        audioStoreRepository,
+        _audioTapeRepository,
+        _audioStoreRepository,
         storageVolumeRepository,
-        playingStateRepository,
+        _playingStateRepository,
         controllerRepository
     )
 
@@ -71,13 +73,35 @@ class LibrarySheetViewModel @Inject constructor(
     fun seekTo(position: Long) {
         if (_controller.isCurrentMediaItem()) {
             _controller.seekTo(position)
-        } else {
-            //_audioTapeStagingRepository.updatePosition(position)
         }
     }
 
     fun seekToNext() = _controller.seekToNext()
 
     fun seekToPrevious() = _controller.seekToPrevious()
+
+    fun ejectTape(tape: AudioTapeDto?) {
+        if (tape == null) {
+            return
+        }
+        val file = _controller.getCurrentMediaItemUri()?.run {
+            File(_audioStoreRepository.uriToPath(this))
+        }
+        val prevPosition = _controller.getCurrentPosition()
+        _controller.clearMediaItems()
+        viewModelScope.launch {
+            // 設定を解除した後前のテープ位置を行使する
+            _playingStateRepository.saveFolderPath("")
+            if (file != null) {
+                _audioTapeRepository.updatePlayingPosition(
+                    file.parent ?: "",
+                    file.name,
+                    prevPosition,
+                    false
+                )
+            }
+        }
+    }
+
 
 }
