@@ -23,7 +23,7 @@ val NoGap = 0.dp
 
 val SimpleAudioPlayBorder = 1.dp
 
-val SimpleAudioPlayItemEndPadding = 6.dp
+val SimpleAudioPlayItemEndPadding = 4.dp
 
 val SimpleAudioIndicatorStart = 10.dp
 
