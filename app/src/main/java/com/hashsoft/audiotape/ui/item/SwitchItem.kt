@@ -2,6 +2,7 @@ package com.hashsoft.audiotape.ui.item
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -13,21 +14,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.ui.theme.SettingItemHorizontalPadding
+import com.hashsoft.audiotape.ui.theme.SettingItemVerticalPadding
 
 /**
  * スイッチアイテム
  *
  * @param title タイトル
  * @param check チェック状態
- * @param onCheckedChange チェック状態変更コールバック
  * @param modifier モディファイア
+ * @param onCheckedChange チェック状態変更コールバック
  */
 @Composable
 fun SwitchItem(
     title: String,
     check: Boolean,
-    onCheckedChange: (Boolean) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCheckedChange: (Boolean) -> Unit = {}
 ) {
     val isChecked = remember(check) { mutableStateOf(check) }
 
@@ -41,12 +44,17 @@ fun SwitchItem(
                     onCheckedChange(it)
                 },
                 role = Role.Switch
+            )
+            .padding(
+                horizontal = SettingItemHorizontalPadding,
+                vertical = SettingItemVerticalPadding
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = title,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f),
             style = MaterialTheme.typography.titleLarge
         )
 

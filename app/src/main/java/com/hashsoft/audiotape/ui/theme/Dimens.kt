@@ -9,19 +9,13 @@ val IconMedium = 36.dp
 
 val SettingItemHorizontalPadding = 16.dp
 
-val SettingItemVerticalPadding = 12.dp
+val SettingItemVerticalPadding = 8.dp
 
-val SettingItemVerticalDistance = 10.dp
+val SettingLabelHorizontalPadding = 16.dp
 
-val SettingNextLabelVerticalAdd = 4.dp
+val SettingLabelVerticalPadding = 8.dp
 
 val DialogCornerRadius = 16.dp
-
-val DialogHorizontalPadding = 20.dp
-
-val DialogVerticalPadding = 18.dp
-
-val DialogTitleBottomPadding = 12.dp
 
 val ListLabelSpace = 8.dp
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -16,15 +17,13 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Dialog
 import com.hashsoft.audiotape.ui.theme.DialogCornerRadius
-import com.hashsoft.audiotape.ui.theme.DialogHorizontalPadding
-import com.hashsoft.audiotape.ui.theme.DialogTitleBottomPadding
-import com.hashsoft.audiotape.ui.theme.DialogVerticalPadding
 
 /**
  * 設定項目を選択するダイアログ
@@ -34,7 +33,6 @@ import com.hashsoft.audiotape.ui.theme.DialogVerticalPadding
  * @param selectedIndex 選択されている項目のインデックス
  * @param onSelect 項目が選択されたときのコールバック
  * @param onDismissRequest ダイアログが閉じられたときのコールバック
- * @param modifier Modifier
  * @param cornerRadius ダイアログの角の半径
  */
 @Composable
@@ -44,27 +42,35 @@ fun SelectSettingDialog(
     selectedIndex: Int,
     onSelect: (index: Int) -> Unit,
     onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(),
     cornerRadius: Dp = DialogCornerRadius
 ) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selectedIndex) {
+        // スクロールありの場合、選択項目を中央に表示する
+        val viewportHeight = listState.layoutInfo.viewportSize.height
+        val itemHeight = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+        val offset = (viewportHeight / 2) - (itemHeight / 2)
+        listState.scrollToItem(index = selectedIndex, scrollOffset = -offset)
+    }
+
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Surface(
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(cornerRadius),
         ) {
             Column(
-                modifier = Modifier
-                    .padding(horizontal = DialogHorizontalPadding, vertical = DialogVerticalPadding)
+                modifier = Modifier.padding(
+                    horizontal = cornerRadius,
+                    vertical = cornerRadius
+                )
             ) {
                 Text(
                     text = title,
                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    modifier = Modifier.padding(bottom = DialogTitleBottomPadding)
                 )
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
+                LazyColumn(modifier = Modifier.fillMaxWidth(), state = listState) {
                     itemsIndexed(options) { index, label ->
                         Row(
                             modifier = Modifier

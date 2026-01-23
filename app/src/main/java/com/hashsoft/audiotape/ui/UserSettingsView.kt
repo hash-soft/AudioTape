@@ -1,7 +1,6 @@
 package com.hashsoft.audiotape.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -9,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
@@ -21,10 +21,9 @@ import com.hashsoft.audiotape.ui.item.SwitchItem
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
-import com.hashsoft.audiotape.ui.theme.SettingItemHorizontalPadding
-import com.hashsoft.audiotape.ui.theme.SettingItemVerticalDistance
-import com.hashsoft.audiotape.ui.theme.SettingItemVerticalPadding
-import com.hashsoft.audiotape.ui.theme.SettingNextLabelVerticalAdd
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.SettingLabelHorizontalPadding
+import com.hashsoft.audiotape.ui.theme.SettingLabelVerticalPadding
 
 /**
  * ユーザー設定画面のView
@@ -37,52 +36,46 @@ fun UserSettingsView(
     userSettings: UserSettingsDto,
     onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier.padding(
-            horizontal = SettingItemHorizontalPadding,
-            vertical = SettingItemVerticalPadding
-        )
-    ) {
+    Column {
         LabelItem(
             stringResource(R.string.appearance_label),
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            Modifier.padding(
+                horizontal = SettingLabelHorizontalPadding,
+                vertical = SettingLabelVerticalPadding,
+            )
         )
         ThemeSettingItem(
             userSettings.themeMode.ordinal,
-            onSettingChange,
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            onSettingChange = onSettingChange
         )
-        Spacer(Modifier.padding(vertical = SettingNextLabelVerticalAdd))
 
         LabelItem(
             stringResource(R.string.default_settings_label),
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            Modifier.padding(
+                horizontal = SettingLabelHorizontalPadding,
+                vertical = SettingLabelVerticalPadding,
+            )
         )
         DefaultSortOrderItem(
             userSettings.defaultSortOrder.ordinal,
-            onSettingChange,
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            onSettingChange = onSettingChange
         )
         SwitchItem(
             stringResource(R.string.repeat_description),
             userSettings.defaultRepeat,
-            onCheckedChange = { onSettingChange(UserSettingsCallbackArgument.Repeat(it)) },
-            modifier = Modifier.padding(bottom = SettingItemVerticalDistance)
+            onCheckedChange = { onSettingChange(UserSettingsCallbackArgument.Repeat(it)) }
         )
         DefaultVolumeItem(
             userSettings.defaultVolume,
-            onSettingChange,
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            onSettingChange = onSettingChange
         )
         DefaultSpeedItem(
             userSettings.defaultSpeed,
-            onSettingChange,
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            onSettingChange = onSettingChange
         )
         DefaultPitchItem(
             userSettings.defaultPitch,
-            onSettingChange,
-            Modifier.padding(bottom = SettingItemVerticalDistance)
+            onSettingChange = onSettingChange
         )
 
     }
@@ -98,8 +91,8 @@ fun UserSettingsView(
 @Composable
 private fun ThemeSettingItem(
     selectedIndex: Int,
-    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {},
     modifier: Modifier = Modifier,
+    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {},
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.theme_title)
@@ -132,8 +125,8 @@ private fun ThemeSettingItem(
 @Composable
 private fun DefaultSortOrderItem(
     selectedIndex: Int,
-    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.sort_order_title)
@@ -165,8 +158,8 @@ private fun DefaultSortOrderItem(
 @Composable
 private fun DefaultVolumeItem(
     volume: Float,
-    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.volume_title)
@@ -198,8 +191,8 @@ private fun DefaultVolumeItem(
 @Composable
 private fun DefaultSpeedItem(
     speed: Float,
-    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.speed_title)
@@ -231,8 +224,8 @@ private fun DefaultSpeedItem(
 @Composable
 private fun DefaultPitchItem(
     pitch: Float,
-    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
     val showDialog = remember { mutableStateOf(false) }
     val title = stringResource(R.string.pitch_title)
@@ -258,5 +251,14 @@ private fun DefaultPitchItem(
             onDismissRequest = { showDialog.value = false }
         )
 
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun UserSettingsViewPreview() {
+    AudioTapeTheme {
+        UserSettingsView(UserSettingsDto(1))
     }
 }
