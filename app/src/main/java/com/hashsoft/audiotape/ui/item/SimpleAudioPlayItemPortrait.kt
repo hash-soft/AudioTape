@@ -51,7 +51,7 @@ fun SimpleAudioPlayItemPortrait(
     status: ItemStatus,
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
-    val enable = isAvailable && (status == ItemStatus.Normal || status == ItemStatus.Warning)
+    val enable = isAvailable && ItemStatus.isPlayable(status)
     Surface(
         contentColor = simpleAudioPlayContentColor(status),
         modifier = Modifier

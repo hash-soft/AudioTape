@@ -95,3 +95,26 @@ fun simpleAudioPlayIndicatorTrackColor(status: ItemStatus): Color {
         else -> MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
     }
 }
+
+@Composable
+fun audioPlayContentColor(status: ItemStatus, defaultColor: Color) =
+    libraryColor(status, defaultColor)
+
+
+@Composable
+fun audioPlayTitleAlpha(status: ItemStatus): Float {
+    return when (status) {
+        ItemStatus.Missing -> 0.38f
+
+        else -> 1f
+    }
+}
+
+@Composable
+fun audioPlayFileAlpha(status: ItemStatus): Float {
+    return when (status) {
+        ItemStatus.Normal -> 1f
+
+        else -> 0.38f
+    }
+}

@@ -1,19 +1,25 @@
 package com.hashsoft.audiotape.ui.dropdown
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.ui.item.SimpleAudioItem
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 /**
  * オーディオ項目のドロップダウンメニュー
@@ -32,12 +38,9 @@ fun AudioDropDown(
     trigger: @Composable (() -> Unit),
     audioItemList: List<AudioItemDto> = emptyList(),
     targetName: String = "",
-    onItemClick: (Int, Boolean) -> Unit = { index, lastCurrent -> }
+    onItemClick: (Int, Boolean) -> Unit = { _, _ -> }
 ) {
-    Box(
-        modifier = Modifier
-            .background(Color.Red)
-    ) {
+    Box {
         trigger()
 
         DropdownMenu(expanded = expanded, onDismissRequest = {
@@ -76,6 +79,29 @@ fun AudioDropDown(
 
             }
         }
+
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun AudioDropDownPreview() {
+    AudioTapeTheme {
+        AudioDropDown(
+            expanded = false,
+            onExpandedChange = { },
+            trigger = {
+                IconButton(onClick = { }, enabled = true) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ListAlt,
+                        contentDescription = stringResource(R.string.list_description)
+                    )
+                }
+            },
+            audioItemList = listOf(),
+            targetName = "name"
+        )
 
     }
 }

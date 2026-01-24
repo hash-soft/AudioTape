@@ -130,7 +130,7 @@ fun AudioItemPreview() {
             "audio 00",
             6000,
             12300,
-            AudioItemMetadata("", "", "", 0, 0),
+            AudioItemMetadata("album name", "title name", "artist", 0, 0),
             isResume = true
         )
     }

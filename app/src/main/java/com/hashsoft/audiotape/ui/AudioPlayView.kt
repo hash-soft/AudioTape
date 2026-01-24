@@ -24,15 +24,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.DisplayPlayingSource
+import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
 import com.hashsoft.audiotape.data.PlayVolumeValues
@@ -43,7 +46,9 @@ import com.hashsoft.audiotape.ui.item.PlaySliderItem
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
+import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.IconMedium
+import com.hashsoft.audiotape.ui.theme.audioPlayFileAlpha
 
 
 /**
@@ -58,6 +63,7 @@ fun AudioPlayView(
     contentPosition: Long,
     tape: AudioTapeDto,
     playList: List<AudioItemDto>,
+    status: ItemStatus,
     displayPlaying: DisplayPlayingSource,
     onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
@@ -94,6 +100,7 @@ fun AudioPlayView(
         ) {
             Text(
                 text = tape.currentName,
+                color = Color.Unspecified.copy(alpha = audioPlayFileAlpha(status)),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
@@ -101,13 +108,14 @@ fun AudioPlayView(
             AudioListDropdownSelector(
                 playList,
                 tape.currentName,
+                enabled = isAvailable && ItemStatus.isPlayable(status),
                 onItemSelected = onAudioItemClick
             )
         }
 
         PlaySliderItem(
             displayPlaying != DisplayPlayingSource.Pause,
-            true,
+            enabled = isAvailable && ItemStatus.isSeekable(status),
             contentPosition = if (contentPosition >= 0) contentPosition else tape.position,
             playList.find { it.name == tape.currentName }?.metadata?.duration ?: 0,
         ) {
@@ -121,7 +129,7 @@ fun AudioPlayView(
         ) {
             IconButton(
                 onClick = { onAudioItemClick(AudioCallbackArgument.SkipPrevious) },
-                enabled = isAvailable
+                enabled = isAvailable && ItemStatus.isSkippable(status)
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipPrevious,
@@ -130,7 +138,7 @@ fun AudioPlayView(
             }
             IconButton(
                 onClick = { onAudioItemClick(AudioCallbackArgument.BackIncrement) },
-                enabled = isAvailable
+                enabled = isAvailable && ItemStatus.isSeekable(status)
             ) {
                 Icon(
                     imageVector = Icons.Default.FastRewind,
@@ -139,14 +147,14 @@ fun AudioPlayView(
             }
             PlayPauseButton(
                 displayPlaying != DisplayPlayingSource.Pause,
-                enabled = isAvailable,
+                enabled = isAvailable && ItemStatus.isPlayable(status),
                 Modifier.size(IconMedium)
             ) {
                 onAudioItemClick(AudioCallbackArgument.PlayPause(it))
             }
             IconButton(
                 onClick = { onAudioItemClick(AudioCallbackArgument.ForwardIncrement) },
-                enabled = isAvailable
+                enabled = isAvailable && ItemStatus.isSeekable(status)
             ) {
                 Icon(
                     imageVector = Icons.Default.FastForward,
@@ -155,7 +163,7 @@ fun AudioPlayView(
             }
             IconButton(
                 onClick = { onAudioItemClick(AudioCallbackArgument.SkipNext) },
-                enabled = isAvailable
+                enabled = isAvailable && ItemStatus.isSkippable(status)
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipNext,
@@ -252,6 +260,7 @@ private fun PitchDropdownSelector(
 private fun AudioListDropdownSelector(
     playList: List<AudioItemDto>,
     targetName: String = "",
+    enabled: Boolean = true,
     onItemSelected: (AudioCallbackArgument) -> Unit = {}
 ) {
     val expanded = remember { mutableStateOf(false) }
@@ -260,7 +269,7 @@ private fun AudioListDropdownSelector(
         expanded = expanded.value,
         onExpandedChange = { expanded.value = it },
         trigger = {
-            IconButton(onClick = { expanded.value = true }) {
+            IconButton(onClick = { expanded.value = true }, enabled = enabled) {
                 Icon(
                     Icons.AutoMirrored.Filled.ListAlt,
                     contentDescription = stringResource(R.string.list_description)
@@ -301,5 +310,20 @@ private fun SortDropdownSelector(
         if (index != it) {
             onSortChange(TapeSettingsCallbackArgument.SortOrder(AudioTapeSortOrder.fromInt(it)))
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AudioPlayViewPreview() {
+    AudioTapeTheme {
+        AudioPlayView(
+            isAvailable = true,
+            contentPosition = 1000,
+            tape = AudioTapeDto("folderPath", "currentPath", "currentName"),
+            playList = emptyList(),
+            status = ItemStatus.Normal,
+            displayPlaying = DisplayPlayingSource.Pause
+        )
     }
 }

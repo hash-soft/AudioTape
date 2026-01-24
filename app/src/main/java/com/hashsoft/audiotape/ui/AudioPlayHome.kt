@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -22,6 +23,9 @@ import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.logic.StorageHelper
+import com.hashsoft.audiotape.ui.theme.audioPlayContentColor
+import com.hashsoft.audiotape.ui.theme.audioPlayTitleAlpha
+import com.hashsoft.audiotape.ui.theme.defaultSurfaceContentColor
 
 
 /**
@@ -93,6 +97,10 @@ private fun AudioPlayHome(
                             stringResource(R.string.path_separator),
                             default = displayPlayingItem.audioTape.folderPath
                         ),
+                        color = audioPlayContentColor(
+                            displayPlayingItem.status,
+                            defaultSurfaceContentColor
+                        ).copy(alpha = audioPlayTitleAlpha(displayPlayingItem.status)),
                         maxLines = 1,
                         overflow = TextOverflow.StartEllipsis
                     )
@@ -110,15 +118,23 @@ private fun AudioPlayHome(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayView(
-                isAvailable = isAvailable,
-                contentPosition = contentPosition,
-                tape = displayPlayingItem.audioTape,
-                playList = displayPlayingItem.audioList,
-                displayPlaying = displayPlaying,
-                onAudioItemClick = onAudioItemClick,
-                onChangeTapeSettings = onChangeTapeSettings
-            )
+            Surface(
+                contentColor = audioPlayContentColor(
+                    displayPlayingItem.status,
+                    defaultSurfaceContentColor
+                )
+            ) {
+                AudioPlayView(
+                    isAvailable = isAvailable,
+                    contentPosition = contentPosition,
+                    tape = displayPlayingItem.audioTape,
+                    playList = displayPlayingItem.audioList,
+                    status = displayPlayingItem.status,
+                    displayPlaying = displayPlaying,
+                    onAudioItemClick = onAudioItemClick,
+                    onChangeTapeSettings = onChangeTapeSettings
+                )
+            }
         }
     }
 }
