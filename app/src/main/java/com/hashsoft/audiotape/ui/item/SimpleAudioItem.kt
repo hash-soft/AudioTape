@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * シンプルなオーディオアイテム
@@ -21,7 +22,7 @@ fun SimpleAudioItem(
     duration: Long
 ) {
     Column {
-        Text(text = name)
+        Text(text = name, overflow = TextOverflow.Ellipsis, maxLines = 1)
         AudioFileSubInfoItem(
             size,
             lastModified,

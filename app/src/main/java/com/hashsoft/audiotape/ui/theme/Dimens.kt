@@ -41,3 +41,11 @@ val AddressRightIconSize = 18.dp
 val LeadingContentWidth = 24.dp
 
 val EqualizerSize = 16.dp
+
+val TextDropdownPadding = 12.dp
+
+val DropDownTitleHorizonalPadding = 16.dp
+
+val DropDownTitleVerticalPadding = 8.dp
+
+val DisabledAlpha = 0.38f

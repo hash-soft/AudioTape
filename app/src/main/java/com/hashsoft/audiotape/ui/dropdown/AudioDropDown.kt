@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui.dropdown
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -14,8 +15,10 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.ui.item.SimpleAudioItem
@@ -43,11 +46,17 @@ fun AudioDropDown(
     Box {
         trigger()
 
-        DropdownMenu(expanded = expanded, onDismissRequest = {
-            onExpandedChange(false)
-        }) {
+        val itemHeightPx = with(LocalDensity.current) { 48.dp.toPx() }
+        val targetIndex = audioItemList.indexOfFirst { it.name == targetName }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                onExpandedChange(false)
+            },
+            scrollState = ScrollState((targetIndex * itemHeightPx).toInt()),
+        ) {
             audioItemList.forEachIndexed { index, item ->
-                val isTarget = item.name == targetName
+                val isTarget = index == targetIndex
                 DropdownMenuItem(
                     text = {
                         SimpleAudioItem(

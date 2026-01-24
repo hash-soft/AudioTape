@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui
 
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -35,8 +35,7 @@ fun NoTapeView(title: String, onBackClick: () -> Unit = {}) {
                 title = {
                     Text(
                         text = title,
-                        maxLines = 1,
-                        overflow = TextOverflow.StartEllipsis
+                        Modifier.basicMarquee()
                     )
                 },
                 navigationIcon = {

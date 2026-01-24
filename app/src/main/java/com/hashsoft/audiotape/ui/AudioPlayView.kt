@@ -1,6 +1,7 @@
 package com.hashsoft.audiotape.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Repeat
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -27,11 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.DisplayPlayingSource
@@ -39,6 +42,7 @@ import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
 import com.hashsoft.audiotape.data.PlayVolumeValues
+import com.hashsoft.audiotape.logic.TextHelper
 import com.hashsoft.audiotape.ui.button.PlayPauseButton
 import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
@@ -46,6 +50,7 @@ import com.hashsoft.audiotape.ui.item.PlaySliderItem
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
+import com.hashsoft.audiotape.ui.text.TappableMarqueeText
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.IconMedium
 import com.hashsoft.audiotape.ui.theme.audioPlayFileAlpha
@@ -69,6 +74,19 @@ fun AudioPlayView(
     onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
+        val metadata = playList.find { it.name == tape.currentName }?.metadata
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AudioFile,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -98,13 +116,23 @@ fun AudioPlayView(
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = tape.currentName,
-                color = Color.Unspecified.copy(alpha = audioPlayFileAlpha(status)),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                TappableMarqueeText(
+                    text = if (metadata == null) "" else TextHelper.joinNonEmpty(
+                        stringResource(R.string.metadata_separator),
+                        metadata.artist,
+                        metadata.title,
+                        metadata.album
+                    ),
+                    color = Color.Unspecified.copy(alpha = audioPlayFileAlpha(status)),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                TappableMarqueeText(
+                    text = tape.currentName,
+                    color = Color.Unspecified.copy(alpha = audioPlayFileAlpha(status)),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
             AudioListDropdownSelector(
                 playList,
                 tape.currentName,
@@ -117,7 +145,7 @@ fun AudioPlayView(
             displayPlaying != DisplayPlayingSource.Pause,
             enabled = isAvailable && ItemStatus.isSeekable(status),
             contentPosition = if (contentPosition >= 0) contentPosition else tape.position,
-            playList.find { it.name == tape.currentName }?.metadata?.duration ?: 0,
+            durationMs = metadata?.duration ?: 0,
         ) {
             onAudioItemClick(AudioCallbackArgument.SeekTo(it))
         }
@@ -321,7 +349,18 @@ fun AudioPlayViewPreview() {
             isAvailable = true,
             contentPosition = 1000,
             tape = AudioTapeDto("folderPath", "currentPath", "currentName"),
-            playList = emptyList(),
+            playList = listOf(
+                AudioItemDto(
+                    "currentName",
+                    "",
+                    "",
+                    0,
+                    0,
+                    0,
+                    "",
+                    AudioItemMetadata("album", "title", "artist", 30000, 0)
+                )
+            ),
             status = ItemStatus.Normal,
             displayPlaying = DisplayPlayingSource.Pause
         )
