@@ -1,7 +1,6 @@
 package com.hashsoft.audiotape.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,8 +21,6 @@ import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
-import com.hashsoft.audiotape.ui.theme.SettingLabelHorizontalPadding
-import com.hashsoft.audiotape.ui.theme.SettingLabelVerticalPadding
 
 /**
  * ユーザー設定画面のView
@@ -37,25 +34,13 @@ fun UserSettingsView(
     onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
     Column {
-        LabelItem(
-            stringResource(R.string.appearance_label),
-            Modifier.padding(
-                horizontal = SettingLabelHorizontalPadding,
-                vertical = SettingLabelVerticalPadding,
-            )
-        )
+        LabelItem(stringResource(R.string.appearance_label))
         ThemeSettingItem(
             userSettings.themeMode.ordinal,
             onSettingChange = onSettingChange
         )
 
-        LabelItem(
-            stringResource(R.string.default_settings_label),
-            Modifier.padding(
-                horizontal = SettingLabelHorizontalPadding,
-                vertical = SettingLabelVerticalPadding,
-            )
-        )
+        LabelItem(stringResource(R.string.default_settings_label))
         DefaultSortOrderItem(
             userSettings.defaultSortOrder.ordinal,
             onSettingChange = onSettingChange

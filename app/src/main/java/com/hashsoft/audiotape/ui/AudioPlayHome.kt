@@ -22,7 +22,6 @@ import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.DisplayPlayingSource
 import com.hashsoft.audiotape.logic.StorageHelper
-import timber.log.Timber
 
 
 /**
@@ -31,7 +30,6 @@ import timber.log.Timber
  * @param viewModel ViewModel
  * @param onBackClick 戻るボタンクリック時のコールバック
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioPlayHomeRoute(
     viewModel: AudioPlayViewModel = hiltViewModel(),
@@ -42,22 +40,59 @@ fun AudioPlayHomeRoute(
     val contentPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
 
-    Timber.d("#7 contentPosition = $contentPosition")
+    when (val result = displayPlayingItem) {
+        is PlayItemStateResult.NoTape -> {
+            NoTapeView(result.name, onBackClick)
+        }
 
+        is PlayItemStateResult.Success -> {
+            AudioPlayHome(
+                available,
+                contentPosition,
+                displayPlayingSource,
+                result.displayPlayingItem,
+                onBackClick = onBackClick,
+                { argument ->
+                    audioPlay(argument = argument, result.displayPlayingItem, viewModel = viewModel)
+                }) { argument ->
+                tapeSettings(argument, result.displayPlayingItem.audioTape, viewModel)
+            }
+        }
+
+        else -> {}
+    }
+
+
+}
+
+/**
+ * オーディオ再生画面のホーム
+ *
+ * @param onAudioItemClick オーディオ項目クリック時のコールバック
+ * @param onChangeTapeSettings テープ設定変更時のコールバック
+ */
+@Composable
+private fun AudioPlayHome(
+    isAvailable: Boolean,
+    contentPosition: Long,
+    displayPlaying: DisplayPlayingSource,
+    displayPlayingItem: DisplayPlayingItem,
+    onBackClick: () -> Unit = {},
+    onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
+    onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
+) {
+    @OptIn(ExperimentalMaterial3Api::class)
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
-                    val item = displayPlayingItem
                     Text(
-                        text = if (item == null) "" else {
-                            StorageHelper.treeListToString(
-                                item.treeList,
-                                stringResource(R.string.path_separator),
-                                default = item.audioTape.folderPath
-                            )
-                        },
+                        text = StorageHelper.treeListToString(
+                            displayPlayingItem.treeList,
+                            stringResource(R.string.path_separator),
+                            default = displayPlayingItem.audioTape.folderPath
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.StartEllipsis
                     )
@@ -75,48 +110,16 @@ fun AudioPlayHomeRoute(
             )
         }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            AudioPlayHome(
-                isAvailable = available,
+            AudioPlayView(
+                isAvailable = isAvailable,
                 contentPosition = contentPosition,
-                displayPlaying = displayPlayingSource,
-                displayPlayingItem,
-                { argument ->
-                    audioPlay(argument = argument, displayPlayingItem, viewModel = viewModel)
-                }) { argument ->
-                val tape = displayPlayingItem?.audioTape ?: return@AudioPlayHome
-                tapeSettings(argument, tape, viewModel)
-            }
+                tape = displayPlayingItem.audioTape,
+                playList = displayPlayingItem.audioList,
+                displayPlaying = displayPlaying,
+                onAudioItemClick = onAudioItemClick,
+                onChangeTapeSettings = onChangeTapeSettings
+            )
         }
-    }
-}
-
-/**
- * オーディオ再生画面のホーム
- *
- * @param onAudioItemClick オーディオ項目クリック時のコールバック
- * @param onChangeTapeSettings テープ設定変更時のコールバック
- */
-@Composable
-private fun AudioPlayHome(
-    isAvailable: Boolean,
-    contentPosition: Long,
-    displayPlaying: DisplayPlayingSource,
-    displayPlayingItem: DisplayPlayingItem?,
-    onAudioItemClick: (AudioCallbackArgument) -> Unit = {},
-    onChangeTapeSettings: (TapeSettingsCallbackArgument) -> Unit = {}
-) {
-    if (displayPlayingItem == null) {
-        NoTapeView()
-    } else {
-        AudioPlayView(
-            isAvailable = isAvailable,
-            contentPosition = contentPosition,
-            displayPlayingItem.audioTape,
-            displayPlayingItem.audioList,
-            displayPlaying,
-            onAudioItemClick,
-            onChangeTapeSettings
-        )
     }
 }
 

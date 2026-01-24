@@ -51,7 +51,7 @@ class LibrarySheetViewModel @Inject constructor(
     val displayPlayingState = _playItemState.displayPlayingState.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        null
+        PlayItemStateResult.Loading
     )
 
     val availableState = _playItemState.availableState.stateIn(

@@ -39,7 +39,6 @@ class PlayItemState(
         _audioStoreRepository.updateFlow,
         playingStateRepository.playingStateFlow()
     ) { volumes, _, playingState ->
-        Timber.d("#5 playingState = $playingState")
         val audioTape = _audioTapeRepository.getByPath(playingState.folderPath)
         if (audioTape != null) {
             val treeList =
@@ -50,17 +49,18 @@ class PlayItemState(
             )
             val list = _audioStoreRepository.getListByPath(searchObject)
             val sortedList = StorageItemListUseCase.sortedAudioList(list, audioTape.sortOrder)
-            Triple(audioTape, sortedList, treeList)
-        } else null
+            Triple(audioTape, sortedList, treeList) to playingState.folderPath
+        } else null to playingState.folderPath
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val displayPlayingState = _baseState.flatMapLatest { triple ->
+    val displayPlayingState = _baseState.flatMapLatest { pair ->
         Timber.d("#5 audioState")
+        val triple = pair.first
         if (triple != null) {
             _audioTapeRepository.findByPath(triple.first.folderPath).map { audioTape ->
                 Timber.d("#5 tape changed = $audioTape")
-                if (audioTape == null) null else {
+                if (audioTape == null) PlayItemStateResult.NoTape(pair.second) else {
                     val sortedList = if (audioTape.sortOrder != triple.first.sortOrder) {
                         // _baseStateからソートが変更されていた場合リストとplayerの更新を行う
                         val result = StorageItemListUseCase.sortedAudioList(
@@ -77,24 +77,27 @@ class PlayItemState(
                         triple.second
                     }
                     val currentAudio = sortedList.find { it.name == audioTape.currentName }
-                    DisplayPlayingItem(
-                        audioTape, sortedList, triple.third,
-                        currentAudio = currentAudio,
-                        status = StorageHelper.checkState(
-                            sortedList.size,
-                            currentAudio != null,
-                            audioTape.folderPath
+                    PlayItemStateResult.Success(
+                        DisplayPlayingItem(
+                            audioTape, sortedList, triple.third,
+                            currentAudio = currentAudio,
+                            status = StorageHelper.checkState(
+                                sortedList.size,
+                                currentAudio != null,
+                                audioTape.folderPath
+                            )
                         )
                     )
                 }
             }
-        } else flowOf(null)
+        } else flowOf(PlayItemStateResult.NoTape(pair.second))
 
     }
 
     val availableState =
-        combine(_baseState, controller.availableStateFlow) { audio, available ->
+        combine(_baseState, controller.availableStateFlow) { pair, available ->
             Timber.d("#5 availableState = $available, isPlaying: ${controller.isPlaying}")
+            val audio = pair.first
             if (audio != null) {
                 if (controller.getMediaItemCount() == 0) {
                     val audioTape = audio.first
@@ -158,3 +161,9 @@ data class DisplayPlayingItem(
     val currentAudio: AudioItemDto? = null,
     val status: ItemStatus = ItemStatus.Normal
 )
+
+sealed interface PlayItemStateResult {
+    data object Loading : PlayItemStateResult
+    data class NoTape(val name: String) : PlayItemStateResult
+    data class Success(val displayPlayingItem: DisplayPlayingItem) : PlayItemStateResult
+}

@@ -69,8 +69,13 @@ private fun LibraryHome(
 ) {
     val playingPosition by viewModel.currentPositionState.collectAsStateWithLifecycle()
     val displayPlayingSource by viewModel.displayPlayingSource.collectAsStateWithLifecycle()
-    val displayPlayingItem by viewModel.displayPlayingState.collectAsStateWithLifecycle()
+    val displayPlayingItemResult by viewModel.displayPlayingState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
+
+    val displayPlayingItem = when (val result = displayPlayingItemResult) {
+        is PlayItemStateResult.Success -> result.displayPlayingItem
+        else -> null
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
