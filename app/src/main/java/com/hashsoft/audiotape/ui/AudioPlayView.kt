@@ -26,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -124,12 +123,12 @@ fun AudioPlayView(
                         metadata.title,
                         metadata.album
                     ),
-                    color = Color.Unspecified.copy(alpha = audioPlayFileAlpha(status)),
+                    color = LocalContentColor.current.copy(alpha = audioPlayFileAlpha(status)),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 TappableMarqueeText(
                     text = tape.currentName,
-                    color = Color.Unspecified.copy(alpha = audioPlayFileAlpha(status)),
+                    color = LocalContentColor.current.copy(alpha = audioPlayFileAlpha(status)),
                     style = MaterialTheme.typography.titleLarge
                 )
             }
