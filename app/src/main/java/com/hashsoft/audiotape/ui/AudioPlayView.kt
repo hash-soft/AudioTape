@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +49,7 @@ import com.hashsoft.audiotape.ui.item.PlaySliderItem
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
+import com.hashsoft.audiotape.ui.text.FixedWidthText
 import com.hashsoft.audiotape.ui.text.TappableMarqueeText
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.IconMedium
@@ -220,7 +220,8 @@ private fun VolumeDropdownSelector(
         volumeLabels,
         title,
         selectedIndex = index,
-        iconContent = { Text(selectedLabel) }) {
+        nonIconContent = true,
+        buttonContent = { FixedWidthText(selectedLabel, 4, sampleChar = "%") }) {
         if (index != it) {
             onVolumeChange(TapeSettingsCallbackArgument.Volume(PlayVolumeValues[it]))
         }
@@ -245,7 +246,8 @@ private fun SpeedDropdownSelector(
         speedLabels,
         title,
         selectedIndex = index,
-        iconContent = { Text(selectedLabel) }) {
+        nonIconContent = true,
+        buttonContent = { FixedWidthText(selectedLabel, 5, sampleChar = "9") }) {
         if (index != it) {
             onSpeedChange(TapeSettingsCallbackArgument.Speed(PlaySpeedValues[it]))
         }
@@ -270,7 +272,8 @@ private fun PitchDropdownSelector(
         pitchLabels,
         title,
         selectedIndex = index,
-        iconContent = { Text(selectedLabel) }) {
+        nonIconContent = true,
+        buttonContent = { FixedWidthText(selectedLabel, 4, sampleChar = "#") }) {
         if (index != it) {
             onPitchChange(TapeSettingsCallbackArgument.Pitch(PlayPitchValues[it]))
         }
@@ -329,7 +332,7 @@ private fun SortDropdownSelector(
     val sortLabels = stringArrayResource(R.array.audio_list_sort_labels).toList()
     val index = sortOrder.ordinal
 
-    TextDropdownSelector(sortLabels, title, selectedIndex = index, iconContent = {
+    TextDropdownSelector(sortLabels, title, selectedIndex = index, buttonContent = {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Sort,
             contentDescription = stringResource(R.string.sort_order_description),

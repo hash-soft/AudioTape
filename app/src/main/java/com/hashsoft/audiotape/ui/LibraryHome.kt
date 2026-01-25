@@ -172,7 +172,7 @@ private fun MenuDropdownSelector(ejectEnabled: Boolean, onClick: (Int) -> Unit =
         "",
         selectedIndex = -1,
         disableMenuIds = if (ejectEnabled) intSetOf() else intSetOf(MenuIndex.Eject.ordinal),
-        iconContent = {
+        buttonContent = {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.menu_description),

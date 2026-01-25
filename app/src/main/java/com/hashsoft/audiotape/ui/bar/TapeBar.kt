@@ -44,7 +44,7 @@ fun TapeBar(
                 sortLabels,
                 "",
                 selectedIndex = sortIndex,
-                iconContent = {
+                buttonContent = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Sort,
                         contentDescription = stringResource(R.string.menu_description),

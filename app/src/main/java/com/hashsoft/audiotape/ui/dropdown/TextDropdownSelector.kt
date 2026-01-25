@@ -15,6 +15,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +42,7 @@ import com.hashsoft.audiotape.ui.theme.TextDropdownPadding
  *
  * @param labels ラベルのリスト
  * @param title タイトル
- * @param iconContent アイコンコンテンツ
+ * @param buttonContent アイコンコンテンツ
  * @param onItemSelected アイテム選択時のコールバック
  */
 @Composable
@@ -51,30 +52,35 @@ fun TextDropdownSelector(
     selectedIndex: Int = -1,
     enabled: Boolean = true,
     disableMenuIds: IntSet = intSetOf(),
-    iconContent: @Composable (() -> Unit),
+    nonIconContent: Boolean = false,
+    buttonContent: @Composable (() -> Unit),
     onItemSelected: (Int) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
-        Row(
-            modifier = Modifier
-                .wrapContentWidth()
-                .clip(CircleShape)
-                .clickable(enabled = enabled, onClick = { expanded = true })
-                .alpha(if (enabled) 1f else DisabledAlpha)
-                .padding(TextDropdownPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            iconContent()
+    Box(modifier = if (nonIconContent) Modifier.wrapContentSize(Alignment.TopStart) else Modifier) {
+        if (nonIconContent) {
+            Row(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .clip(CircleShape)
+                    .clickable(enabled = enabled, onClick = { expanded = true })
+                    .alpha(if (enabled) 1f else DisabledAlpha)
+                    .padding(TextDropdownPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                buttonContent()
+            }
+        } else {
+            IconButton(onClick = { expanded = true }, content = buttonContent, enabled = enabled)
         }
 
         val itemHeightPx = with(LocalDensity.current) { 48.dp.toPx() }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            scrollState = ScrollState((selectedIndex * itemHeightPx).toInt())
+            scrollState = ScrollState(if (selectedIndex <= 0) 0 else (selectedIndex * itemHeightPx).toInt())
         ) {
             if (title.isNotEmpty()) {
                 Text(
@@ -117,7 +123,7 @@ fun TextDropdownSelectorPreview() {
             title = "title",
             selectedIndex = 0,
             enabled = false,
-            iconContent = { Text("label1") }
+            buttonContent = { Text("label1") }
         )
     }
 }
