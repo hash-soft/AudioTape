@@ -15,7 +15,6 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +30,7 @@ import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.item.SimpleAudioPlayItem
+import com.hashsoft.audiotape.ui.tab.AdaptiveTab
 import kotlinx.coroutines.launch
 
 private const val TAB_FOLDER = 0
@@ -114,7 +114,7 @@ private fun LibrarySheetPager(
         Column(modifier = Modifier.padding(innerPadding)) {
             SecondaryTabRow(selectedTabIndex = state.currentPage) {
                 tabs.forEachIndexed { index, tab ->
-                    Tab(
+                    AdaptiveTab(
                         selected = state.currentPage == index,
                         onClick = {
                             scope.launch {
