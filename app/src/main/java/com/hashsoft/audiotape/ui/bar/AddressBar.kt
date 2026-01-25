@@ -27,7 +27,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.LocationType
 import com.hashsoft.audiotape.data.StorageLocationDto
 import com.hashsoft.audiotape.ui.theme.AddressBarItemSpace
@@ -113,7 +115,7 @@ private fun OneDirectory(
     if (hasRight) {
         Icon(
             imageVector = Icons.Outlined.ChevronRight,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.chevron_right),
             modifier = Modifier.size(AddressRightIconSize)
         )
     }
@@ -121,7 +123,7 @@ private fun OneDirectory(
         LocationType.Root -> {
             Icon(
                 imageVector = Icons.Default.Home,
-                contentDescription = null,
+                contentDescription = address.name,
                 tint = if (isPrimary) primaryItemColor else LocalContentColor.current
             )
         }
@@ -129,7 +131,7 @@ private fun OneDirectory(
         LocationType.Inner -> {
             Icon(
                 imageVector = Icons.Default.PhoneAndroid,
-                contentDescription = null,
+                contentDescription = address.name,
                 tint = if (isPrimary) primaryItemColor else LocalContentColor.current
             )
         }
@@ -137,7 +139,7 @@ private fun OneDirectory(
         LocationType.External -> {
             Icon(
                 imageVector = Icons.Default.SdCard,
-                contentDescription = null,
+                contentDescription = address.name,
                 tint = if (isPrimary) primaryItemColor else LocalContentColor.current
             )
         }

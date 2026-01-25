@@ -83,7 +83,7 @@ fun AudioPlayView(
         ) {
             Icon(
                 imageVector = Icons.Default.AudioFile,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.audio_icon),
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -163,7 +163,7 @@ fun AudioPlayView(
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipPrevious,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.skip_previous),
                 )
             }
             IconButton(
@@ -172,7 +172,7 @@ fun AudioPlayView(
             ) {
                 Icon(
                     imageVector = Icons.Default.FastRewind,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.fast_rewind),
                 )
             }
             PlayPauseButton(
@@ -188,7 +188,7 @@ fun AudioPlayView(
             ) {
                 Icon(
                     imageVector = Icons.Default.FastForward,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.fast_forward),
                 )
             }
             IconButton(
@@ -197,7 +197,7 @@ fun AudioPlayView(
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipNext,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.skip_next),
                 )
             }
         }

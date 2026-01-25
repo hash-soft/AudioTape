@@ -47,4 +47,10 @@
     <string name="this_no_audio">%s does not contain any audio files.</string>
     <string name="metadata_separator" translatable="false">\u0020-\u0020</string>
     <string name="file_app_not_fount">File app not found</string>
+    <string name="chevron_right">Chevron right</string>
+    <string name="audio_icon">Audio icon</string>
+    <string name="skip_previous">Skip previous</string>
+    <string name="skip_next">Skip next</string>
+    <string name="fast_rewind">Fast rewind</string>
+    <string name="fast_forward">Fast forward</string>
 </resources>

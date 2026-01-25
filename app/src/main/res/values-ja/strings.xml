@@ -38,4 +38,10 @@
     <string name="delete_confirm_text">選択したテープを削除します。</string>
     <string name="this_no_audio">%s にはオーディオファイルがありません。</string>
     <string name="file_app_not_fount">ファイルアプリが見つかりませんでした</string>
+    <string name="chevron_right">右シブレット</string>
+    <string name="audio_icon">オーディオアイコン</string>
+    <string name="skip_previous">前にスキップ</string>
+    <string name="skip_next">次にスキップ</string>
+    <string name="fast_rewind">巻き戻し</string>
+    <string name="fast_forward">早送り</string>
 </resources>
