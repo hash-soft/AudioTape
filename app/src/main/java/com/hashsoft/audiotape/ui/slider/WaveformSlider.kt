@@ -68,13 +68,17 @@ fun WaveformSlider(
         ),
         track = {
             val infiniteTransition = rememberInfiniteTransition(label = "wave_animation")
+
+            val baseDuration = 2000
+            val duration = if (options.speed > 0) (baseDuration / options.speed).toInt() else Int.MAX_VALUE
+
             val phase by infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = 2 * PI.toFloat() * options.speed, // 波の速さ
                 animationSpec = infiniteRepeatable(
-                    tween(durationMillis = 1000, easing = LinearEasing),
+                    tween(durationMillis = duration, easing = LinearEasing),
                     RepeatMode.Restart
-                ), label = ""
+                ), label = "phase"
             )
 
             Box(modifier = modifier) {
@@ -83,18 +87,18 @@ fun WaveformSlider(
                     val height = size.height
                     val centerY = height / 2
                     val activeTrackWidth = width * safeValue
-                    if (isPlaying) {
+                    if (isPlaying && options.speed > 0) {
                         // 波線
                         val wavePath = Path()
                         val amplitude = options.amplitude.toPx() // 波の高さ
                         val frequency = options.frequency // 波の間隔
 
-                        val startY = (sin(phase) * amplitude) + centerY
+                        val startY = (sin(-phase) * amplitude) + centerY
                         wavePath.moveTo(0f, startY)
 
                         // 波の描画パス作成
                         for (x in 1..activeTrackWidth.toInt()) {
-                            val y = (sin(x * frequency + phase) * amplitude) + centerY
+                            val y = (sin(x * frequency - phase) * amplitude) + centerY
                             wavePath.lineTo(x.toFloat(), y)
                         }
                         drawPath(

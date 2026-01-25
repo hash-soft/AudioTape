@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.logic.TimeFormat.Companion.formatMillis
 import com.hashsoft.audiotape.ui.slider.WaveformSlider
+import com.hashsoft.audiotape.ui.slider.WaveformSliderDefaults
 
 /**
  * 再生を制御するためのスライダーを表示するコンポーザブル
@@ -32,7 +33,9 @@ fun PlaySliderItem(
     enabled: Boolean,
     contentPosition: Long,
     durationMs: Long,
-    onChanged: (Long) -> Unit
+    amplitude: Float = 1.0f,
+    speed: Float = 1.0f,
+    onChanged: (Long) -> Unit = {}
 ) {
     var sliderPosition by remember { mutableStateOf<Float?>(null) }
 
@@ -48,6 +51,7 @@ fun PlaySliderItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        val options = WaveformSliderDefaults.options()
         WaveformSlider(
             value = currentValue,
             onValueChange = {
@@ -63,7 +67,11 @@ fun PlaySliderItem(
             enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(24.dp)
+                .height(24.dp),
+            options = options.copy(
+                amplitude = options.amplitude * amplitude,
+                speed = options.speed * speed
+            )
         )
         Row(
             modifier = Modifier.fillMaxWidth(),

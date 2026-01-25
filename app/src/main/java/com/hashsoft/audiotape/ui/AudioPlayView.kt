@@ -146,6 +146,8 @@ fun AudioPlayView(
             enabled = isAvailable && ItemStatus.isSeekable(status),
             contentPosition = if (contentPosition >= 0) contentPosition else tape.position,
             durationMs = metadata?.duration ?: 0,
+            amplitude = tape.volume,
+            speed = tape.speed,
         ) {
             onAudioItemClick(AudioCallbackArgument.SeekTo(it))
         }
