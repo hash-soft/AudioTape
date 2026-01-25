@@ -142,6 +142,7 @@ private fun LibrarySheetPager(
                             scope.launch {
                                 snackBarHostState.showSnackbar(
                                     message = context.getString(R.string.this_no_audio, name),
+                                    actionLabel = context.getString(R.string.ok),
                                     duration = SnackbarDuration.Short
                                 )
                             }

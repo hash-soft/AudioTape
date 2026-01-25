@@ -37,4 +37,5 @@
     <string name="delete_confirm_title">削除</string>
     <string name="delete_confirm_text">選択したテープを削除します。</string>
     <string name="this_no_audio">%s にはオーディオファイルがありません。</string>
+    <string name="file_app_not_fount">ファイルアプリが見つかりませんでした</string>
 </resources>

@@ -3,6 +3,7 @@
     <string-array name="menu_labels">
         <item>Settings</item>
         <item>Eject</item>
+        <item>Lunch External File App</item>
         <item>About</item>
     </string-array>
 

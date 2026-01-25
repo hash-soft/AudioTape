@@ -1,5 +1,6 @@
 package com.hashsoft.audiotape.ui
 
+import android.content.Intent
 import androidx.collection.intSetOf
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,12 +11,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.integerArrayResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -28,11 +35,14 @@ import com.hashsoft.audiotape.data.LibraryStateDto
 import com.hashsoft.audiotape.data.LibraryTab
 import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import kotlinx.coroutines.launch
 
 
 private enum class MenuIndex {
     UserSettings,
-    Eject
+    Eject,
+    LunchExternalFileApp,
+    //About
 }
 
 @Composable
@@ -77,18 +87,44 @@ private fun LibraryHome(
         else -> null
     }
 
+    val scope = rememberCoroutineScope()
+    val snackBarHostState = remember { SnackbarHostState() }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
+            val context = LocalContext.current
+            val okText = stringResource(R.string.ok)
+            val snackBarMessage = stringResource(R.string.file_app_not_fount)
             NormalTopBar(displayPlayingItem != null) {
                 when (it) {
                     MenuIndex.UserSettings.ordinal -> onTransferClick(Route.UserSettings)
                     MenuIndex.Eject.ordinal -> viewModel.ejectTape(displayPlayingItem?.audioTape)
+                    MenuIndex.LunchExternalFileApp.ordinal -> {
+
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            addCategory(Intent.CATEGORY_DEFAULT)
+                            setDataAndType(null, "vnd.android.document/directory")
+                        }
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        try {
+                            context.startActivity(intent)
+                        } catch (_: Exception) {
+                            scope.launch {
+                                snackBarHostState.showSnackbar(
+                                    message = snackBarMessage,
+                                    actionLabel = okText,
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        }
+                    }
 
                     else -> {}
                 }
             }
-        }) { innerPadding ->
+        }, snackbarHost = { SnackbarHost(hostState = snackBarHostState) }) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             LibrarySheetRoute(
                 libraryState,
