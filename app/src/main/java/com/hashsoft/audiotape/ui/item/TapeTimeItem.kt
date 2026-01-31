@@ -27,7 +27,7 @@ fun AdaptiveTapeTimeItem(
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     if (isLandscape) {
-        TapeTimeItemPortrait(lastPlayedAt, createdTime, style)
+        TapeTimeItemLandScope(lastPlayedAt, createdTime, style)
     } else {
         TapeTimeItem(lastPlayedAt, createdTime, style)
     }
@@ -63,7 +63,7 @@ fun TapeTimeItem(
 }
 
 @Composable
-fun TapeTimeItemPortrait(
+fun TapeTimeItemLandScope(
     lastPlayedAt: Long,
     createdTime: Long,
     style: TextStyle = LocalTextStyle.current
@@ -107,9 +107,9 @@ private fun TapeTimeItemPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun TapeTimeItemPortraitPreview() {
+private fun TapeTimeItemLandScopePreview() {
     AudioTapeTheme {
-        TapeTimeItemPortrait(
+        TapeTimeItemLandScope(
             lastPlayedAt = 1000,
             createdTime = 2000,
             style = LocalTextStyle.current
