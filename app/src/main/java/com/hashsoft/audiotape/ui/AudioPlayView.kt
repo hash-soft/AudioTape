@@ -86,28 +86,6 @@ fun AudioPlayView(
                 modifier = Modifier.fillMaxSize()
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            VolumeDropdownSelector(tape.volume, onChangeTapeSettings)
-            SpeedDropdownSelector(tape.speed, onChangeTapeSettings)
-            PitchDropdownSelector(tape.pitch, onChangeTapeSettings)
-
-            IconButton(onClick = { onChangeTapeSettings(TapeSettingsCallbackArgument.Repeat(!tape.repeat)) }) {
-                val tint =
-                    if (tape.repeat) LocalContentColor.current else LocalContentColor.current.copy(
-                        alpha = 0.5f
-                    )
-                Icon(
-                    imageVector = Icons.Default.Repeat,
-                    contentDescription = stringResource(R.string.repeat_description),
-                    tint = tint
-                )
-            }
-            SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
-        }
 
         Row(
             modifier = Modifier
@@ -199,6 +177,28 @@ fun AudioPlayView(
                     contentDescription = stringResource(R.string.skip_next),
                 )
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            VolumeDropdownSelector(tape.volume, onChangeTapeSettings)
+            SpeedDropdownSelector(tape.speed, onChangeTapeSettings)
+            PitchDropdownSelector(tape.pitch, onChangeTapeSettings)
+
+            IconButton(onClick = { onChangeTapeSettings(TapeSettingsCallbackArgument.Repeat(!tape.repeat)) }) {
+                val tint =
+                    if (tape.repeat) LocalContentColor.current else LocalContentColor.current.copy(
+                        alpha = 0.5f
+                    )
+                Icon(
+                    imageVector = Icons.Default.Repeat,
+                    contentDescription = stringResource(R.string.repeat_description),
+                    tint = tint
+                )
+            }
+            SortDropdownSelector(tape.sortOrder, onChangeTapeSettings)
         }
     }
 }
