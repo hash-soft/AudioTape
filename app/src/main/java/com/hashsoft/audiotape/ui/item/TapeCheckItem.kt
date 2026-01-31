@@ -106,7 +106,7 @@ fun TapeCheckItem(
                     repeat,
                     LocalTextStyle.current.copy(fontSize = smallFontSize)
                 )
-                TapeTimeItem(
+                AdaptiveTapeTimeItem(
                     lastPlayedAt,
                     createTime,
                     LocalTextStyle.current.copy(fontSize = smallFontSize)
@@ -118,7 +118,7 @@ fun TapeCheckItem(
 
 @Preview(showBackground = true)
 @Composable
-fun TapeCheckItemPreview() {
+private fun TapeCheckItemPreview() {
     AudioTapeTheme {
         TapeCheckItem(
             1,
