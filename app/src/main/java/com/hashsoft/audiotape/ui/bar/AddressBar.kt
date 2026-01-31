@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -33,6 +34,7 @@ import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.LocationType
 import com.hashsoft.audiotape.data.StorageLocationDto
 import com.hashsoft.audiotape.ui.theme.AddressBarItemSpace
+import com.hashsoft.audiotape.ui.theme.AddressBarStartPadding
 import com.hashsoft.audiotape.ui.theme.AddressRightIconSize
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.addressBarBackgroundColor
@@ -49,7 +51,10 @@ fun AddressBar(addressList: List<StorageLocationDto>, onAddressChange: (String) 
         modifier = Modifier
             .scrollable(rememberScrollableState { it }, Orientation.Horizontal)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = AddressBarStartPadding)
+        ) {
             Box(modifier = Modifier.weight(1F)) {
                 AddressRow(addressList, onAddressChange)
             }
