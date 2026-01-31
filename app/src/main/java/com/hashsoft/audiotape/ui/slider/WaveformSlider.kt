@@ -68,15 +68,11 @@ fun WaveformSlider(
         ),
         track = {
             val infiniteTransition = rememberInfiniteTransition(label = "wave_animation")
-
-            val baseDuration = 2000
-            val duration = if (options.speed > 0) (baseDuration / options.speed).toInt() else Int.MAX_VALUE
-
             val phase by infiniteTransition.animateFloat(
                 initialValue = 0f,
-                targetValue = 2 * PI.toFloat() * options.speed, // 波の速さ
+                targetValue = 1000f,
                 animationSpec = infiniteRepeatable(
-                    tween(durationMillis = duration, easing = LinearEasing),
+                    tween(durationMillis = 1000000, easing = LinearEasing),
                     RepeatMode.Restart
                 ), label = "phase"
             )
@@ -93,14 +89,24 @@ fun WaveformSlider(
                         val amplitude = options.amplitude.toPx() // 波の高さ
                         val frequency = options.frequency // 波の間隔
 
+                        val phase = phase * 2 * PI.toFloat() * options.speed
+                        // 大きいほど描画不可が下がるが荒くなる
+                        val step = 2f
                         val startY = (sin(-phase) * amplitude) + centerY
                         wavePath.moveTo(0f, startY)
 
-                        // 波の描画パス作成
-                        for (x in 1..activeTrackWidth.toInt()) {
+                        // 波のパス
+                        var x = step
+                        while (x < activeTrackWidth) {
                             val y = (sin(x * frequency - phase) * amplitude) + centerY
-                            wavePath.lineTo(x.toFloat(), y)
+                            wavePath.lineTo(x, y)
+                            x += step
                         }
+                        // つまみに合わせる補完パス
+                        wavePath.lineTo(
+                            activeTrackWidth,
+                            (sin(activeTrackWidth * frequency - phase) * amplitude) + centerY
+                        )
                         drawPath(
                             path = wavePath,
                             color = if (enabled) colors.activeTrackColor else colors.disabledActiveTrackColor,
