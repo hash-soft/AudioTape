@@ -21,6 +21,7 @@
     <string name="no_title_information">No title information</string>
     <string name="menu_description">menu</string>
     <string name="repeat_description">repeat</string>
+    <string name="repeat_label" translatable="false">repeat</string>
     <string name="list_description">audio list</string>
     <string name="sort_order_description">Sort order</string>
     <string name="not_found_volume_label" translatable="false">%1$d%%</string>
@@ -45,7 +46,10 @@
     <string name="delete_confirm_title">Delete</string>
     <string name="delete_confirm_text">The selected tape will be deleted.</string>
     <string name="this_no_audio">%s does not contain any audio files.</string>
-    <string name="metadata_separator" translatable="false">\u0020-\u0020</string>
+    <string name="metadata_separator" translatable="false">\u0020\u0020\u00b7\u0020\u0020</string>
+    <string name="simple_audio_current_separator" translatable="false">\u0020\u00b7\u0020</string>
+    <string name="tape_settings_separator" translatable="false">\u0020\u00b7\u0020</string>
+    <string name="unknown_sort_order_label" translatable="false">\?</string>
     <string name="file_app_not_fount">File app not found</string>
     <string name="chevron_right">Chevron right</string>
     <string name="audio_icon">Audio icon</string>

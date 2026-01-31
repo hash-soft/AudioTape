@@ -105,7 +105,8 @@ fun TapeItem(
                     volume,
                     speed,
                     pitch,
-                    repeat,
+                    isRepeat = repeat,
+                    sortOrder,
                     LocalTextStyle.current.copy(fontSize = smallFontSize)
                 )
                 AdaptiveTapeTimeItem(

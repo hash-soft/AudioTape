@@ -4,14 +4,17 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.ui.text.AudioDurationText
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.ListLabelSpace
@@ -79,16 +82,19 @@ fun SimpleAudioCurrentItemLandScope(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(ListLabelSpace),
     ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(ListLabelSpace)
-        ) {
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 directory,
                 modifier = Modifier.weight(1f, fill = false),
                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
                 maxLines = 1,
                 overflow = TextOverflow.StartEllipsis,
+            )
+            Text(
+                text = stringResource(R.string.simple_audio_current_separator),
+                color = LocalContentColor.current.copy(alpha = 0.5f),
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                maxLines = 1,
             )
             Text(
                 text = name,

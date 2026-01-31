@@ -1,17 +1,17 @@
 package com.hashsoft.audiotape.ui.item
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.R
+import com.hashsoft.audiotape.data.AudioTapeSortOrder
+import com.hashsoft.audiotape.ui.resource.buildAnnotatedSettings
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
+import com.hashsoft.audiotape.ui.resource.displaySortOrderValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -23,23 +23,18 @@ fun PlaybackValueItem(
     speed: Float,
     pitch: Float,
     isRepeat: Boolean,
+    sortOrder: AudioTapeSortOrder,
     style: TextStyle = LocalTextStyle.current
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        ProvideTextStyle(value = style) {
-            Text(text = displayVolumeValue(volume).second)
-            Text(text = displaySpeedValue(speed).second)
-            Text(text = displayPitchValue(pitch).second)
-            if (isRepeat) {
-                Text(text = "Repeat")
-            }
-        }
-    }
-
+    val text = buildAnnotatedSettings(
+        stringResource(R.string.tape_settings_separator),
+        displayVolumeValue(volume).second,
+        displaySpeedValue(speed).second,
+        displayPitchValue(pitch).second,
+        if (isRepeat) stringResource(R.string.repeat_label) else "",
+        displaySortOrderValue(sortOrder.ordinal)
+    )
+    Text(text = text, style = style, overflow = TextOverflow.Ellipsis, maxLines = 1)
 }
 
 
@@ -52,6 +47,7 @@ fun PlaybackValueItemPreview() {
             speed = 1.0f,
             pitch = 1.0f,
             isRepeat = false,
+            sortOrder = AudioTapeSortOrder.DATE_ASC,
             style = LocalTextStyle.current
         )
     }

@@ -17,9 +17,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemMetadata
-import com.hashsoft.audiotape.logic.TextHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.animation.EqualizerAnimation
+import com.hashsoft.audiotape.ui.resource.buildAnnotatedSettings
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.LeadingContentWidth
 import com.hashsoft.audiotape.ui.theme.currentItemBackgroundColor
@@ -96,7 +96,7 @@ fun AudioItem(
 @Composable
 private fun OverlineContext(metadata: AudioItemMetadata) {
 
-    val text = TextHelper.joinNonEmpty(
+    val text = buildAnnotatedSettings(
         stringResource(R.string.metadata_separator),
         metadata.artist,
         metadata.title,
