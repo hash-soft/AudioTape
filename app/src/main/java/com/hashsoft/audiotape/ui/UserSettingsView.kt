@@ -1,6 +1,8 @@
 package com.hashsoft.audiotape.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +35,7 @@ fun UserSettingsView(
     userSettings: UserSettingsDto,
     onSettingChange: (argument: UserSettingsCallbackArgument) -> Unit = {}
 ) {
-    Column {
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         LabelItem(stringResource(R.string.appearance_label))
         ThemeSettingItem(
             userSettings.themeMode.ordinal,
