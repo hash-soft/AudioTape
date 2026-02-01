@@ -85,11 +85,11 @@ class TapeViewModel @Inject constructor(
      */
     val displayTapeListState =
         combine(_baseState, _playingStateRepository.playingStateFlow()) { pair, playingState ->
-            pair.first.map {
-                val audioTape = it.first
+            pair.first.map { triple ->
+                val audioTape = triple.first
                 val isCurrent = playingState.folderPath == audioTape.folderPath
                 val searchObject = AudioStoreRepository.pathToSearchObject(
-                    it.third,
+                    triple.third,
                     audioTape.folderPath,
                 )
                 val audioList = _audioStoreRepository.getListByPath(searchObject)
@@ -100,7 +100,7 @@ class TapeViewModel @Inject constructor(
                 DisplayTapeItem(
                     audioTape,
                     sortedList,
-                    it.second,
+                    triple.second,
                     currentAudioNo,
                     isCurrent,
                     status = StorageHelper.checkState(

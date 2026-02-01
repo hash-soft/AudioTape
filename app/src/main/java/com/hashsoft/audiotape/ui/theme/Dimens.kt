@@ -51,3 +51,5 @@ val DropDownTitleHorizonalPadding = 16.dp
 val DropDownTitleVerticalPadding = 8.dp
 
 val DisabledAlpha = 0.38f
+
+val AudioPlayItemHorizonalPadding = 16.dp

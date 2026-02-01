@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -55,3 +56,11 @@ fun AudioTapeTheme(
         content = content
     )
 }
+
+@Preview(name = "1_Portrait", showBackground = true)
+@Preview(
+    name = "2_Landscape",
+    device = "spec:width=411dp,height=891dp,orientation=landscape",
+    showBackground = true
+)
+annotation class PreviewOrientation

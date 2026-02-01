@@ -13,11 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.ui.text.AudioDurationText
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.ListLabelSpace
+import com.hashsoft.audiotape.ui.theme.PreviewOrientation
 
 
 @Composable
@@ -112,24 +112,12 @@ fun SimpleAudioCurrentItemLandScope(
 
 }
 
-@Preview(showBackground = true)
+@PreviewOrientation
 @Composable
 private fun SimpleAudioCurrentItemPreview() {
     AudioTapeTheme {
-        SimpleAudioCurrentItem(
+        AdaptiveSimpleAudioCurrentItem(
             name = "name",
-            directory = "テープ名000000000000000000000000000000",
-            contentPosition = 500
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SimpleAudioCurrentItemLandScopePreview() {
-    AudioTapeTheme {
-        SimpleAudioCurrentItemLandScope(
-            name = "name00",
             directory = "テープ名000000000000000000000000000000",
             contentPosition = 500
         )

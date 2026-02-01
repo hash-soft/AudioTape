@@ -128,7 +128,7 @@ private fun AudioPlayHome(
                     defaultSurfaceContentColor
                 )
             ) {
-                AudioPlayView(
+                AdaptiveAudioPlayView(
                     isAvailable = isAvailable,
                     contentPosition = contentPosition,
                     tape = displayPlayingItem.audioTape,

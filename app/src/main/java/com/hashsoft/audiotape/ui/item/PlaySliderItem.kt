@@ -33,6 +33,7 @@ fun PlaySliderItem(
     enabled: Boolean,
     contentPosition: Long,
     durationMs: Long,
+    modifier: Modifier = Modifier,
     amplitude: Float = 1.0f,
     speed: Float = 1.0f,
     onChanged: (Long) -> Unit = {}
@@ -47,8 +48,7 @@ fun PlaySliderItem(
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         val options = WaveformSliderDefaults.options()

@@ -12,10 +12,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.logic.TimeFormat.Companion.formatDateTimeHm
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.PreviewOrientation
 import java.time.format.FormatStyle
 
 
@@ -93,23 +93,11 @@ fun TapeTimeItemLandScope(
 
 }
 
-@Preview(showBackground = true)
+@PreviewOrientation
 @Composable
 private fun TapeTimeItemPreview() {
     AudioTapeTheme {
-        TapeTimeItem(
-            lastPlayedAt = 1000,
-            createdTime = 2000,
-            style = LocalTextStyle.current
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun TapeTimeItemLandScopePreview() {
-    AudioTapeTheme {
-        TapeTimeItemLandScope(
+        AdaptiveTapeTimeItem(
             lastPlayedAt = 1000,
             createdTime = 2000,
             style = LocalTextStyle.current
