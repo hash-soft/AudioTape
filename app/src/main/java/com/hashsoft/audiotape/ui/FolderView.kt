@@ -10,25 +10,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hashsoft.audiotape.ui.bar.AddressBar
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.PlayingStateDto
 import com.hashsoft.audiotape.data.StorageItem
 import com.hashsoft.audiotape.data.StorageLocationDto
+import com.hashsoft.audiotape.ui.bar.AddressBar
 import com.hashsoft.audiotape.ui.list.FolderList
-import timber.log.Timber
 
 @Composable
 fun FolderViewRoute(
     viewModel: FolderViewModel = hiltViewModel(),
+    onDisplayMessage: (Int) -> Unit = {},
     onAudioTransfer: () -> Unit = {}
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val storageLocationList by viewModel.addressBarState.list.collectAsStateWithLifecycle()
     val displayFolder by viewModel.displayFolderState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
-
-    Timber.d("state changed: $state")
 
     when (state) {
         FolderViewState.Start -> {}
@@ -46,7 +45,7 @@ fun FolderViewRoute(
 
                     is AudioCallbackArgument.AudioSelected -> {
                         if (!available && !argument.transfer) {
-                            // Todo トーストを出したい
+                            onDisplayMessage(R.string.not_ready_to_play)
                             return@FolderView
                         }
                         val tape = viewModel.makeAudioTape(

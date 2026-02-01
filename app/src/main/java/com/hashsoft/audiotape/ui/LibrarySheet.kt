@@ -131,18 +131,30 @@ private fun LibrarySheetPager(
                 flingBehavior = PagerDefaults.flingBehavior(state, snapPositionalThreshold = 0.3f)
             ) {
                 when (it) {
-                    TAB_FOLDER -> FolderViewRoute {
+                    TAB_FOLDER -> FolderViewRoute(onDisplayMessage = { resId ->
+                        @SuppressLint("LocalContextGetResourceValueCall")
+                        scope.launch {
+                            snackBarHostState.showSnackbar(
+                                message = context.getString(resId),
+                                actionLabel = context.getString(R.string.close),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }) {
                         audioCallback(AudioCallbackArgument.TransferAudioPlay)
                     }
 
                     TAB_TAPE -> TapeView(
                         onAudioTransfer = { audioCallback(AudioCallbackArgument.TransferAudioPlay) },
-                        onDisplayMessage = { name ->
+                        onDisplayMessage = { resId, argument ->
                             @SuppressLint("LocalContextGetResourceValueCall")
                             scope.launch {
                                 snackBarHostState.showSnackbar(
-                                    message = context.getString(R.string.this_no_audio, name),
-                                    actionLabel = context.getString(R.string.ok),
+                                    message = if (argument.isEmpty()) context.getString(resId) else context.getString(
+                                        resId,
+                                        argument
+                                    ),
+                                    actionLabel = context.getString(R.string.close),
                                     duration = SnackbarDuration.Short
                                 )
                             }

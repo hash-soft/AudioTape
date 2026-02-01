@@ -116,6 +116,12 @@ class TapeViewModel @Inject constructor(
             Pair(emptyList(), AudioTapeListSortOrder.NAME_ASC)
         )
 
+    val availableState = _controller.availableStateFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
+
     /**
      * 再生するフォルダを切り替える
      * 現在再生中のフォルダと同じ場合は何もしない

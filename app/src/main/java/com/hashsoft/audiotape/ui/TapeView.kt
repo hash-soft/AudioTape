@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeListSortOrder
 import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.dialog.DeleteTapeConfirmDialog
@@ -23,13 +24,14 @@ import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 fun TapeView(
     viewModel: TapeViewModel = hiltViewModel(),
     onAudioTransfer: () -> Unit = {},
-    onDisplayMessage: (String) -> Unit = {},
+    onDisplayMessage: (Int, String) -> Unit = { _, _ -> },
     onFolderOpen: () -> Unit = {}
 ) {
     val displayTapePair by viewModel.displayTapeListState.collectAsStateWithLifecycle()
     val viewMode by viewModel.viewMode.collectAsStateWithLifecycle()
     val deleteIdsSet by viewModel.deleteIdsSet.collectAsStateWithLifecycle()
     val showConfirmDialog = remember { mutableStateOf(false) }
+    val available by viewModel.availableState.collectAsStateWithLifecycle()
 
     val (displayTapeList, sortOrder) = displayTapePair
     val deleteMode = viewMode == TapeViewMode.DeleteTape
@@ -80,6 +82,7 @@ fun TapeView(
         audioCallback = { argument ->
             tapeItemSelected(
                 viewModel,
+                available,
                 displayTapeList,
                 argument,
                 onAudioTransfer = onAudioTransfer,
@@ -103,20 +106,26 @@ fun TapeView(
 
 private fun tapeItemSelected(
     viewModel: TapeViewModel,
+    available: Boolean,
     displayTapeList: List<DisplayTapeItem>,
     argument: AudioCallbackArgument,
     onAudioTransfer: () -> Unit = {},
-    onDisplayMessage: (String) -> Unit = {},
+    onDisplayMessage: (Int, String) -> Unit = { _, _ -> },
     onFolderOpen: () -> Unit = {}
 ) {
     when (argument) {
         is AudioCallbackArgument.TapeSelected -> {
             val displayTape = displayTapeList.getOrNull(argument.index) ?: return
             // 遷移時は遷移後の画面で再生不可にするので許可する
-            val status = displayTape.status
-            if (status != ItemStatus.Normal && status != ItemStatus.Warning && !argument.transfer) {
-                onDisplayMessage(displayTape.audioTape.folderPath)
-                return
+            if (!argument.transfer) {
+                if (!available) {
+                    onDisplayMessage(R.string.not_ready_to_play, "")
+                    return
+                }
+                if (!ItemStatus.isPlayable(displayTape.status)) {
+                    onDisplayMessage(R.string.this_no_audio, displayTape.audioTape.folderPath)
+                    return
+                }
             }
             val tape = displayTape.audioTape
             viewModel.switchPlayingFolder(tape)

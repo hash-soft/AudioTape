@@ -3,6 +3,7 @@
     <string name="app_name">オーディオテープ</string>
     <string name="loading">取得中</string>
     <string name="back">戻る</string>
+    <string name="close">閉じる</string>
     <string name="audio_items_label">%d 項目</string>
     <string name="settings">設定</string>
     <string name="permission_required">権限要求</string>
@@ -44,4 +45,5 @@
     <string name="skip_next">次にスキップ</string>
     <string name="fast_rewind">巻き戻し</string>
     <string name="fast_forward">早送り</string>
+    <string name="not_ready_to_play">再生準備ができていません</string>
 </resources>
