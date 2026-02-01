@@ -24,9 +24,11 @@ import com.hashsoft.audiotape.data.UserSettingsRepository
 import com.hashsoft.audiotape.logic.PlaybackHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -65,6 +67,8 @@ class FolderViewModel @Inject constructor(
 
     val addressBarState = AddressBarState(storageAddressUseCase)
 
+    private val _scrollRequest = MutableSharedFlow<Unit>(replay = 0)
+    val scrollRequest = _scrollRequest.asSharedFlow()
 
     private val _baseState = combine(
         storageVolumeRepository.volumeChangeFlow(),
@@ -131,6 +135,7 @@ class FolderViewModel @Inject constructor(
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
+        _scrollRequest.emit(Unit)
     }
 
     fun setCurrentMediaItemsPosition(list: List<StorageItem>, index: Int, position: Long): Boolean {

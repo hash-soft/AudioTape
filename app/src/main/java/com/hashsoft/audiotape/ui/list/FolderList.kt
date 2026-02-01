@@ -1,6 +1,8 @@
 package com.hashsoft.audiotape.ui.list
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.hashsoft.audiotape.data.AudioItemDto
@@ -20,6 +22,7 @@ import com.hashsoft.audiotape.ui.item.FolderItem
 @Composable
 fun FolderList(
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
     storageItemList: List<StorageItem> = listOf(),
     expandIndexList: List<Int> = listOf(),
     isPlaying: Boolean = false,
@@ -29,7 +32,8 @@ fun FolderList(
     audioCallback: (AudioCallbackArgument) -> Unit
 ) {
     LazyColumn(
-        modifier = modifier
+        modifier = modifier,
+        state = listState
     ) {
         items(storageItemList.size) {
             when (val item = storageItemList[it]) {

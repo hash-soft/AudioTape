@@ -3,11 +3,13 @@ package com.hashsoft.audiotape.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hashsoft.audiotape.R
@@ -28,11 +30,19 @@ fun FolderViewRoute(
     val storageLocationList by viewModel.addressBarState.list.collectAsStateWithLifecycle()
     val displayFolder by viewModel.displayFolderState.collectAsStateWithLifecycle()
     val available by viewModel.availableState.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.scrollRequest.collect {
+            listState.scrollToItem(0)
+        }
+    }
 
     when (state) {
         FolderViewState.Start -> {}
         else -> {
             FolderView(
+                listState = listState,
                 addressList = storageLocationList,
                 itemList = displayFolder.list,
                 expandIndexList = displayFolder.expandIndexList,
@@ -88,6 +98,7 @@ fun FolderViewRoute(
 
 @Composable
 private fun FolderView(
+    listState: LazyListState,
     addressList: List<StorageLocationDto>,
     itemList: List<StorageItem> = listOf(),
     expandIndexList: List<Int> = listOf(),
@@ -105,6 +116,7 @@ private fun FolderView(
             AddressBar(addressList, onFolderClick)
             FolderList(
                 modifier = Modifier.padding(innerPadding),
+                listState = listState,
                 storageItemList = itemList,
                 expandIndexList = expandIndexList,
                 isPlaying = isPlaying,
@@ -115,11 +127,4 @@ private fun FolderView(
             )
         }
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun FolderViewPreview() {
-    //FolderView()
 }
