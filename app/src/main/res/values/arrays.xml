@@ -69,6 +69,12 @@
     <string-array name="audio_list_sort_labels">
         <item>File Name (Ascending)</item>
         <item>File Name (Descending)</item>
+        <item>Artist (Ascending)</item>
+        <item>Artist (Descending)</item>
+        <item>Title (Ascending)</item>
+        <item>Title (Descending)</item>
+        <item>Album (Ascending)</item>
+        <item>Album (Descending)</item>
     </string-array>
 
     <string-array name="tape_list_sort_labels">

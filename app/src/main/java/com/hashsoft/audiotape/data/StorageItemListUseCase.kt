@@ -15,8 +15,8 @@ class StorageItemListUseCase @Inject constructor(
             sortOrder: AudioTapeSortOrder?
         ): List<FolderItemDto> {
             return when (sortOrder) {
-                AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
-                AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { it.name }
+                AudioTapeSortOrder.NAME_ASC, AudioTapeSortOrder.ARTIST_ASC, AudioTapeSortOrder.TITLE_ASC, AudioTapeSortOrder.ALBUM_ASC -> list.sortedBy { it.name }
+                AudioTapeSortOrder.NAME_DESC, AudioTapeSortOrder.ARTIST_DESC, AudioTapeSortOrder.TITLE_DESC, AudioTapeSortOrder.ALBUM_DESC -> list.sortedByDescending { it.name }
                 else -> list
             }
         }
@@ -28,6 +28,12 @@ class StorageItemListUseCase @Inject constructor(
             return when (sortOrder) {
                 AudioTapeSortOrder.NAME_ASC -> list.sortedBy { it.name }
                 AudioTapeSortOrder.NAME_DESC -> list.sortedByDescending { it.name }
+                AudioTapeSortOrder.ARTIST_ASC -> list.sortedBy { it.metadata.artist }
+                AudioTapeSortOrder.ARTIST_DESC -> list.sortedByDescending { it.metadata.artist }
+                AudioTapeSortOrder.TITLE_ASC -> list.sortedBy { it.metadata.title }
+                AudioTapeSortOrder.TITLE_DESC -> list.sortedByDescending { it.metadata.title }
+                AudioTapeSortOrder.ALBUM_ASC -> list.sortedBy { it.metadata.album }
+                AudioTapeSortOrder.ALBUM_DESC -> list.sortedByDescending { it.metadata.album }
                 else -> list
             }
         }

@@ -10,6 +10,12 @@
     <string-array name="audio_list_sort_labels">
         <item>ファイル名（昇順）</item>
         <item>ファイル名（降順）</item>
+        <item>アーティスト (昇順)</item>
+        <item>アーティスト (降順)</item>
+        <item>タイトル (昇順)</item>
+        <item>タイトル (降順)</item>
+        <item>アルバム (昇順)</item>
+        <item>アルバム (降順)</item>
     </string-array>
 
     <string-array name="tape_list_sort_labels">

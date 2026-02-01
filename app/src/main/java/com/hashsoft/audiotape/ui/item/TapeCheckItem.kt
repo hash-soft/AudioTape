@@ -129,7 +129,7 @@ private fun TapeCheckItemPreview() {
             21,
             "01 みえないつばさ",
             100,
-            AudioTapeSortOrder.DATE_ASC,
+            AudioTapeSortOrder.ARTIST_ASC,
             false,
             1.0f,
             1.0f,

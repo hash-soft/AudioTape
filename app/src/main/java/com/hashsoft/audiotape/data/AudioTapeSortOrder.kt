@@ -4,17 +4,23 @@ package com.hashsoft.audiotape.data
  * オーディオテープのソート順
  */
 enum class AudioTapeSortOrder {
-    /** 名前(昇順) */
+    /** ファイル名(昇順) */
     NAME_ASC,
 
-    /** 名前(降順) */
+    /** ファイル名(降順) */
     NAME_DESC,
 
-    /** 日付(昇順) */
-    DATE_ASC,
+    ARTIST_ASC,
 
-    /** 日付(降順) */
-    DATE_DESC;
+    ARTIST_DESC,
+
+    TITLE_ASC,
+
+    TITLE_DESC,
+
+    ALBUM_ASC,
+
+    ALBUM_DESC;
 
     companion object {
         /**

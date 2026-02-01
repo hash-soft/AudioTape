@@ -47,7 +47,7 @@ fun PlaybackValueItemPreview() {
             speed = 1.0f,
             pitch = 1.0f,
             isRepeat = false,
-            sortOrder = AudioTapeSortOrder.DATE_ASC,
+            sortOrder = AudioTapeSortOrder.ARTIST_ASC,
             style = LocalTextStyle.current
         )
     }
