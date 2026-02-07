@@ -46,10 +46,10 @@ class AudioController(
         _controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
         try {
             _controller = _controllerFuture?.await()
-            Timber.d("#1 Controller connected")
+            Timber.d("Controller connected")
             _availableStateFlow.update { true }
         } catch (e: Exception) {
-            Timber.w(e, "#1 Failed to connect to MediaController")
+            Timber.w(e, "Failed to connect to MediaController")
             releaseController()
         }
     }
@@ -58,7 +58,7 @@ class AudioController(
      * コントローラーを解放する
      */
     fun releaseController() {
-        Timber.d("#1 Controller disconnected")
+        Timber.d("Controller disconnected")
         _availableStateFlow.update { false }
         _controllerFuture?.let {
             if (!it.isDone) it.cancel(true)

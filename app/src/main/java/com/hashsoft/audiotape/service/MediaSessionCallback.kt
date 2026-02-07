@@ -35,10 +35,10 @@ class MediaSessionCallback(
         session: MediaSession,
         controller: MediaSession.ControllerInfo
     ): MediaSession.ConnectionResult {
-        Timber.d("**onConnect session = $session controller = $controller")
+        Timber.d("onConnect session = $session controller = $controller")
         if (session.isMediaNotificationController(controller)) {
             // 通知バーが必要な時だけくるはず
-            Timber.d("**isMediaNotificationController")
+            Timber.d("isMediaNotificationController")
         }
         return MediaSession.ConnectionResult.AcceptedResultBuilder(session).build()
         //return super.onConnect(session, controller)
@@ -49,7 +49,7 @@ class MediaSessionCallback(
         controller: MediaSession.ControllerInfo
     ) {
         super.onDisconnected(session, controller)
-        Timber.d("**onDisconnected session = $session controller = $controller")
+        Timber.d("onDisconnected session = $session controller = $controller")
     }
 
     @androidx.annotation.OptIn(UnstableApi::class)
@@ -58,7 +58,7 @@ class MediaSessionCallback(
         controllerInfo: MediaSession.ControllerInfo,
         intent: Intent
     ): Boolean {
-        Timber.d("##onMediaButtonEvent controllerInfo: $controllerInfo intent: $intent")
+        Timber.d("onMediaButtonEvent controllerInfo: $controllerInfo intent: $intent")
         return super.onMediaButtonEvent(session, controllerInfo, intent)
     }
 

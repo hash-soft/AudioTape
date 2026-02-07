@@ -55,11 +55,11 @@ class PlayItemState(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val displayPlayingState = _baseState.flatMapLatest { pair ->
-        Timber.d("#5 audioState")
+        Timber.d("audioState")
         val triple = pair.first
         if (triple != null) {
             _audioTapeRepository.findByPath(triple.first.folderPath).map { audioTape ->
-                Timber.d("#5 tape changed = $audioTape")
+                Timber.d("tape changed = $audioTape")
                 if (audioTape == null) PlayItemStateResult.NoTape(pair.second) else {
                     val sortedList = if (audioTape.sortOrder != triple.first.sortOrder) {
                         // _baseStateからソートが変更されていた場合リストとplayerの更新を行う
@@ -96,7 +96,7 @@ class PlayItemState(
 
     val availableState =
         combine(_baseState, controller.availableStateFlow) { pair, available ->
-            Timber.d("#5 availableState = $available, isPlaying: ${controller.isPlaying}")
+            Timber.d("availableState = $available, isPlaying: ${controller.isPlaying}")
             val audio = pair.first
             if (audio != null) {
                 if (controller.getMediaItemCount() == 0) {

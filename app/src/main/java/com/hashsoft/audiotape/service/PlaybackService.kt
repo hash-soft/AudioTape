@@ -89,7 +89,7 @@ class PlaybackService : MediaSessionService() {
 
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
-        Timber.d("#9 onDestroy: mediaSession = $mediaSession")
+        Timber.d("onDestroy: mediaSession = $mediaSession")
         ioScope.cancel()
         mediaSession?.let { session ->
             // 再生中の場合だけ再生情報の保存をする
@@ -119,7 +119,6 @@ class PlaybackService : MediaSessionService() {
     @OptIn(DelicateCoroutinesApi::class)
     private fun setPlayerListener(player: ExoPlayer) {
         player.addListener(object : Player.Listener {
-            // seek時にもくる
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
                 controllerRepository.updatePlaybackPlayerState(playbackState)
@@ -129,11 +128,11 @@ class PlaybackService : MediaSessionService() {
                         // 初期状態だがlistener設定時にコールバックは来ない
                         // ここに来たらprepareが必要
                         // エラー発生するとここにくるためプレイ開始前は常にprepareを実行する
-                        Timber.d("#2 state idle")
+                        Timber.d("state idle")
                     }
 
                     Player.STATE_BUFFERING -> {
-                        Timber.d("#2 state buffering position = ${player.contentPosition}")
+                        Timber.d("state buffering position = ${player.contentPosition}")
                         // 再生可能にする準備中
                     }
 
@@ -142,12 +141,12 @@ class PlaybackService : MediaSessionService() {
                         // controllerを操作できるようになる
                         // playWhenReady:trueなら再生中 falseなら停止中
                         // seek操作を反映するために必要
-                        Timber.d("#2 state ready position = ${player.contentPosition}")
+                        Timber.d("state ready position = ${player.contentPosition}")
                     }
 
 
                     Player.STATE_ENDED -> {
-                        Timber.d("#2 state ended")
+                        Timber.d("state ended")
                         // 終了だが条件がわかっていない
                         // stopしたときや要素0のとき
                     }
@@ -157,7 +156,7 @@ class PlaybackService : MediaSessionService() {
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 super.onPlayWhenReadyChanged(playWhenReady, reason)
                 // Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE など
-                Timber.d("#2 listener playWhenReady = $playWhenReady, reason = $reason")
+                Timber.d("listener playWhenReady = $playWhenReady, reason = $reason")
                 controllerRepository.updatePlaybackPlayWhenReady(playWhenReady)
             }
 
@@ -176,7 +175,7 @@ class PlaybackService : MediaSessionService() {
                 // false > true >
                 // MEDIA_ITEM_TRANSITION_REASON_AUTOの順に発行され
                 // trueの段階ではcurrentMediaItemは変わってない
-                Timber.d("#2 listener isPlaying = $isPlaying, ${player.playWhenReady}, position = ${player.contentPosition}, duration = ${player.duration}")
+                Timber.d("listener isPlaying = $isPlaying, ${player.playWhenReady}, position = ${player.contentPosition}, duration = ${player.duration}")
             }
 
             override fun onPositionDiscontinuity(
@@ -186,7 +185,7 @@ class PlaybackService : MediaSessionService() {
             ) {
                 super.onPositionDiscontinuity(oldPosition, newPosition, reason)
                 // Player.DISCONTINUITY_REASON_SEEK など
-                Timber.d("#9 listener positionDiscontinuity reason = $reason old: {${oldPosition.contentPositionMs} new: ${newPosition.contentPositionMs}, isPlaying: ${player.isPlaying}")
+                Timber.d("listener positionDiscontinuity reason = $reason old: {${oldPosition.contentPositionMs} new: ${newPosition.contentPositionMs}, isPlaying: ${player.isPlaying}")
                 updatePlaybackPositionSource(
                     player.isPlaying,
                     player.playWhenReady,
@@ -199,7 +198,7 @@ class PlaybackService : MediaSessionService() {
                 super.onTimelineChanged(timeline, reason)
                 // Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED = 0
                 // Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE = 1
-                Timber.d("#2 listener timelineChanged reason = $reason")
+                Timber.d("listener timelineChanged reason = $reason")
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -225,12 +224,12 @@ class PlaybackService : MediaSessionService() {
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
                 super.onMediaMetadataChanged(mediaMetadata)
                 mediaMetadata.let {
-                    Timber.d("#2 MediaMetadataChanged title: ${it.title}, artist: ${it.artist}, album: ${it.albumTitle}")
+                    Timber.d("MediaMetadataChanged title: ${it.title}, artist: ${it.artist}, album: ${it.albumTitle}")
                 }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                Timber.d("#2 MediaItemTransition = ${mediaItem?.mediaId} reason = $reason title=${mediaItem?.mediaMetadata?.title} position = ${player.contentPosition}, uri = ${player.currentMediaItem?.localConfiguration?.uri}")
+                Timber.d("MediaItemTransition = ${mediaItem?.mediaId} reason = $reason title=${mediaItem?.mediaMetadata?.title} position = ${player.contentPosition}, uri = ${player.currentMediaItem?.localConfiguration?.uri}")
                 super.onMediaItemTransition(mediaItem, reason)
 
                 when (reason) {
