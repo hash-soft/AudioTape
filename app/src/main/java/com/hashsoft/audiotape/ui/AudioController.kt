@@ -313,20 +313,38 @@ class AudioController(
      */
     fun sortMediaItems(list: List<AudioItemDto>) {
         _controller?.run {
-            for (i in 0 until mediaItemCount) {
-                val item = getMediaItemAt(i)
-                // audioItemsから同じidのitemのindexを探す
-                val index = list.indexOfFirst { audioItem ->
-                    audioItem.id.toString() == item.mediaId
+            if (mediaItemCount == 0 || list.isEmpty()) return
+
+            for (targetIndex in list.indices) {
+                val targetId = list[targetIndex].id.toString()
+
+                // targetIndex から開始して一回り検索する
+                var currentIndex = -1
+                for (k in targetIndex until mediaItemCount + targetIndex) {
+                    val j = k % mediaItemCount
+                    if (getMediaItemAt(j).mediaId == targetId) {
+                        currentIndex = j
+                        break
+                    }
                 }
-                if (index == -1) {
-                    continue
-                }
-                // indexが違ってたらその場所に移動
-                if (index != i) {
-                    moveMediaItem(i, index)
+
+                // 見つかった位置が現在の targetIndex と異なる場合のみ移動
+                if (currentIndex != -1 && currentIndex != targetIndex) {
+                    moveMediaItem(currentIndex, targetIndex)
                 }
             }
+        }
+    }
+
+    @Suppress("unused")
+    fun outputMediaTitles() {
+        _controller?.run {
+            Timber.d("#d start outputMediaTitles")
+            for (i in 0 until mediaItemCount) {
+                val item = getMediaItemAt(i)
+                Timber.d("#d ${item.mediaMetadata.title}")
+            }
+            Timber.d("#d end outputMediaTitles")
         }
     }
 
