@@ -19,8 +19,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
@@ -173,8 +171,8 @@ class AudioStoreRepository(
      *
      * @return 音声アイテムのリスト。
      */
-    private fun loadAudioItemList(): List<AudioItemDto> {
-        Timber.d("getAudioItemListFromMediaStore start")
+    private fun loadAudioItemList(searchItem: AudioSearchObject? = null): List<AudioItemDto> {
+        Timber.d("getAudioItemListFromMediaStore start $searchItem")
 
         val collection =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -214,11 +212,32 @@ class AudioStoreRepository(
             )
         }
 
+        val addCondition = when (searchItem) {
+            is AudioSearchObject.Direct -> {
+                val targetDir = searchItem.searchPath
+                val selection =
+                    " and ${MediaStore.Audio.Media.DATA} LIKE ? AND ${MediaStore.Audio.Media.DATA} NOT LIKE ?"
+                val selectionArgs = arrayOf(
+                    "$targetDir/%",    // 指定ディレクトリ配下のすべて
+                    "$targetDir/%/%"   // 指定ディレクトリのさらに下の階層（サブフォルダ）
+                )
+                selection to selectionArgs
+            }
+
+            is AudioSearchObject.Relative -> {
+                " and ${MediaStore.Audio.Media.VOLUME_NAME} = ? AND ${MediaStore.Audio.Media.RELATIVE_PATH} = ?" to arrayOf(
+                    searchItem.volumeName, searchItem.relativePath
+                )
+            }
+
+            else -> "" to null
+        }
+
         val query = context.contentResolver.query(
             collection,
             projection,
-            enableMusicSelection(),
-            null,
+            "${enableMusicSelection()}${addCondition.first}",
+            addCondition.second,
             null,
         )
 
@@ -329,6 +348,7 @@ class AudioStoreRepository(
 
     /**
      * 指定されたパスの音声リストをタイムアウト付きで取得する。
+     * キャッシュから取得しない
      *
      * [audioLoadState] が [AudioLoadState.Success] になるまで待機してからリストを返す。
      *
@@ -338,10 +358,6 @@ class AudioStoreRepository(
      */
     suspend fun getListByPathOrTimeout(path: String, timeoutMillis: Long): List<AudioItemDto>? {
         return withTimeoutOrNull(timeoutMillis) {
-            // 初期値が Success だった場合にも即座に返る
-            val state = audioLoadState
-                .filterIsInstance<AudioLoadState.Success>()
-                .first()
             val searchItem = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 pathToSearchObject(emptyList(), path)
             } else {
@@ -351,10 +367,7 @@ class AudioStoreRepository(
                 )
                 pathToSearchObject(volumes, path)
             }
-            when (searchItem) {
-                is AudioSearchObject.Direct -> state.audioList.filter { it.absolutePath == searchItem.searchPath }
-                is AudioSearchObject.Relative -> state.audioList.filter { it.volumeName == searchItem.volumeName && it.relativePath == searchItem.relativePath }
-            }
+            loadAudioItemList(searchItem)
         }
     }
 

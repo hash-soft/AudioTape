@@ -101,7 +101,6 @@ class MediaSessionCallback(
     }
 
     private suspend fun restorePlaylist(tape: AudioTapeDto): Pair<List<MediaItem>, Int> {
-        // Todo キャッシュからではなく、MediaStoreから取得する。デバイス情報も。
         val itemList = _audioStoreRepository.getListByPathOrTimeout(tape.folderPath, 1000)
             ?: return emptyList<MediaItem>() to 0
         val sortedList = StorageItemListUseCase.sortedAudioList(itemList, tape.sortOrder)
