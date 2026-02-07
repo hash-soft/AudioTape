@@ -149,6 +149,8 @@ class PlaybackService : MediaSessionService() {
                         Timber.d("state ended")
                         // 終了だが条件がわかっていない
                         // stopしたときや要素0のとき
+                        // viewはplayWhenReadyがtrueの時停止扱いにしないので明示的にfalseにする
+                        player.playWhenReady = false
                     }
                 }
             }
@@ -157,7 +159,21 @@ class PlaybackService : MediaSessionService() {
                 super.onPlayWhenReadyChanged(playWhenReady, reason)
                 // Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE など
                 Timber.d("listener playWhenReady = $playWhenReady, reason = $reason")
-                controllerRepository.updatePlaybackPlayWhenReady(playWhenReady)
+                Timber.d("listener state = ${player.playbackState} repeatMode = ${player.repeatMode}")
+                if (player.playbackState == Player.STATE_ENDED) {
+                    if (player.repeatMode == Player.REPEAT_MODE_OFF) {
+                        // リピートオフで最後まで来た場合は再生状態を落とす
+                        controllerRepository.updatePlaybackPlayWhenReady(false)
+                        player.playWhenReady = false
+                    } else {
+                        // リピートモードがONになっていてもPlayer.STATE_ENDEDの場合は位置を戻さないと再生できない
+                        player.seekTo(0, 0)
+                        controllerRepository.updatePlaybackPlayWhenReady(playWhenReady)
+                    }
+                } else {
+                    controllerRepository.updatePlaybackPlayWhenReady(playWhenReady)
+                }
+
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {

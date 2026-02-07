@@ -164,7 +164,7 @@ private fun playItemSelected(
                 viewModel.pause()
             } else {
                 viewModel.setPlayingParameters(displayPlayingItem.audioTape)
-                viewModel.play()
+                viewModel.playWhenReady(true)
             }
         }
 

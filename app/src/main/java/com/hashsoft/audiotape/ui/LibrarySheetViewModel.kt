@@ -66,7 +66,7 @@ class LibrarySheetViewModel @Inject constructor(
         _controller.setVolume(audioTape.volume)
     }
 
-    fun play() = _controller.play()
+    fun playWhenReady(playWhenReady: Boolean) = _controller.playWhenReady(playWhenReady)
 
     fun pause() = _controller.pause()
 
