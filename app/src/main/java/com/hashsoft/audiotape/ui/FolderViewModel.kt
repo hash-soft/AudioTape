@@ -70,6 +70,8 @@ class FolderViewModel @Inject constructor(
     private val _scrollRequest = MutableSharedFlow<Unit>(replay = 0)
     val scrollRequest = _scrollRequest.asSharedFlow()
 
+    private var _reserveScrollReset = false
+
     private val _baseState = combine(
         storageVolumeRepository.volumeChangeFlow(),
         _audioStoreRepository.updateFlow,
@@ -112,6 +114,10 @@ class FolderViewModel @Inject constructor(
             _playingStateRepository.playingStateFlow()
         ) { audioTape, settings, isPlaying, playingState ->
             _state.update { FolderViewState.Success }
+            if (_reserveScrollReset) {
+                _scrollRequest.emit(Unit)
+                _reserveScrollReset = false
+            }
             DisplayFolder(
                 folderPath = folderPath,
                 listPair.first,
@@ -135,7 +141,7 @@ class FolderViewModel @Inject constructor(
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
-        _scrollRequest.emit(Unit)
+        _reserveScrollReset = true
     }
 
     fun setCurrentMediaItemsPosition(list: List<StorageItem>, index: Int, position: Long): Boolean {
