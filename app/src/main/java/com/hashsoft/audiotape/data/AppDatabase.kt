@@ -20,7 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "audio_tape_database"
-                ).build().also { Instance = it }
+                ).fallbackToDestructiveMigration(true).build().also { Instance = it }
             }
         }
     }
