@@ -93,6 +93,7 @@ class AudioController(
     /**
      * 再生
      */
+    @Suppress("unused")
     fun play() {
         _controller?.let { controller ->
             controller.prepare()
@@ -106,6 +107,10 @@ class AudioController(
      */
     fun pause() = _controller?.pause()
 
+    fun applyAudioProfile(volume: Float, speed: Float, pitch: Float) {
+        setVolume(volume)
+        setPlaybackParameters(speed, pitch)
+    }
 
     /**
      * 再生パラメータを設定する

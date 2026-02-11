@@ -106,10 +106,8 @@ class PlayItemState(
                         audioTape.currentName,
                         audioTape.position
                     )
-                    controller.setSpeed(audioTape.speed)
-                    controller.setPitch(audioTape.pitch)
-                    controller.setRepeat(audioTape.repeat)
                     controller.prepare()
+                    controller.applyAudioProfile(audioTape.volume, audioTape.speed, audioTape.pitch)
                 } else {
                     controller.replaceMediaItemsWith(audio.second)
                 }
