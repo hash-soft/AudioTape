@@ -4,13 +4,14 @@
         <item>Settings</item>
         <item>Eject</item>
         <item>Lunch External File App</item>
-        <item>About</item>
+        <item>@string/about_label</item>
     </string-array>
 
     <integer-array name="menu_index">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </integer-array>
 
     <string-array name="play_volume_labels">

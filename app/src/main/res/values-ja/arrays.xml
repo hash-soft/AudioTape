@@ -4,7 +4,7 @@
         <item>設定</item>
         <item>取り出し</item>
         <item>外部のファイルアプリを起動</item>
-        <item>このアプリについて</item>
+        <item>@string/about_label</item>
     </string-array>
 
     <string-array name="audio_list_sort_labels">

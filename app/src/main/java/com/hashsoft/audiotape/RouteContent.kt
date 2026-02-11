@@ -1,6 +1,8 @@
 package com.hashsoft.audiotape
 
 
+import com.hashsoft.audiotape.ui.AboutView
+import com.hashsoft.audiotape.ui.LicenseView
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
@@ -73,6 +75,17 @@ private fun RouteScreen(
         }
         composable<Route.UserSettings> {
             UserSettingsHomeRoute {
+                popAndNavigateLibrary(navController)
+            }
+        }
+        composable<Route.About> {
+            AboutView(onTransferClick = { navController.navigate(it) }) {
+                popAndNavigateLibrary(navController)
+            }
+        }
+
+        composable<Route.License> {
+            LicenseView {
                 popAndNavigateLibrary(navController)
             }
         }

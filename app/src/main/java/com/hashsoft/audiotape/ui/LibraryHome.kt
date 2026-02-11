@@ -42,7 +42,7 @@ private enum class MenuIndex {
     UserSettings,
     Eject,
     LunchExternalFileApp,
-    //About
+    About
 }
 
 @Composable
@@ -121,6 +121,7 @@ private fun LibraryHome(
                         }
                     }
 
+                    MenuIndex.About.ordinal -> onTransferClick(Route.About)
                     else -> {}
                 }
             }

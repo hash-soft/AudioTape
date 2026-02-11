@@ -11,4 +11,10 @@ object Route {
 
     @Serializable
     data object UserSettings
+
+    @Serializable
+    data object About
+
+    @Serializable
+    data object License
 }

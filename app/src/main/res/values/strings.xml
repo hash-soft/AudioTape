@@ -59,4 +59,5 @@
     <string name="fast_rewind">Fast rewind</string>
     <string name="fast_forward">Fast forward</string>
     <string name="not_ready_to_play">Not ready to play</string>
+    <string name="about_label">about</string>
 </resources>
