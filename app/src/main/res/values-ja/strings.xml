@@ -47,4 +47,5 @@
     <string name="fast_forward">早送り</string>
     <string name="not_ready_to_play">再生準備ができていません</string>
     <string name="about_label">このアプリについて</string>
+    <string name="licenses_title">ライセンス情報</string>
 </resources>

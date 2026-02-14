@@ -143,7 +143,7 @@ fun AboutView(
 
             // メニュー項目
             ListItem(
-                headlineContent = { Text("オープンソースライセンス") },
+                headlineContent = { Text(stringResource(R.string.licenses_title)) },
                 leadingContent = {
                     Icon(
                         painterResource(id = android.R.drawable.ic_menu_info_details),

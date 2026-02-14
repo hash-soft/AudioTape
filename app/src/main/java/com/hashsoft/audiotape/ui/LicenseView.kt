@@ -28,7 +28,7 @@ fun LicenseView(onBackClick: () -> Unit = {}) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = stringResource(R.string.about_label)) },
+                title = { Text(text = stringResource(R.string.licenses_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(

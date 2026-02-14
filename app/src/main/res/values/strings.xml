@@ -60,4 +60,5 @@
     <string name="fast_forward">Fast forward</string>
     <string name="not_ready_to_play">Not ready to play</string>
     <string name="about_label">about</string>
+    <string name="licenses_title">Open Source Licenses</string>
 </resources>
