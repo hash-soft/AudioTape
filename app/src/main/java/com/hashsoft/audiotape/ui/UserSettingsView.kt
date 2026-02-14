@@ -1,6 +1,8 @@
 package com.hashsoft.audiotape.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -23,6 +25,7 @@ import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
+import com.hashsoft.audiotape.ui.theme.SettingSpacerHeight
 
 /**
  * ユーザー設定画面のView
@@ -42,6 +45,7 @@ fun UserSettingsView(
             onSettingChange = onSettingChange
         )
 
+        Spacer(modifier = Modifier.height(SettingSpacerHeight))
         LabelItem(stringResource(R.string.default_settings_label))
         DefaultSortOrderItem(
             userSettings.defaultSortOrder.ordinal,

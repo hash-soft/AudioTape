@@ -15,6 +15,8 @@ val SettingLabelHorizontalPadding = 16.dp
 
 val SettingLabelVerticalPadding = 8.dp
 
+val SettingSpacerHeight = 16.dp
+
 val DialogCornerRadius = 16.dp
 
 val ListLabelSpace = 8.dp
