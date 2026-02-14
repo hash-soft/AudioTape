@@ -13,7 +13,7 @@ fun DeleteTapeConfirmDialog(onConfirmResult: () -> Unit, onDismissResult: () -> 
     AlertDialog(
         title = { Text(text = stringResource(R.string.delete_confirm_title)) },
         text = { Text(text = stringResource(R.string.delete_confirm_text)) },
-        onDismissRequest = {},
+        onDismissRequest = { onDismissResult() },
         dismissButton = {
             TextButton(onClick = onDismissResult) {
                 Text(text = stringResource(R.string.cancel))
