@@ -7,8 +7,8 @@
     <string name="audio_items_label">%d 項目</string>
     <string name="settings">設定</string>
     <string name="permission_required">権限要求</string>
-    <string name="permission_rationale_legacy">音声ファイルを読み込むためにストレージの権限をONにしてください</string>
-    <string name="permission_rationale_33">音声ファイルを読み込むために音楽とオーディオの権限をONにしてください</string>
+    <string name="permission_rationale_legacy">音声ファイルを読み込むためにストレージの権限をONにしてください。</string>
+    <string name="permission_rationale_33">音声ファイルを読み込むために音楽とオーディオの権限をONにしてください。</string>
     <string name="volume_name_unknown">不明</string>
     <string name="storage_root">ルート</string>
     <string name="storage_home">ホーム</string>
@@ -47,5 +47,13 @@
     <string name="fast_forward">早送り</string>
     <string name="not_ready_to_play">再生準備ができていません</string>
     <string name="about_label">このアプリについて</string>
+    <string name="app_icon_description">アプリアイコン</string>
+    <string name="this_app_description">フォルダごとに再生位置を記憶する、カセットテープ風のオーディオプレイヤーです。音楽や語学などタイプの異なるオーディオを切り替えたい状況に最適です。</string>
+    <string name="help_title">アプリの操作方法</string>
+    <string name="help_supporting">再生・設定・記憶機能について</string>
+    <string name="help_description">アプリの操作方法を表示します</string>
     <string name="licenses_title">ライセンス情報</string>
+    <string name="licenses_description">ライセンス情報を表示します</string>
+    <string name="privacy_policy_title">プライバシーポリシー</string>
+    <string name="privacy_policy_description">プライバシーポリシーを表示します</string>
 </resources>

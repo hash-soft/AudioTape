@@ -24,8 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -33,30 +32,44 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hashsoft.audiotape.BuildConfig
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.Route
 import com.hashsoft.audiotape.ui.dialog.HelpDialog
 import com.hashsoft.audiotape.ui.dialog.PrivacyPolicyDialog
+import com.hashsoft.audiotape.ui.theme.AboutBorder
+import com.hashsoft.audiotape.ui.theme.AboutBorderHorizonalPadding
+import com.hashsoft.audiotape.ui.theme.AboutBorderVerticalPadding
+import com.hashsoft.audiotape.ui.theme.AboutCopyrightSpacerHeight
+import com.hashsoft.audiotape.ui.theme.AboutHorizonalPadding
+import com.hashsoft.audiotape.ui.theme.AboutIconElevation
+import com.hashsoft.audiotape.ui.theme.AboutIconPadding
+import com.hashsoft.audiotape.ui.theme.AboutIconSize
+import com.hashsoft.audiotape.ui.theme.AboutSpacerHeight
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutView(
     versionName: String = BuildConfig.VERSION_NAME,
+    viewModel: AboutViewModel = viewModel(),
     onTransferClick: (route: Any) -> Unit = {},
     onBackClick: () -> Unit = {}
 ) {
-    val showHelpDialog = remember { mutableStateOf(false) }
-    val showPrivacyPolicy = remember { mutableStateOf(false) }
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
-    if (showHelpDialog.value) {
-        HelpDialog { showHelpDialog.value = false }
-    }
-    if (showPrivacyPolicy.value) {
-        PrivacyPolicyDialog { showPrivacyPolicy.value = false }
+    when (screenState) {
+        AboutScreenState.HowtoUseDialog -> {
+            HelpDialog { viewModel.setScreenState(AboutScreenState.Normal) }
+        }
+
+        AboutScreenState.PrivacyPolicyDialog -> {
+            PrivacyPolicyDialog { viewModel.setScreenState(AboutScreenState.Normal) }
+        }
+
+        else -> {}
     }
 
     Scaffold(
@@ -78,97 +91,93 @@ fun AboutView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = AboutIconElevation),
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = colorResource(R.color.ic_launcher_background))
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "App Icon",
+                    contentDescription = stringResource(R.string.app_icon_description),
                     modifier = Modifier
-                        .size(120.dp)
-                        .padding(16.dp)
+                        .size(AboutIconSize)
+                        .padding(AboutIconPadding)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AboutSpacerHeight))
 
-            // アプリ名
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            // バージョン
             Text(
                 text = "Version $versionName",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.outline
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(AboutSpacerHeight))
 
-            // アプリの説明
             Text(
-                text = "フォルダごとに再生位置を記憶する、カセットテープ風のオーディオプレイヤーです。語学学習や長い音声ファイルの管理に最適です。",
-                style = MaterialTheme.typography.bodyLarge,
-                lineHeight = 24.sp
+                text = stringResource(R.string.this_app_description),
+                modifier = Modifier.padding(horizontal = AboutHorizonalPadding),
+                style = MaterialTheme.typography.bodyLarge
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(AboutSpacerHeight))
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                thickness = 1.dp,
+                modifier = Modifier.padding(
+                    horizontal = AboutBorderHorizonalPadding,
+                    vertical = AboutBorderVerticalPadding
+                ),
+                thickness = AboutBorder,
                 color = MaterialTheme.colorScheme.outlineVariant
             )
-            Spacer(modifier = Modifier.height(8.dp))
 
             ListItem(
-                headlineContent = { Text("アプリの操作方法") },
-                supportingContent = { Text("再生・フォルダ管理・記憶機能について") },
+                headlineContent = { Text(stringResource(R.string.help_title)) },
+                supportingContent = { Text(stringResource(R.string.help_supporting)) },
                 leadingContent = {
                     Icon(
                         painter = painterResource(id = android.R.drawable.ic_menu_help),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.help_description)
                     )
                 },
-                modifier = Modifier.clickable { showHelpDialog.value = true }
+                modifier = Modifier.clickable { viewModel.setScreenState(AboutScreenState.HowtoUseDialog) }
             )
 
-            // メニュー項目
             ListItem(
                 headlineContent = { Text(stringResource(R.string.licenses_title)) },
                 leadingContent = {
                     Icon(
                         painterResource(id = android.R.drawable.ic_menu_info_details),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.licenses_description)
                     )
                 },
                 modifier = Modifier.clickable { onTransferClick(Route.License) }
             )
 
             ListItem(
-                headlineContent = { Text("プライバシーポリシー") },
+                headlineContent = { Text(stringResource(R.string.privacy_policy_title)) },
                 leadingContent = {
                     Icon(
                         painterResource(id = android.R.drawable.ic_menu_view),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.privacy_policy_description)
                     )
                 },
-                modifier = Modifier.clickable { showPrivacyPolicy.value = true }
+                modifier = Modifier.clickable { viewModel.setScreenState(AboutScreenState.PrivacyPolicyDialog) }
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(AboutCopyrightSpacerHeight))
 
-            // 著作権表示
             Text(
-                text = "© 2026 Your Name",
+                text = stringResource(R.string.copyright),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline
             )

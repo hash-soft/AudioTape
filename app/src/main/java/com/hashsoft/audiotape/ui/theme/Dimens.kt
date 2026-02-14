@@ -55,3 +55,20 @@ val DropDownTitleVerticalPadding = 8.dp
 val DisabledAlpha = 0.38f
 
 val AudioPlayItemHorizonalPadding = 16.dp
+
+val AboutIconElevation = 4.dp
+
+val AboutIconSize = 120.dp
+
+val AboutIconPadding = 16.dp
+
+val AboutSpacerHeight = 32.dp
+
+val AboutHorizonalPadding = 24.dp
+
+val AboutBorder = 1.dp
+
+val AboutBorderHorizonalPadding = 16.dp
+val AboutBorderVerticalPadding = 8.dp
+
+val AboutCopyrightSpacerHeight = 48.dp

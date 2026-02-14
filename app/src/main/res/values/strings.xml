@@ -60,5 +60,14 @@
     <string name="fast_forward">Fast forward</string>
     <string name="not_ready_to_play">Not ready to play</string>
     <string name="about_label">about</string>
+    <string name="app_icon_description">App icon</string>
+    <string name="this_app_description">A cassette-style audio player that remembers your playback position for each folder. Perfect for switching between different types of audio, such as music and language learning.</string>
+    <string name="help_title">How to Use</string>
+    <string name="help_supporting">About Playback, Settings, and Memory</string>
+    <string name="help_description">View How to Use</string>
     <string name="licenses_title">Open Source Licenses</string>
+    <string name="licenses_description">View Open Source Licenses</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_description">View Privacy Policy</string>
+    <string name="copyright" translatable="false">© 2026 hashsoft</string>
 </resources>
