@@ -125,7 +125,7 @@ fun AboutView(
             Spacer(modifier = Modifier.height(AboutSpacerHeight))
 
             Text(
-                text = stringResource(R.string.this_app_description),
+                text = stringResource(R.string.this_app_content),
                 modifier = Modifier.padding(horizontal = AboutHorizonalPadding),
                 style = MaterialTheme.typography.bodyLarge
             )

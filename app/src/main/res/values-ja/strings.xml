@@ -48,7 +48,7 @@
     <string name="not_ready_to_play">再生準備ができていません</string>
     <string name="about_label">このアプリについて</string>
     <string name="app_icon_description">アプリアイコン</string>
-    <string name="this_app_description">フォルダごとに再生位置を記憶する、カセットテープ風のオーディオプレイヤーです。音楽や語学などタイプの異なるオーディオを切り替えたい状況に最適です。</string>
+    <string name="this_app_content">フォルダごとに再生位置を記憶する、カセットテープ風のオーディオプレイヤーです。音楽や語学などタイプの異なるオーディオを切り替えたい状況に最適です。</string>
     <string name="help_title">アプリの操作方法</string>
     <string name="help_supporting">再生・設定・記憶機能について</string>
     <string name="help_description">アプリの操作方法を表示します</string>
@@ -56,4 +56,6 @@
     <string name="licenses_description">ライセンス情報を表示します</string>
     <string name="privacy_policy_title">プライバシーポリシー</string>
     <string name="privacy_policy_description">プライバシーポリシーを表示します</string>
+    <string name="privacy_policy_close_label">同意して閉じる</string>
+    <string name="privacy_policy_content">【個人情報の収集について】\n本アプリは、ユーザーの個人情報を収集・送信することはありません。\n\n【ストレージへのアクセス】\nオーディオ再生のためのアクセス許可を使用します。\n\n【免責事項】\n本アプリの利用により生じた損害について、開発者は一切の責任を負いません。</string>
 </resources>
