@@ -24,11 +24,9 @@ import com.hashsoft.audiotape.data.UserSettingsRepository
 import com.hashsoft.audiotape.logic.PlaybackHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -67,10 +65,11 @@ class FolderViewModel @Inject constructor(
 
     val addressBarState = AddressBarState(storageAddressUseCase)
 
-    private val _scrollRequest = MutableSharedFlow<Unit>(replay = 0)
-    val scrollRequest = _scrollRequest.asSharedFlow()
-
     private var _reserveScrollReset = false
+    val reserveScrollReset: Boolean
+        get() = _reserveScrollReset
+
+    @OptIn(ExperimentalCoroutinesApi::class)
 
     private val _baseState = combine(
         storageVolumeRepository.volumeChangeFlow(),
@@ -78,6 +77,9 @@ class FolderViewModel @Inject constructor(
         _folderStateRepository.folderStateFlow()
     ) { volumes, _, folderState ->
         _state.update { FolderViewState.ItemLoading }
+        val lastPath = addressBarState.list.value.lastOrNull()?.path ?: ""
+        Timber.d("#9 folderState.selectedPath: ${folderState.selectedPath} lastPath: $lastPath")
+        _reserveScrollReset = lastPath != folderState.selectedPath
         addressBarState.load(folderState.selectedPath, volumes)
         val listPair =
             storageItemListUseCase.pathToStorageItemList(volumes, folderState.selectedPath, null)
@@ -114,10 +116,6 @@ class FolderViewModel @Inject constructor(
             _playingStateRepository.playingStateFlow()
         ) { audioTape, settings, isPlaying, playingState ->
             _state.update { FolderViewState.Success }
-            if (_reserveScrollReset) {
-                _scrollRequest.emit(Unit)
-                _reserveScrollReset = false
-            }
             DisplayFolder(
                 folderPath = folderPath,
                 listPair.first,
@@ -138,10 +136,13 @@ class FolderViewModel @Inject constructor(
         false
     )
 
+    fun clearReserveScrollReset() {
+        _reserveScrollReset = false
+    }
+
 
     fun saveSelectedPath(path: String) = viewModelScope.launch {
         _folderStateRepository.saveSelectedPath(path)
-        _reserveScrollReset = true
     }
 
     fun setCurrentMediaItemsPosition(list: List<StorageItem>, index: Int, position: Long): Boolean {
@@ -228,7 +229,7 @@ class FolderViewModel @Inject constructor(
                 pitch = settings.defaultPitch
             )
         } else {
-            return if (srcAudioTape.currentName == currentName) {
+            if (srcAudioTape.currentName == currentName) {
                 srcAudioTape
             } else {
                 srcAudioTape.copy(currentName = currentName, position = 0)

@@ -32,9 +32,12 @@ fun FolderViewRoute(
     val available by viewModel.availableState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    LaunchedEffect(viewModel) {
-        viewModel.scrollRequest.collect {
+    LaunchedEffect(displayFolder) {
+        // collectだとLaunchedEffectが作り直される直前に通知されキャンセルされる場合があるので
+        // 通常の変数で判定する
+        if (viewModel.reserveScrollReset) {
             listState.scrollToItem(0)
+            viewModel.clearReserveScrollReset()
         }
     }
 
