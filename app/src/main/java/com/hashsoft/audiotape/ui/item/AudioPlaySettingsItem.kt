@@ -21,7 +21,7 @@ import com.hashsoft.audiotape.data.PlayPitchValues
 import com.hashsoft.audiotape.data.PlaySpeedValues
 import com.hashsoft.audiotape.data.PlayVolumeValues
 import com.hashsoft.audiotape.ui.TapeSettingsCallbackArgument
-import com.hashsoft.audiotape.ui.dropdown.TextDropdownSelector
+import com.hashsoft.audiotape.ui.dialog.TextPopupSelector
 import com.hashsoft.audiotape.ui.resource.displayPitchValue
 import com.hashsoft.audiotape.ui.resource.displaySpeedValue
 import com.hashsoft.audiotape.ui.resource.displayVolumeValue
@@ -74,7 +74,7 @@ private fun VolumeDropdownSelector(
     val title = stringResource(R.string.volume_title)
     val (index, selectedLabel, volumeLabels) = displayVolumeValue(volume)
 
-    TextDropdownSelector(
+    TextPopupSelector(
         volumeLabels,
         title,
         selectedIndex = index,
@@ -100,7 +100,7 @@ private fun SpeedDropdownSelector(
     val title = stringResource(R.string.speed_title)
     val (index, selectedLabel, speedLabels) = displaySpeedValue(speed)
 
-    TextDropdownSelector(
+    TextPopupSelector(
         speedLabels,
         title,
         selectedIndex = index,
@@ -126,7 +126,7 @@ private fun PitchDropdownSelector(
     val title = stringResource(R.string.pitch_title)
     val (index, selectedLabel, pitchLabels) = displayPitchValue(pitch)
 
-    TextDropdownSelector(
+    TextPopupSelector(
         pitchLabels,
         title,
         selectedIndex = index,
@@ -154,7 +154,7 @@ private fun SortDropdownSelector(
     val sortLabels = stringArrayResource(R.array.audio_list_sort_labels).toList()
     val index = sortOrder.ordinal
 
-    TextDropdownSelector(sortLabels, title, selectedIndex = index, buttonContent = {
+    TextPopupSelector(sortLabels, title, selectedIndex = index, buttonContent = {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Sort,
             contentDescription = stringResource(R.string.sort_order_description),

@@ -54,6 +54,7 @@
     <string name="file_app_not_fount">File app not found</string>
     <string name="chevron_right">Chevron right</string>
     <string name="audio_icon">Audio icon</string>
+    <string name="audio_dialog_title">Audio</string>
     <string name="skip_previous">Skip previous</string>
     <string name="skip_next">Skip next</string>
     <string name="fast_rewind">Fast rewind</string>

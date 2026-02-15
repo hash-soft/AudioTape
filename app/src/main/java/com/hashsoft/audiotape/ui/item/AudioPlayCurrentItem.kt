@@ -23,7 +23,7 @@ import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.logic.TextHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
-import com.hashsoft.audiotape.ui.dropdown.AudioDropDown
+import com.hashsoft.audiotape.ui.dialog.AudioPopupSelector
 import com.hashsoft.audiotape.ui.text.TappableMarqueeText
 import com.hashsoft.audiotape.ui.theme.AudioPlayItemHorizonalPadding
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -87,7 +87,7 @@ private fun AudioListDropdownSelector(
 ) {
     val expanded = remember { mutableStateOf(false) }
 
-    AudioDropDown(
+    AudioPopupSelector(
         expanded = expanded.value,
         onExpandedChange = { expanded.value = it },
         trigger = {
@@ -102,7 +102,7 @@ private fun AudioListDropdownSelector(
         targetName = targetName
     ) { index, lastCurrent ->
         if (!lastCurrent) {
-            val audioItem = playList.getOrNull(index) ?: return@AudioDropDown
+            val audioItem = playList.getOrNull(index) ?: return@AudioPopupSelector
             onItemSelected(AudioCallbackArgument.AudioSelected(index, audioItem.name, 0))
         }
     }

@@ -101,6 +101,7 @@ private fun ThemeSettingItem(
             title = title,
             options = themeLabels,
             selectedIndex = selectedIndex,
+            cancelButton = true,
             onSelect = {
                 showDialog.value = false
                 if (it == selectedIndex) return@SelectSettingDialog
@@ -135,6 +136,7 @@ private fun DefaultSortOrderItem(
             title = title,
             options = labels,
             selectedIndex = selectedIndex,
+            cancelButton = true,
             onSelect = {
                 showDialog.value = false
                 if (it == selectedIndex) return@SelectSettingDialog
@@ -168,6 +170,7 @@ private fun DefaultVolumeItem(
             title = title,
             options = labels,
             selectedIndex = index,
+            cancelButton = true,
             onSelect = {
                 showDialog.value = false
                 if (it == index) return@SelectSettingDialog
@@ -201,6 +204,7 @@ private fun DefaultSpeedItem(
             title = title,
             options = labels,
             selectedIndex = index,
+            cancelButton = true,
             onSelect = {
                 showDialog.value = false
                 if (it == index) return@SelectSettingDialog
@@ -234,6 +238,7 @@ private fun DefaultPitchItem(
             title = title,
             options = labels,
             selectedIndex = index,
+            cancelButton = true,
             onSelect = {
                 showDialog.value = false
                 if (it == index) return@SelectSettingDialog

@@ -41,6 +41,7 @@
     <string name="file_app_not_fount">ファイルアプリが見つかりませんでした</string>
     <string name="chevron_right">右シブレット</string>
     <string name="audio_icon">オーディオアイコン</string>
+    <string name="audio_dialog_title">オーディオ</string>
     <string name="skip_previous">前にスキップ</string>
     <string name="skip_next">次にスキップ</string>
     <string name="fast_rewind">巻き戻し</string>

@@ -8,21 +8,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Dialog
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.ui.theme.DialogCornerRadius
 
 /**
@@ -40,6 +45,7 @@ fun SelectSettingDialog(
     title: String,
     options: List<String>,
     selectedIndex: Int,
+    cancelButton: Boolean = false,
     onSelect: (index: Int) -> Unit,
     onDismissRequest: () -> Unit,
     cornerRadius: Dp = DialogCornerRadius
@@ -54,6 +60,40 @@ fun SelectSettingDialog(
         listState.scrollToItem(index = selectedIndex, scrollOffset = -offset)
     }
 
+    if (cancelButton) {
+        SelectSettingDialogWithCancelButton(
+            title = title,
+            options = options,
+            selectedIndex = selectedIndex,
+            onSelect = onSelect,
+            onDismissRequest = onDismissRequest,
+            cornerRadius = cornerRadius,
+            listState = listState
+        )
+    } else {
+        SelectSettingDialogNormal(
+            title = title,
+            options = options,
+            selectedIndex = selectedIndex,
+            onSelect = onSelect,
+            onDismissRequest = onDismissRequest, cornerRadius = cornerRadius,
+            listState = listState
+        )
+    }
+
+}
+
+
+@Composable
+private fun SelectSettingDialogNormal(
+    title: String,
+    options: List<String>,
+    selectedIndex: Int,
+    onSelect: (index: Int) -> Unit,
+    onDismissRequest: () -> Unit,
+    cornerRadius: Dp = DialogCornerRadius,
+    listState: LazyListState
+) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -98,7 +138,55 @@ fun SelectSettingDialog(
             }
         }
     }
+}
 
+
+@Composable
+private fun SelectSettingDialogWithCancelButton(
+    title: String,
+    options: List<String>,
+    selectedIndex: Int,
+    onSelect: (index: Int) -> Unit,
+    onDismissRequest: () -> Unit,
+    cornerRadius: Dp = DialogCornerRadius,
+    listState: LazyListState
+) {
+    AlertDialog(
+        onDismissRequest = { onDismissRequest() },
+        title = { Text(text = title) },
+        text = {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                state = listState
+            ) {
+                itemsIndexed(options) { index, label ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Max)
+                            .clickable { onSelect(index) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (index == selectedIndex),
+                            onClick = { onSelect(index) }
+                        )
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton =
+            {
+                TextButton(onClick = { onDismissRequest() }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        shape = RoundedCornerShape(cornerRadius)
+    )
 }
 
 
@@ -109,6 +197,7 @@ fun SelectSettingDialogPreview() {
         title = "dummy",
         options = listOf("極小", "小", "中", "大", "極大"),
         selectedIndex = 0,
+        cancelButton = true,
         onSelect = {},
         onDismissRequest = {})
 }

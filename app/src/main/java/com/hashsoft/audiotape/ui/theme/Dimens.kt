@@ -56,6 +56,8 @@ val DisabledAlpha = 0.38f
 
 val AudioPlayItemHorizonalPadding = 16.dp
 
+val AudioListItemNumberPadding = 16.dp
+
 val AboutIconElevation = 4.dp
 
 val AboutIconSize = 120.dp
