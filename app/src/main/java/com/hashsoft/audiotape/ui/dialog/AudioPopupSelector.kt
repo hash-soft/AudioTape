@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -13,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,8 +34,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
+import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.ui.item.SimpleAudioItem
-import com.hashsoft.audiotape.ui.theme.AudioListItemNumberPadding
+import com.hashsoft.audiotape.ui.theme.AudioListItemNumberLeadingContentWidth
+import com.hashsoft.audiotape.ui.theme.AudioListItemVerticalPadding
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.DialogCornerRadius
 
@@ -91,9 +93,9 @@ fun AudioPopupSelector(
 private fun AudioPopupSelectorDialog(
     audioItemList: List<AudioItemDto> = emptyList(),
     selectedIndex: Int,
-    onDismissRequest: () -> Unit,
+    onDismissRequest: () -> Unit = {},
     cornerRadius: Dp = DialogCornerRadius,
-    onExpandedChange: (Boolean) -> Unit,
+    onExpandedChange: (Boolean) -> Unit = {},
     onItemClick: (Int, Boolean) -> Unit = { _, _ -> }
 ) {
     val listState = rememberLazyListState()
@@ -118,16 +120,25 @@ private fun AudioPopupSelectorDialog(
                     val rowTextColor =
                         if (isTarget) MaterialTheme.colorScheme.primary else LocalContentColor.current
                     CompositionLocalProvider(LocalContentColor provides rowTextColor) {
-                        Row(modifier = Modifier.clickable {
-                            onItemClick(index, isTarget)
-                            onExpandedChange(false)
-                        }) {
-                            Text(
-                                text = (index + 1).toString(),
+                        Row(
+                            modifier = Modifier
+                                .clickable {
+                                    onItemClick(index, isTarget)
+                                    onExpandedChange(false)
+                                }
+                                .padding(vertical = AudioListItemVerticalPadding),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
                                 modifier = Modifier
-                                    .padding(AudioListItemNumberPadding)
-                                    .align(Alignment.CenterVertically)
-                            )
+                                    .width(AudioListItemNumberLeadingContentWidth),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = (index + 1).toString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                             SimpleAudioItem(
                                 item.name,
                                 item.size,
@@ -137,13 +148,8 @@ private fun AudioPopupSelectorDialog(
                         }
                     }
                     if (index < audioItemList.lastIndex) {
-                        HorizontalDivider(
-                            Modifier,
-                            DividerDefaults.Thickness,
-                            DividerDefaults.color
-                        )
+                        HorizontalDivider()
                     }
-
 
                 }
             }
@@ -164,7 +170,7 @@ private fun AudioPopupSelectorDialog(
 fun AudioPopupSelectorPreview() {
     AudioTapeTheme {
         AudioPopupSelector(
-            expanded = false,
+            expanded = true,
             onExpandedChange = { },
             trigger = {
                 IconButton(onClick = { }, enabled = true) {
@@ -176,6 +182,27 @@ fun AudioPopupSelectorPreview() {
             },
             audioItemList = listOf(),
             targetName = "name"
+        )
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AudioPopupSelectorDialogPreview() {
+    AudioTapeTheme {
+        AudioPopupSelectorDialog(
+            audioItemList = listOf(
+                AudioItemDto(
+                    "name1", "path", "path", 0, 0, 0, "sample",
+                    AudioItemMetadata("", "", "", 0, 0),
+                ),
+                AudioItemDto(
+                    "name2", "path", "path", 0, 0, 0, "sample",
+                    AudioItemMetadata("", "", "", 0, 0)
+                )
+            ),
+            selectedIndex = 0
         )
 
     }
