@@ -76,3 +76,9 @@ val AboutBorderHorizonalPadding = 16.dp
 val AboutBorderVerticalPadding = 8.dp
 
 val AboutCopyrightSpacerHeight = 48.dp
+
+val HelpVerticalSpace = 20.dp
+
+val HelpIconSize = 24.dp
+
+val HelpItemSpace = 12.dp
