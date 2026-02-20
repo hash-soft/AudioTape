@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ItemStatus
@@ -93,7 +94,11 @@ fun TapeItem(
                     .weight(1.0f)
                     .padding(start = TapeListItemHorizonalPadding)
             ) {
-                Text(title)
+                Text(
+                    text = title,
+                    overflow = TextOverflow.StartEllipsis,
+                    maxLines = 1
+                )
                 CurrentAudioNameItem(
                     currentNo,
                     count,
