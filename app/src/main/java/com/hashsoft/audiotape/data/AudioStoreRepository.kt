@@ -249,7 +249,7 @@ class AudioStoreRepository(
     }
 
     private fun enableMusicSelection(): String {
-        return "${MediaStore.Audio.Media.IS_MUSIC} != 0 and ${MediaStore.Audio.Media.DURATION} > 0"
+        return "${MediaStore.Audio.Media.DURATION} > 0"
     }
 
     /**
