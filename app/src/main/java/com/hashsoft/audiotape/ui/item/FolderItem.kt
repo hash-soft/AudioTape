@@ -1,8 +1,11 @@
 package com.hashsoft.audiotape.ui.item
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Icon
@@ -30,7 +33,8 @@ fun FolderItem(
         leadingContent = {
             Icon(
                 imageVector = Icons.Default.Folder,
-                null
+                null,
+                modifier = Modifier.fillMaxHeight()
             )
         },
         headlineContent = { Text(name) },
@@ -48,9 +52,11 @@ fun FolderItem(
             }
 
         },
-        modifier = Modifier.clickable {
-            audioCallback(AudioCallbackArgument.FolderSelected(path))
-        },
+        modifier = Modifier
+            .height(IntrinsicSize.Min)
+            .clickable {
+                audioCallback(AudioCallbackArgument.FolderSelected(path))
+            },
     )
 }
 
