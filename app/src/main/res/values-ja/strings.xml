@@ -56,11 +56,11 @@
     <string name="help_select_folder_title">フォルダ選択</string>
     <string name="help_select_folder_description">フォルダ内のオーディオを選びます。\n選択すると自動でテープが作成され、\n再生が始まります。（長押しで再生画面へ）</string>
     <string name="help_select_tape_title">テープ選択</string>
-    <string name="help_select_tape_description">作成済みのテープを選びます。\nタップで続きから再生し、必要に応じて再生画面へ遷移します。（長押しで移動）</string>
+    <string name="help_select_tape_description">作成済みのテープを選びます。\nタップで続きから再生が始まります。（長押しで再生画面へ）</string>
     <string name="help_mini_player_title">簡易再生</string>
-    <string name="help_mini_player_description">画面下部のミニプレイヤーです。\n再生・一時停止、曲送りが可能。\nタップで再生画面へ移動します。</string>
+    <string name="help_mini_player_description">画面下部のミニプレイヤーです。\n再生・一時停止、曲送りができます。\nタップで再生画面へ移動します。</string>
     <string name="help_player_screen_title">再生画面</string>
-    <string name="help_player_screen_description">すべての機能が使えるフルプレイヤーです。\n再生制御のほか、テープごとの各種設定が行えます。</string>
+    <string name="help_player_screen_description">すべての機能が使えるフルプレイヤーです。\n再生制御のほか、テープごとの設定が行えます。</string>
     <string name="licenses_title">ライセンス情報</string>
     <string name="licenses_description">ライセンス情報を表示します</string>
     <string name="privacy_policy_title">プライバシーポリシー</string>

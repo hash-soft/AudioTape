@@ -69,11 +69,11 @@
     <string name="help_select_folder_title">Select Folder</string>
     <string name="help_select_folder_description">Select an audio file from a folder.\nSelecting a file automatically creates a tape\nand starts playback. (Long press for Player)</string>
     <string name="help_select_tape_title">Select Tape</string>
-    <string name="help_select_tape_description">Choose a previously created tape.\nTap to resume playback or transition to the Player. (Long press to open)</string>
+    <string name="help_select_tape_description">Choose a previously created tape.\nTap to resume playback. (Long press for Player)</string>
     <string name="help_mini_player_title">Mini Player</string>
     <string name="help_mini_player_description">Located at the bottom of the screen.\nControl Play/Pause and Skip tracks.\nTap to expand to the full Player.</string>
     <string name="help_player_screen_title">Full Player</string>
-    <string name="help_player_screen_description">The complete playback screen.\nAccess all controls and customize settings for each individual tape.</string>
+    <string name="help_player_screen_description">The complete playback screen.\nAccess controls and customize settings for each individual tape.</string>
     <string name="licenses_title">Open Source Licenses</string>
     <string name="licenses_description">View Open Source Licenses</string>
     <string name="privacy_policy_title">Privacy Policy</string>
