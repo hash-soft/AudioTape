@@ -28,10 +28,10 @@ class AudioTapeRepository(private val audioTapeDao: AudioTapeDao) {
         val audioTapeFlow = when (sort) {
             AudioTapeListSortOrder.NAME_ASC -> audioTapeDao.getAllByNameAsc()
             AudioTapeListSortOrder.NAME_DESC -> audioTapeDao.getAllByNameDesc()
-            AudioTapeListSortOrder.LAST_PLAYED_ASC -> audioTapeDao.getAllByLastPlayedAsc()
-            AudioTapeListSortOrder.LAST_PLAYED_DESC -> audioTapeDao.getAllByLastPlayedDesc()
-            AudioTapeListSortOrder.CREATED_ASC -> audioTapeDao.getAllByCreatedAsc()
-            AudioTapeListSortOrder.CREATED_DESC -> audioTapeDao.getAllByCreatedDesc()
+            AudioTapeListSortOrder.LAST_PLAYED_NEW -> audioTapeDao.getAllByLastPlayedDesc()
+            AudioTapeListSortOrder.LAST_PLAYED_OLD -> audioTapeDao.getAllByLastPlayedAsc()
+            AudioTapeListSortOrder.CREATED_NEW -> audioTapeDao.getAllByCreatedDesc()
+            AudioTapeListSortOrder.CREATED_OLD -> audioTapeDao.getAllByCreatedAsc()
         }
         return audioTapeFlow.map { list ->
             list.map {

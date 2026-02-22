@@ -10,14 +10,14 @@ enum class AudioTapeListSortOrder {
     /** 名前(降順) */
     NAME_DESC,
 
-    /** 最終再生(昇順) */
-    LAST_PLAYED_ASC,
+    /** 最終再生(新しい) */
+    LAST_PLAYED_NEW,
 
-    /** 最終再生(降順) */
-    LAST_PLAYED_DESC,
+    /** 最終再生(古い) */
+    LAST_PLAYED_OLD,
 
-    CREATED_ASC,
-    CREATED_DESC;
+    CREATED_NEW,
+    CREATED_OLD;
 
 
     companion object {

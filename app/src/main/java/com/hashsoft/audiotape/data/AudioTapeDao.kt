@@ -134,7 +134,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY name DESC")
+    @Query("SELECT * FROM audio_tape ORDER BY name ASC")
     fun getAllByNameAsc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -142,7 +142,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY name ASC")
+    @Query("SELECT * FROM audio_tape ORDER BY name DESC")
     fun getAllByNameDesc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -150,7 +150,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY last_played_at DESC")
+    @Query("SELECT * FROM audio_tape ORDER BY last_played_at ASC")
     fun getAllByLastPlayedAsc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -158,7 +158,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY last_played_at ASC")
+    @Query("SELECT * FROM audio_tape ORDER BY last_played_at DESC")
     fun getAllByLastPlayedDesc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -166,7 +166,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY create_time DESC")
+    @Query("SELECT * FROM audio_tape ORDER BY create_time ASC")
     fun getAllByCreatedAsc(): Flow<List<AudioTapeEntity>>
 
     /**
@@ -174,7 +174,7 @@ interface AudioTapeDao {
      *
      * @return オーディオテープのリスト
      */
-    @Query("SELECT * FROM audio_tape ORDER BY create_time ASC")
+    @Query("SELECT * FROM audio_tape ORDER BY create_time DESC")
     fun getAllByCreatedDesc(): Flow<List<AudioTapeEntity>>
 
     /**
