@@ -15,15 +15,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioItemDto
 import com.hashsoft.audiotape.data.AudioItemMetadata
 import com.hashsoft.audiotape.data.AudioTapeDto
 import com.hashsoft.audiotape.data.ItemStatus
-import com.hashsoft.audiotape.logic.TextHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.dialog.AudioPopupSelector
+import com.hashsoft.audiotape.ui.resource.buildAnnotatedSettings
 import com.hashsoft.audiotape.ui.text.TappableMarqueeText
 import com.hashsoft.audiotape.ui.theme.AudioPlayItemHorizonalPadding
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
@@ -47,7 +48,7 @@ fun AudioPlayCurrentItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             TappableMarqueeText(
-                text = if (metadata == null) "" else TextHelper.joinNonEmpty(
+                text = if (metadata == null) AnnotatedString("") else buildAnnotatedSettings(
                     stringResource(R.string.metadata_separator),
                     metadata.artist,
                     metadata.title,
