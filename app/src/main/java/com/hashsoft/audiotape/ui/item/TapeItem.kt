@@ -17,11 +17,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.hashsoft.audiotape.R
 import com.hashsoft.audiotape.data.AudioTapeSortOrder
 import com.hashsoft.audiotape.data.ItemStatus
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
+import com.hashsoft.audiotape.ui.resource.treeListToAnnotatedString
 import com.hashsoft.audiotape.ui.theme.AudioTapeTheme
 import com.hashsoft.audiotape.ui.theme.TapeListItemHorizonalPadding
 import com.hashsoft.audiotape.ui.theme.TapeListItemVerticalPadding
@@ -55,7 +59,7 @@ import com.hashsoft.audiotape.ui.theme.smallFontSize
 @Composable
 fun TapeItem(
     index: Int,
-    title: String,
+    title: AnnotatedString,
     folderPath: String,
     currentNo: Int,
     count: Int,
@@ -140,7 +144,10 @@ private fun TapeItemPreview() {
     AudioTapeTheme {
         TapeItem(
             1,
-            "directory",
+            treeListToAnnotatedString(
+                listOf("sdcard", "directory"),
+                stringResource(R.string.path_separator)
+            ),
             "path",
             3,
             10,

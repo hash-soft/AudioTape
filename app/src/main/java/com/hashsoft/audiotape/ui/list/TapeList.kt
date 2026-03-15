@@ -7,13 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.hashsoft.audiotape.R
-import com.hashsoft.audiotape.logic.StorageHelper
 import com.hashsoft.audiotape.ui.AudioCallbackArgument
 import com.hashsoft.audiotape.ui.DisplayTapeItem
 import com.hashsoft.audiotape.ui.bar.DeleteTapeSelectionBar
 import com.hashsoft.audiotape.ui.bar.TapeBar
 import com.hashsoft.audiotape.ui.item.TapeCheckItem
 import com.hashsoft.audiotape.ui.item.TapeItem
+import com.hashsoft.audiotape.ui.resource.treeListToAnnotatedString
 
 @Composable
 fun TapeList(
@@ -51,7 +51,7 @@ fun TapeList(
         items(displayTapeList.size) {
             val item = displayTapeList[it]
             val tape = item.audioTape
-            val title = StorageHelper.treeListToString(
+            val title = treeListToAnnotatedString(
                 item.treeList,
                 stringResource(R.string.path_separator),
                 default = item.audioTape.folderPath
